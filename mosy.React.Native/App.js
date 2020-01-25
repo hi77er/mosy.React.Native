@@ -1,19 +1,153 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-    </View>
-  );
-}
+import DishesScreen from './src/screens/DishesScreen';
+import VenuesScreen from './src/screens/VenuesScreen';
+import DishDetailsScreen from './src/screens/DishDetailsScreen';
+import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
+import MenuScreen from './src/screens/MenuScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
+import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
+import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
+import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
+import { Provider as AuthProvider } from './src/context/AuthContext';
+import TabBarButton from './src/components/nav/bottom/TabBarButton';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
+import { setNavigator } from './src/navigationRef';
+
+const loginFlow = createStackNavigator({
+  Login: LoginScreen,
+  SignUp: SignUpScreen,
 });
+
+const venuesFlow = createStackNavigator(
+  {
+    Venues: {
+      screen: VenuesScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    VenueDetails: VenueDetailsScreen,
+    Menu: MenuScreen,
+  },
+  {
+    navigationOptions: {
+      tabBarLabel: "Venues",
+    },
+  }
+);
+
+const dishesFlow = createStackNavigator(
+  {
+    Dishes: {
+      screen: DishesScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    DishDetails: DishDetailsScreen,
+  },
+  {
+    navigationOptions: {
+      tabBarLabel: "Dishes",
+    },
+  }
+);
+
+const operatorFlow = createStackNavigator(
+  {
+    OperatorVenues: {
+      screen: OperatorVenuesScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    OperatorTableAccounts: OperatorTableAccountsScreen,
+    OperatorTableOrders: OperatorTableOrdersScreen,
+  },
+  {
+    navigationOptions: {
+      tabBarLabel: "Operations",
+    },
+  }
+);
+
+const switchNavigator = createSwitchNavigator(
+  {
+    loginFlow,
+    mainFlow: createBottomTabNavigator(
+      {
+        venuesFlow,
+        dishesFlow,
+        Login: LoginScreen,
+      },
+      {
+        initialRouteName: "venuesFlow",
+        defaultNavigationOptions: ({ navigation }) => ({
+          tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
+        }),
+        tabBarOptions: {
+          style: {
+            backgroundColor: "#90002d",
+          },
+        },
+      }
+    ),
+    mainAuthorizedFlow: createBottomTabNavigator(
+      {
+        venuesFlow,
+        dishesFlow,
+        Profile: ProfileScreen,
+      },
+      {
+        initialRouteName: "venuesFlow",
+        defaultNavigationOptions: ({ navigation }) => ({
+          tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
+        }),
+        tabBarOptions: {
+          style: {
+            backgroundColor: "#90002d",
+          },
+        },
+      }
+    ),
+    mainOperatorFlow: createBottomTabNavigator(
+      {
+        venuesFlow,
+        dishesFlow,
+        operatorFlow,
+        Profile: ProfileScreen,
+      },
+      {
+        initialRouteName: "venuesFlow",
+        defaultNavigationOptions: ({ navigation }) => ({
+          tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
+        }),
+        tabBarOptions: {
+          style: {
+            backgroundColor: "#90002d",
+          },
+        },
+      }
+    ),
+  },
+  {
+    initialRouteName: 'mainFlow',
+  }
+);
+
+const App = createAppContainer(switchNavigator);
+
+export default () => {
+  return (
+    <AuthProvider>
+      <App ref={(navigator) => { setNavigator(navigator) }} />
+    </AuthProvider>
+  )
+};
