@@ -3,6 +3,8 @@ import { SafeAreaView } from 'react-navigation';
 import { FlatList, Image, View, StyleSheet } from 'react-native';
 import { Button, Card, Text, SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DishFiltersModal from '../components/modal/DishFiltersModal';
@@ -61,13 +63,51 @@ const DishesScreen = ({ navigation }) => {
       return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
         <Card
           key={item.id}
-          containerStyle={{ padding: 7, marginTop: 0, marginLeft: 0, marginRight: 0, marginBottom: 7 }}>
+          containerStyle={{
+            paddingLeft: 7,
+            paddingBottom: 7,
+            paddingTop: 7,
+            paddingRight: 0,
+            marginTop: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            marginBottom: 7,
+          }}>
           <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
             <Image
               style={{ width: 130, height: 130, marginRight: 5 }}
               source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-            <View>
-              <Text h4 style={{ color: "black" }}>{item.name}</Text>
+            <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, flexDirection: "row" }}>
+                <View style={{ flex: 3 }}>
+                  <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
+                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.name}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  {/* open/close/new/recom */}
+                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" }}>CLOSED</Text>
+                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" }}>RECOM</Text>
+                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" }}>NEW</Text>
+                </View>
+              </View>
+              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
+                {/* distance/time/price */}
+                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
+                  {/* distance */}
+                  <MaterialCommunityIcons name="map-marker-distance" size={28} color="#666" />
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999m</Text>
+                </View>
+                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
+                  {/* arriving in */}
+                  <FontAwesome5Icon name="walking" size={28} color="#666" />
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>38min</Text>
+                </View>
+                <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
+                  {/* price */}
+                  <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999,99лв.</Text>
+                </View>
+              </View>
             </View>
           </View>
         </Card>
@@ -75,14 +115,14 @@ const DishesScreen = ({ navigation }) => {
     }} />
 
 
-    <ActionButton
+    < ActionButton
       renderIcon={() => <IoniconsIcon name="ios-color-filter" size={22} color="white" />}
       buttonColor="orange"
       onPress={handleShowFilters}
       style={styles.filtersButton}
     />
     <DishFiltersModal ref={dishFiltersModalRef} />
-  </View>;
+  </View >;
 };
 
 const styles = StyleSheet.create({
