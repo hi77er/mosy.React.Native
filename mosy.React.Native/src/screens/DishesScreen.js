@@ -7,7 +7,9 @@ import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import DishFiltersModal from '../components/modal/DishFiltersModal';
 import ActionButton from 'react-native-action-button';
-
+// MaterialCommunityIcons - map-maker-distance
+// FontAwesome - walking || MaterialCommunityIons - time-sand
+// Ionicons - md-pricetag
 
 import Spacer from '../components/Spacer';
 

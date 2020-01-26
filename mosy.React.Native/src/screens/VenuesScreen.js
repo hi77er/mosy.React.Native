@@ -8,7 +8,9 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import VenueFiltersModal from '../components/modal/VenueFiltersModal';
 import ActionButton from 'react-native-action-button';
-
+// MaterialCommunityIcons - map-maker-distance
+// FontAwesome - walking || MaterialCommunityIons - time-sand
+// Ionicons - md-pricetag
 
 
 const VenuesScreen = ({ navigation }) => {
