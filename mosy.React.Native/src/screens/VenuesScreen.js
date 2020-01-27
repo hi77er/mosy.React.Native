@@ -5,22 +5,81 @@ import { Text, SearchBar, Card } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Spacer from '../components/Spacer';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
-import VenueFiltersModal from '../components/modal/VenueFiltersModal';
-import ActionButton from 'react-native-action-button';
-
-
+import FiltersBar from '../components/nav/top/filters/FiltersBar';
 
 const VenuesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
+  const [showFilters, setShowFilters] = useState(false);
 
-  const venueFiltersModalRef = useRef(null);
-
-  const handleShowFilters = () => {
-    venueFiltersModalRef.current.show();
-  };
+  const filters = [
+    {
+      name: "accessibility",
+      label: "Accessibility",
+      type: "MULTI_CHOICE",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "availabilit",
+      label: "Availability",
+      type: "RADIO_BUTTON",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "athmosphere",
+      label: "Athmosphere",
+      type: "MULTI_CHOICE",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "experienceNotRequired",
+      label: "Culture",
+      type: "RADIO_BUTTON",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    }
+  ];
 
   const venues = [
     { id: "1", name: "Venue number 1" },
@@ -40,112 +99,115 @@ const VenuesScreen = ({ navigation }) => {
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
-      <SearchBar
-        placeholder="Search venues ..."
-        placeholderTextColor="white"
-        selectionColor="white"
-        searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
-        containerStyle={styles.searchContainer}
-        inputContainerStyle={styles.searchInputContainer}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        inputStyle={styles.searchInput}
-        clearIcon={
-          () => <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <MaterialIcon name="clear" size={24} color="white" />
-          </TouchableOpacity>
-        }
-      />
+      <View style={{ flexDirection: "row" }}>
+        <SearchBar
+          placeholder="Search venues ..."
+          placeholderTextColor="white"
+          selectionColor="white"
+          searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
+          containerStyle={styles.searchContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          inputStyle={styles.searchInput}
+          clearIcon={
+            () => <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <MaterialIcon name="clear" size={24} color="white" />
+            </TouchableOpacity>
+          } />
+        <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+          {
+            showFilters
+              ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+              : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+          }
+        </TouchableOpacity>
+      </View>
+      {showFilters ? <FiltersBar filters={filters} /> : null}
     </SafeAreaView>
 
     <FlatList data={venues} renderItem={({ item }) => {
-      return <Card
-        key={item.id}
-        containerStyle={{
-          paddingLeft: 7,
-          paddingBottom: 7,
-          paddingTop: 7,
-          paddingRight: 0,
-          marginTop: 0,
-          marginLeft: 0,
-          marginRight: 0,
-          marginBottom: 7,
-        }}>
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          <View style={{ flex: 5 }}>
-            <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-            <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.name}</Text>
+      return <Card key={item.id} containerStyle={styles.cardContainerStyle}>
+        <View style={styles.cardHeaderContainer}>
+          <View style={styles.cardTitleContainer}>
+            <Text style={styles.cardH1}>{item.name}</Text>
+            <Text style={styles.cardH2}>{item.name}</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            {/* open/close/new/recom */}
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" }}>CLOSED</Text>
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" }}>RECOM</Text>
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" }}>NEW</Text>
+          <View style={styles.cardLabelsContainer}>
+            <Text style={styles.cardLabelGreen}>CLOSED</Text>
+            <Text style={styles.cardLabelYellow}>RECOM</Text>
+            <Text style={styles.cardLabelBlue}>NEW</Text>
           </View>
         </View>
-        <View style={{ flex: 1, flexDirection: "row", marginRight: 7 }}>
+        <View style={styles.cardBodyContainer}>
           <Image
-            style={{ width: 130, height: 130, marginRight: 5 }}
+            style={styles.cardImage}
             source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-          <View style={{ flex: 1, flexDirection: "row" }}>
-            <View style={{ flex: 3, alignItems: "center", justifyContent: "flex-end" }}>
-              <MaterialCommunityIcons name="map-marker-distance" size={28} color="#666" />
-              <Text style={{ fontWeight: "bold", color: "#666" }}>999km</Text>
+          <View style={styles.cardDashboardContainer}>
+            <View style={styles.cardDashboardInfo}>
+              <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
+              <Text style={styles.cardDashboardInfoLabel}>999km</Text>
             </View>
-            <View style={{ flex: 3, alignItems: "center", justifyContent: "flex-end" }}>
+            <View style={styles.cardDashboardInfo}>
               <FontAwesome5Icon name="walking" size={28} color="#666" />
-              <Text style={{ fontWeight: "bold", color: "#666" }}>38min</Text>
+              <Text style={styles.cardDashboardInfoLabel}>38min</Text>
             </View>
-            <View style={{ flex: 4, alignItems: "center", justifyContent: "flex-end" }}>
-              <TouchableOpacity style={{ borderWidth: 2, borderColor: "#90002d", width: 80, height: 80, borderRadius: 7, justifyContent: "center", alignItems: "center" }} onPress={() => navigation.navigate("Menu")}>
-                <Text style={{ textAlign: "center", fontWeight: "bold", color: "#90002d" }}>MENU</Text>
+            <View style={styles.cardDashboardButton}>
+              <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("Menu")}>
+                <Text style={styles.cardDashboardButtonLabel}>MENU</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ flex: 4, alignItems: "center", justifyContent: "flex-end" }}>
-              <TouchableOpacity style={{ borderWidth: 2, borderColor: "#90002d", width: 80, height: 80, borderRadius: 7, justifyContent: "center", alignItems: "center" }} onPress={() => navigation.navigate("VenueDetails")}>
-                <Text style={{ textAlign: "center", fontWeight: "bold", color: "#90002d" }}>VENUE INFO</Text>
+            <View style={styles.cardDashboardButton}>
+              <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("VenueDetails")}>
+                <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Card>
-    }}>
-
-    </FlatList>
-
-    <ActionButton
-      renderIcon={() => <IoniconsIcon name="ios-color-filter" size={22} color="white" />}
-      buttonColor="orange"
-      onPress={handleShowFilters}
-      style={styles.filtersButton}
-    />
-    <VenueFiltersModal ref={venueFiltersModalRef} />
-
-  </View>;
+    }} />
+  </View >;
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#90002D" },
   searchContainer: {
+    flex: 1,
     borderBottomColor: "transparent",
     borderTopColor: "transparent",
     backgroundColor: "#90002d",
   },
-  searchInputContainer: {
-    backgroundColor: "#630017",
-    borderRadius: 8,
+  searchInputContainer: { backgroundColor: "#630017", borderRadius: 8, },
+  searchInput: { color: "white", },
+  topNavIconButton: { marginLeft: 5, marginTop: 12, marginRight: 15, },
+  cardContainerStyle: {
+    paddingLeft: 7,
+    paddingBottom: 7,
+    paddingTop: 7,
+    paddingRight: 0,
+    marginTop: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    marginBottom: 7,
   },
-  searchInput: {
-    color: "white",
-    opacity: 0.85,
-  },
-  filtersButton: {
-    position: "absolute",
-    bottom: -10,
-    right: -10,
-  }
+  cardHeaderContainer: { flex: 1, flexDirection: "row" },
+  cardTitleContainer: { flex: 5 },
+  cardLabelsContainer: { flex: 1 },
+  cardH1: { color: "#666", fontSize: 16, fontWeight: "bold" },
+  cardH2: { color: "darkgray", fontSize: 13, fontWeight: "bold" },
+  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
+  cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
+  cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
+  cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
+  cardBodyContainer: { flex: 1, flexDirection: "row", marginRight: 7 },
+  cardImage: { width: 100, height: 100, marginRight: 5 },
+  cardDashboardContainer: { flex: 1, flexDirection: "row" },
+  cardDashboardInfo: { flex: 3, alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardInfoLabel: { fontWeight: "bold", color: "#666" },
+  cardDashboardButton: { flex: 4, alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "#90002d", width: 62, height: 62, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "#90002d" },
 });
-
 
 
 export default VenuesScreen;

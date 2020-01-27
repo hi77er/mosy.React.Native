@@ -1,15 +1,88 @@
-import React from 'react';
-import { SafeAreaView } from 'react-navigation';
-import { StyleSheet } from 'react-native';
-import { Text } from 'react-native-elements';
-import Spacer from '../components/Spacer';
+import React, { useState } from 'react';
+import { StyleSheet, Image, ImageBackground, Modal, ScrollView, View } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Text, Card } from 'react-native-elements';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
 const DishDetailsScreen = () => {
-  return <SafeAreaView forceInset={{ top: "always" }}>
-    <Spacer>
-      <Text h3>DishDetailsScreen</Text>
-    </Spacer>
-  </SafeAreaView>;
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+
+  const testImageUrl = "https://img.buzzfeed.com/video-api-prod/assets/d03461e6d185483da8317cf9ee03433e/BFV18861_ChickenTikkaMasala-ThumbA1080.jpg";
+
+  return <View style={{ flex: 1 }}>
+    <View style={{ height: '45%' }}>
+      <ImageBackground
+        source={{ uri: testImageUrl }}
+        style={{ flex: 1, justifyContent: "flex-end" }}
+        imageStyle={{ height: "100%", resizeMode: "stretch" }}>
+        <LinearGradient
+          colors={['transparent', 'white']}
+          style={{ flex: 1 }}>
+          <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
+            <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
+              <TouchableOpacity
+                style={{ borderWidth: 2, borderColor: "#90002D", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                onPress={() => setImageModalVisible(true)}>
+                <MaterialIcon name="share" size={24} color="#90002D" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
+              <TouchableOpacity
+                style={{ marginRight: 10, borderWidth: 2, borderColor: "#90002D", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                onPress={() => { }}>
+                <MaterialCommunityIcon name="menu" size={24} color="#90002D" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ marginRight: 10, borderWidth: 2, borderColor: "#90002D", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                onPress={() => { }}>
+                <EntypoIcon name="location" size={24} color="#90002D" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
+    </View>
+
+    <View style={{ marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#90002D', textAlign: "center" }}>
+        Chicken ticka masala
+      </Text>
+      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginLeft: 15, marginRight: 15, textAlign: "center" }}>
+        crispy chicken, masala souce, season vegetbles, rice
+      </Text>
+    </View>
+
+    <ScrollView style={{ backgroundColor: "white" }}>
+      <Card containerStyle={{ borderRadius: 5 }}>
+        <Text style={{ color: "#666", fontSize: 16 }}>
+          Filters
+        </Text>
+      </Card>
+      <Card containerStyle={{ height: 100, borderRadius: 5 }}>
+        <Text style={{ color: "#666", fontSize: 16 }}>
+          Contacts
+        </Text>
+      </Card>
+      <Card containerStyle={{ height: 300, marginBottom: 15, borderRadius: 5 }}>
+        <Text style={{ color: "#666", fontSize: 16 }}>
+          Location
+        </Text>
+      </Card>
+    </ScrollView>
+
+    <Modal
+      visible={imageModalVisible}
+      onRequestClose={() => setImageModalVisible(false)}>
+      <ImageViewer
+        imageUrls={[{ url: testImageUrl }]}
+        enableSwipeDown
+        onSwipeDown={() => setImageModalVisible(false)} />
+    </Modal>
+  </View>;
 };
 
 const styles = StyleSheet.create({});

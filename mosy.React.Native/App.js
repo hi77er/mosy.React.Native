@@ -33,7 +33,12 @@ const venuesFlow = createStackNavigator(
         headerShown: false,
       },
     },
-    VenueDetails: VenueDetailsScreen,
+    VenueDetails: {
+      screen: VenueDetailsScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
     Menu: MenuScreen,
   },
   {
@@ -51,7 +56,12 @@ const dishesFlow = createStackNavigator(
         headerShown: false,
       },
     },
-    DishDetails: DishDetailsScreen,
+    DishDetails: {
+      screen: DishDetailsScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
@@ -95,6 +105,7 @@ const switchNavigator = createSwitchNavigator(
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }
@@ -113,6 +124,7 @@ const switchNavigator = createSwitchNavigator(
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }
@@ -132,6 +144,7 @@ const switchNavigator = createSwitchNavigator(
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }

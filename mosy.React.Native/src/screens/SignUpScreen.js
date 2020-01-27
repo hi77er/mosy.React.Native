@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Button, Input, Text } from 'react-native-elements';
