@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, Image, ImageBackground, Modal, ScrollView, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Text, Card } from 'react-native-elements';
@@ -6,10 +6,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
-import ImageViewer from 'react-native-image-zoom-viewer';
+import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 
 const DishDetailsScreen = () => {
-  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const imagesPreviewModalRef = useRef(null);
+
 
   const testImageUrl = "https://img.buzzfeed.com/video-api-prod/assets/d03461e6d185483da8317cf9ee03433e/BFV18861_ChickenTikkaMasala-ThumbA1080.jpg";
 
@@ -26,7 +27,7 @@ const DishDetailsScreen = () => {
             <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
               <TouchableOpacity
                 style={{ borderWidth: 2, borderColor: "#90002D", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                onPress={() => setImageModalVisible(true)}>
+                onPress={() => imagesPreviewModalRef.current.show()}>
                 <MaterialIcon name="share" size={24} color="#90002D" />
               </TouchableOpacity>
             </View>
@@ -74,14 +75,7 @@ const DishDetailsScreen = () => {
       </Card>
     </ScrollView>
 
-    <Modal
-      visible={imageModalVisible}
-      onRequestClose={() => setImageModalVisible(false)}>
-      <ImageViewer
-        imageUrls={[{ url: testImageUrl }]}
-        enableSwipeDown
-        onSwipeDown={() => setImageModalVisible(false)} />
-    </Modal>
+    <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
   </View>;
 };
 
