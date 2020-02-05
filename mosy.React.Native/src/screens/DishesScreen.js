@@ -3,22 +3,17 @@ import { SafeAreaView } from 'react-navigation';
 import { FlatList, Image, View, StyleSheet } from 'react-native';
 import { Button, Card, Text, SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import DishFiltersModal from '../components/modal/DishFiltersModal';
-import ActionButton from 'react-native-action-button';
-// MaterialCommunityIcons - map-maker-distance
-// FontAwesome - walking || MaterialCommunityIons - time-sand
-// Ionicons - md-pricetag
+import FiltersBar from '../components/nav/top/filters/FiltersBar';
 
-import Spacer from '../components/Spacer';
 
 const DishesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
 
-  const dishFiltersModalRef = useRef(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const dishes = [
     { id: "1", name: "Dish 1" },
@@ -35,28 +30,103 @@ const DishesScreen = ({ navigation }) => {
     { id: "12", name: "Dish 12" },
   ];
 
-  const handleShowFilters = () => {
-    dishFiltersModalRef.current.show();
-  };
+  const filters = [
+    {
+      name: "accessibility",
+      label: "Accessibility",
+      type: "MULTI_CHOICE",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "availabilit",
+      label: "Availability",
+      type: "RADIO_BUTTON",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "athmosphere",
+      label: "Athmosphere",
+      type: "MULTI_CHOICE",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    },
+    {
+      name: "experienceNotRequired",
+      label: "Culture",
+      type: "RADIO_BUTTON",
+      items: [
+        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
+        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
+        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
+        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
+        { id: '667atsas', name: 'Maiduguri Maiduguri', },
+        { id: 'hsyasajs', name: 'Anambra', },
+        { id: 'djsjudksjd', name: 'Benue', },
+        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
+        { id: 'suudydjsjd', name: 'Abuja', }
+      ],
+    }
+  ];
+
+
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
-      <SearchBar
-        placeholder="Search dishes ..."
-        placeholderTextColor="white"
-        selectionColor="white"
-        searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
-        containerStyle={styles.searchContainer}
-        inputContainerStyle={styles.searchInputContainer}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        inputStyle={styles.searchInput}
-        clearIcon={
-          () => <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <MaterialIcon name="clear" size={24} color="white" />
-          </TouchableOpacity>
-        }
-      />
+      <View style={{ flexDirection: "row" }}>
+        <SearchBar
+          placeholder="Search dishes ..."
+          placeholderTextColor="white"
+          selectionColor="white"
+          searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
+          containerStyle={styles.searchContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          inputStyle={styles.searchInput}
+          clearIcon={
+            () => <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <MaterialIcon name="clear" size={24} color="white" />
+            </TouchableOpacity>
+          }
+        />
+        <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+          {
+            showFilters
+              ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+              : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+          }
+        </TouchableOpacity>
+      </View>
+      {showFilters ? <FiltersBar filters={filters} /> : null}
     </SafeAreaView>
 
     <FlatList data={dishes} renderItem={({ item }) => {
@@ -94,7 +164,7 @@ const DishesScreen = ({ navigation }) => {
                 {/* distance/time/price */}
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
                   {/* distance */}
-                  <MaterialCommunityIcons name="map-marker-distance" size={28} color="#666" />
+                  <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
                   <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999m</Text>
                 </View>
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
@@ -115,19 +185,13 @@ const DishesScreen = ({ navigation }) => {
     }} />
 
 
-    < ActionButton
-      renderIcon={() => <IoniconsIcon name="ios-color-filter" size={22} color="white" />}
-      buttonColor="orange"
-      onPress={handleShowFilters}
-      style={styles.filtersButton}
-    />
-    <DishFiltersModal ref={dishFiltersModalRef} />
   </View >;
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#90002D" },
   searchContainer: {
+    flex: 1,
     borderBottomColor: "transparent",
     borderTopColor: "transparent",
     backgroundColor: "#90002d",
@@ -136,6 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#630017",
     borderRadius: 8,
   },
+  topNavIconButton: { marginLeft: 5, marginTop: 12, marginRight: 15, },
   searchInput: {
     color: "white",
     opacity: 0.85,

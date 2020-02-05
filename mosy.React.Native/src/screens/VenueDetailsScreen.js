@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, Image, ImageBackground, Modal, ScrollView, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Text, Card } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import ImageViewer from 'react-native-image-zoom-viewer';
+import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 
 const VenueDetailsScreen = () => {
-  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const imagesPreviewModalRef = useRef(null);
 
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
 
@@ -32,7 +32,7 @@ const VenueDetailsScreen = () => {
             <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
               <TouchableOpacity
                 style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                onPress={() => setImageModalVisible(true)}>
+                onPress={() => imagesPreviewModalRef.current.show()}>
                 <MaterialIcon name="call" size={24} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -45,6 +45,7 @@ const VenueDetailsScreen = () => {
         </LinearGradient>
       </ImageBackground>
     </View>
+
 
     <ScrollView style={{ backgroundColor: "#90002d" }}>
       <Card containerStyle={{ borderRadius: 5 }}>
@@ -64,15 +65,8 @@ const VenueDetailsScreen = () => {
       </Card>
     </ScrollView>
 
-    <Modal
-      visible={imageModalVisible}
-      onRequestClose={() => setImageModalVisible(false)}>
-      <ImageViewer
-        imageUrls={[{ url: testImageUrl }]}
-        enableSwipeDown
-        onSwipeDown={() => setImageModalVisible(false)} />
-    </Modal>
-  </View >;
+    <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
+  </View>;
 };
 
 const styles = StyleSheet.create({});
