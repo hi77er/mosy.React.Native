@@ -1,18 +1,47 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { FlatList, Image, StyleSheet, Button, View } from 'react-native';
 import { Text, SearchBar, Card } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Spacer from '../components/Spacer';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
+import {
+  requestPermissionsAsync,
+  watchPositionAsync,
+  Accuracy
+} from 'expo-location';
+import { Context as LocationContext } from '../context/LocationContext';
 
 const VenuesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
+
+  const { state, setLocation } = useContext(LocationContext);
+
+  const watchLocation = async () => {
+    try {
+      await requestPermissionsAsync();
+      console.log("dwa");
+      await watchPositionAsync(
+        {
+          accuracy: Accuracy.BestForNavigation,
+          timeInterval: 1000,
+          distanceInterval: 10,
+        },
+        (location) => {
+          console.log(location);
+          if (state && !state.lastDetectedLocation)
+            console.log("shte go bude");
+          setLocation(location);
+        }
+      );
+    }
+    catch {
+
+    }
+  };
 
   const filters = [
     {
@@ -96,6 +125,9 @@ const VenuesScreen = ({ navigation }) => {
     { id: "12", name: "Venue number 12" },
   ];
 
+  useEffect(() => {
+    watchLocation().then(() => console.log("started watching"));
+  }, []);
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>

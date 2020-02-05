@@ -3,6 +3,9 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 
+import { Provider as AuthProvider } from './src/context/AuthContext';
+import { Provider as LocationProvider } from './src/context/LocationContext';
+
 import DishesScreen from './src/screens/DishesScreen';
 import VenuesScreen from './src/screens/VenuesScreen';
 import DishDetailsScreen from './src/screens/DishDetailsScreen';
@@ -14,7 +17,6 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
 import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
-import { Provider as AuthProvider } from './src/context/AuthContext';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
 
 
@@ -160,7 +162,9 @@ const App = createAppContainer(switchNavigator);
 export default () => {
   return (
     <AuthProvider>
-      <App ref={(navigator) => { setNavigator(navigator) }} />
+      <LocationProvider>
+        <App ref={(navigator) => { setNavigator(navigator) }} />
+      </LocationProvider>
     </AuthProvider>
   )
 };
