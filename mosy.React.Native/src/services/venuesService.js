@@ -1,1 +1,1 @@
-import { AuthService } from '';
+import { authService } from './authService';

@@ -1,6 +1,7 @@
 import { AsyncStorage } from 'react-native';
 import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
+import { authService } from '../services/authService';
 
 const authReducer = (state, action) => {
   let result = state;
@@ -10,10 +11,20 @@ const authReducer = (state, action) => {
       result = { ...state, errorMessage: action.payload, isAuthorized: false };
       break;
     case 'signin':
-      result = { ...state, token: action.payload, isAuthorized: true }
+      result = {
+        ...state,
+        accessToken: action.payload.accessToken.access_token,
+        refreshToken: action.payload.refreshToken.access_token,
+        isAuthorized: true
+      };
       break;
     case 'signout':
-      result = { ...state, token: null, isAuthorized: false }
+      result = {
+        ...state,
+        accessToken: null,
+        refreshToken: null,
+        isAuthorized: false
+      };
       break;
   }
   return result;
@@ -27,11 +38,16 @@ const signin = (dispatch) => {
       else {
 
         // const response = make API call 
-        const response = "the Token that the API returns";
-        const isOperator = true;
+        const result = await authService.login(email, pass);
+        console.log(result);
 
-        await AsyncStorage.setItem("token", response);
-        dispatch({ type: 'signin', payload: response });
+        const isOperator = true;
+        if (result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+          await AsyncStorage.setItem("accessToken", result.accessToken.access_token);
+          await AsyncStorage.setItem("refreshToken", result.refreshToken.access_token);
+        }
+
+        dispatch({ type: 'signin', payload: result });
 
         if (isOperator) navigate("mainOperatorFlow");
         else navigate("mainAuthorizedFlow");
@@ -48,7 +64,8 @@ const signin = (dispatch) => {
 
 const signout = (dispatch) => {
   return async () => {
-    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
     dispatch({ type: "signout" });
     navigate("mainFlow");
   }
@@ -59,7 +76,8 @@ export const { Provider, Context } = createDataContext(
   { signin, signout },
   {
     errorMessage: "",
-    token: null,
+    accessToken: null,
+    refreshToken: null,
     isAuthorized: false,
   }
 );
