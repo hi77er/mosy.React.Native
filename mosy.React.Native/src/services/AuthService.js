@@ -1,9 +1,8 @@
 import wsmosy from '../api/wsmosy';
-import { ThemeConsumer } from 'react-native-elements';
 
 
-export const AuthService = () => {
-
+export const authService = {
+  login,
 };
 
 function login(username, password) {
