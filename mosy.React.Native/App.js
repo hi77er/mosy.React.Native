@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
@@ -17,7 +17,9 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
 import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
+import SplashScreen from './src/screens/SplashScreen';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
+
 
 
 import { setNavigator } from './src/navigationRef';
@@ -154,17 +156,25 @@ const switchNavigator = createSwitchNavigator(
   },
   {
     initialRouteName: 'mainFlow',
-  }
+  },
 );
 
-const App = createAppContainer(switchNavigator);
+const AppContainer = createAppContainer(switchNavigator);
 
-export default () => {
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  
   return (
     <AuthProvider>
       <LocationProvider>
-        <App ref={(navigator) => { setNavigator(navigator) }} />
+        {
+          showSplash
+            ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
+            : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
+        }
       </LocationProvider>
     </AuthProvider>
   )
 };
+
+export default App;

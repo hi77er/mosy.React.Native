@@ -36,21 +36,19 @@ const signin = (dispatch) => {
       if (!email || !pass)
         dispatch({ type: 'add_error', payload: "Email and pass are required!" });
       else {
-
-        // const response = make API call 
         const result = await authService.login(email, pass);
         console.log(result);
 
-        const isOperator = true;
-        if (result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
-          await AsyncStorage.setItem("accessToken", result.accessToken.access_token);
-          await AsyncStorage.setItem("refreshToken", result.refreshToken.access_token);
+        if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+          await authService.putAccessTokenSettings(result.accessToken);
+          await authService.putRefreshTokenSettings(result.refreshToken);
+
+          const expiresInSec = await authService.pickRefreshTokenExpiresSec();
+          const intervalMs = parseInt((expiresInSec / 6) * 5 * 1000);
+          scheduleRefreshToken(intervalMs);
+
+          dispatch({ type: 'signin', payload: result });
         }
-
-        dispatch({ type: 'signin', payload: result });
-
-        if (isOperator) navigate("mainOperatorFlow");
-        else navigate("mainAuthorizedFlow");
       }
     }
     catch {
@@ -62,10 +60,23 @@ const signin = (dispatch) => {
   };
 };
 
+const scheduleRefreshToken = (intervalMs) => {
+  // INFO: if the app is suspended the app won't fire until it gets resumed
+  // INFO: which in the current scenario is cool
+  // INFO: but might not be this cool if we need something to happen even if our app is suspended
+  setInterval(async () => {
+    const result = await authService.refreshToken();
+    if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+      await authService.putAccessTokenSettings(result.accessToken);
+      await authService.putRefreshTokenSettings(result.refreshToken);
+    }
+  }, intervalMs);
+};
+
 const signout = (dispatch) => {
   return async () => {
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
+    await authService.eraseAccessTokenSettings();
+    await authService.eraseRefreshTokenSettings();
     dispatch({ type: "signout" });
     navigate("mainFlow");
   }
@@ -79,5 +90,5 @@ export const { Provider, Context } = createDataContext(
     accessToken: null,
     refreshToken: null,
     isAuthorized: false,
-  }
+  },
 );
