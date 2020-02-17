@@ -17,6 +17,7 @@ const setLocation = (dispatch) => (location) => {
     dispatch({ type: 'set_location', payload: location })
 };
 
+
 export const { Context, Provider } = createDataContext(
     locationReducer,
     { setLocation },

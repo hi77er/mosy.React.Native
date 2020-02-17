@@ -7,41 +7,17 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
-import {
-  requestPermissionsAsync,
-  watchPositionAsync,
-  Accuracy
-} from 'expo-location';
+import { Context as AuthContext } from '../context/AuthContext';
 import { Context as LocationContext } from '../context/LocationContext';
+import LoginScreen from './LoginScreen';
+
 
 const VenuesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
+  const authContext = useContext(AuthContext);
+  const locationContext = useContext(LocationContext);
 
-  const { state, setLocation } = useContext(LocationContext);
-
-  const watchLocation = async () => {
-    try {
-      await requestPermissionsAsync();
-      console.log("dwa");
-      await watchPositionAsync(
-        {
-          accuracy: Accuracy.BestForNavigation,
-          timeInterval: 1000,
-          distanceInterval: 10,
-        },
-        (location) => {
-          console.log(location);
-          if (state && !state.lastDetectedLocation)
-            console.log("shte go bude");
-          setLocation(location);
-        }
-      );
-    }
-    catch {
-
-    }
-  };
 
   const filters = [
     {
@@ -126,7 +102,8 @@ const VenuesScreen = ({ navigation }) => {
   ];
 
   useEffect(() => {
-    watchLocation().then(() => console.log("started watching"));
+    console.log(locationContext.state);
+    console.log(authContext.state);
   }, []);
 
   return <View style={styles.container}>
