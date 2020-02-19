@@ -1,10 +1,16 @@
 import { authService } from './authService';
+import useResponse from '../hooks/useResponse';
 import axios from 'axios';
+import { AsyncStorage } from 'react-native';
+
+
+const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 
-const getClosestVenues = ({ latitude, longitude }) => {
-  const bearerAccessToken = await authService.pickBearerAccessToken();
+const getClosestVenues = async ({ latitude, longitude }) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  console.log(bearerAccessToken);
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

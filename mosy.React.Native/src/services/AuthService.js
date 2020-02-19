@@ -1,7 +1,6 @@
 import { AsyncStorage } from 'react-native';
 import axios from 'axios';
 import useResponse from '../hooks/useResponse';
-import { useRef } from 'react';
 
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
@@ -18,7 +17,7 @@ const login = (username, password) => {
   return useResponse(req);
 }
 
-const refreshToken = () => {
+const refreshToken = async () => {
   const bearerRefreshToken = await pickBearerRefreshToken();
   const req = axios
     .create({
@@ -35,13 +34,17 @@ const refreshToken = () => {
 const putAccessTokenSettings = async (accessTokenSettings) => await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings));
 const putRefreshTokenSettings = async (refreshTokenSettings) => await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings));
 
-const pickAccessTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
+const pickAccessTokenSettings = async () => {
+  console.log("yxcyy");
+  JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
+};
 const pickRefreshTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("refreshTokenSettings"));
 
 const eraseAccessTokenSettings = async () => await AsyncStorage.removeItem("accessTokenSettings");
 const eraseRefreshTokenSettings = async () => await AsyncStorage.removeItem("refreshTokenSettings");
 
 const pickBearerAccessToken = async () => {
+  console.log("dasda");
   const accessTokenSettings = await pickAccessTokenSettings();
   return `Bearer ${accessTokenSettings.access_Token}`;
 };
