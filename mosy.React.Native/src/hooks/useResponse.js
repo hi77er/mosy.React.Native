@@ -1,6 +1,6 @@
 const handleResponse = (response) => {
     const data = response.data;
-    if (response.data !== 200) {
+    if (response.status !== 200) {
         if (response.status === 401) {
             //TODO: THINK WHAT NEEDS TO HAPPEN:
             // -getting api accessToken by email, pass
@@ -20,4 +20,6 @@ const handleResponse = (response) => {
     return data !== undefined ? data : true;
 };
 
-export default (req) => req.then(handleResponse);
+export default (req) => req
+    .then(handleResponse)
+    .catch(err => console.log(err));

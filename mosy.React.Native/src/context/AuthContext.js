@@ -31,20 +31,20 @@ const authReducer = (state, action) => {
 };
 
 const signin = (dispatch) => {
-  return async ({ email, pass }) => {
+  return async ({ email, password }) => {
     try {
-      if (!email || !pass)
+      if (!email || !password)
         dispatch({ type: 'add_error', payload: "Email and pass are required!" });
       else {
-        const result = await authService.login(email, pass);
-        console.log(result);
+        const result = await authService.login(email, password);
 
         if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
           await authService.putAccessTokenSettings(result.accessToken);
           await authService.putRefreshTokenSettings(result.refreshToken);
 
-          const expiresInSec = await authService.pickRefreshTokenExpiresSec();
-          const intervalMs = parseInt((expiresInSec / 6) * 5 * 1000);
+          const expiresInSec = await authService.pickAccessTokenExpiresSec();
+          const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
+
           scheduleRefreshToken(intervalMs);
 
           dispatch({ type: 'signin', payload: result });
