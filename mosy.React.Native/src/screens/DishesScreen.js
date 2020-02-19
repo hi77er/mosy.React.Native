@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { FlatList, Image, View, StyleSheet } from 'react-native';
 import { Button, Card, Text, SearchBar } from 'react-native-elements';
@@ -7,28 +7,54 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
+import { dishesService } from '../services/dishesService';
+import { locationHelper } from '../helpers/locationHelper';
 
 
 const DishesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
-
+  const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [closestDishes, setClosestDishes] = useState([]);
 
-  const dishes = [
-    { id: "1", name: "Dish 1" },
-    { id: "2", name: "Dish 2" },
-    { id: "3", name: "Dish 3" },
-    { id: "4", name: "Dish 4" },
-    { id: "5", name: "Dish 5" },
-    { id: "6", name: "Dish 6" },
-    { id: "7", name: "Dish 7" },
-    { id: "8", name: "Dish 8" },
-    { id: "9", name: "Dish 9" },
-    { id: "10", name: "Dish 10" },
-    { id: "11", name: "Dish 11" },
-    { id: "12", name: "Dish 12" },
-  ];
+  const watchLocation = async () => {
+    await requestPermissionsAsync();
+
+    await watchPositionAsync(
+      {
+        accuracy: Accuracy.BestForNavigation,
+        timeInterval: 1000,
+        distanceInterval: 10,
+      },
+      (location) => {
+        // console.log("INFO: Acquired LOCATION!");
+        // console.log(location);
+        setGeolocation(location.coords);
+      },
+    );
+  };
+
+  const loadDishes = () => {
+    if (geolocation) {
+      const { latitude, longitude } = geolocation;
+
+      dishesService
+        .getClosestDishes({ latitude, longitude })
+        .then((res) => {
+          if (res) {
+            // const parsed = JSON.parse(res);
+            // console.log(parsed);
+
+            console.log("INFO: Got DISHES!");
+            console.log(res);
+            setClosestDishes(res);
+          }
+        })
+        .catch((err) => console.log(err));
+    }
+  };
 
   const filters = [
     {
@@ -98,6 +124,13 @@ const DishesScreen = ({ navigation }) => {
   ];
 
 
+  useEffect(() => {
+    watchLocation().catch((err) => console.log(err));
+  }, []);
+
+  useEffect(() => {
+    loadDishes();
+  }, [geolocation]);
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
@@ -129,7 +162,7 @@ const DishesScreen = ({ navigation }) => {
       {showFilters ? <FiltersBar filters={filters} /> : null}
     </SafeAreaView>
 
-    <FlatList data={dishes} renderItem={({ item }) => {
+    <FlatList data={closestDishes} renderItem={({ item }) => {
       return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
         <Card
           key={item.id}
@@ -151,13 +184,22 @@ const DishesScreen = ({ navigation }) => {
               <View style={{ flex: 1, flexDirection: "row" }}>
                 <View style={{ flex: 3 }}>
                   <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.name}</Text>
+                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   {/* open/close/new/recom */}
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" }}>CLOSED</Text>
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" }}>RECOM</Text>
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" }}>NEW</Text>
+                  <Text style={
+                    item.workingStatus === "Closed"
+                      ? styles.cardLabelRed
+                      : (
+                        item.workingStatus === "Open"
+                          ? styles.cardLabelLightGreen
+                          : styles.cardLabelGreen
+                      )}>
+                    {item.workingStatus.toUpperCase()}
+                  </Text>
+                  {!item.isRecommended || <Text style={styles.cardLabelYellow}>RECOM</Text>}
+                  {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
                 </View>
               </View>
               <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
@@ -165,17 +207,17 @@ const DishesScreen = ({ navigation }) => {
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
                   {/* distance */}
                   <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999m</Text>
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
                 </View>
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
                   {/* arriving in */}
                   <FontAwesome5Icon name="walking" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>38min</Text>
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
                 </View>
                 <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
                   {/* price */}
                   <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999,99лв.</Text>
+                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{item.priceDisplayText}</Text>
                 </View>
               </View>
             </View>
@@ -209,7 +251,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -10,
     right: -10,
-  }
+  },
+  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "green" },
+  cardLabelLightGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
+  cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
+  cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
+  cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
 });
 
 export default DishesScreen;

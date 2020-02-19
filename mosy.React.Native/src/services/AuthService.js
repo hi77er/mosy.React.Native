@@ -13,7 +13,7 @@ const login = (username, password) => {
         "Content-Type": "application/json"
       },
     })
-    .post("token", { username, password })
+    .post("token", { username, password });
   return useResponse(req);
 }
 
@@ -27,24 +27,20 @@ const refreshToken = async () => {
         "Authorization": bearerRefreshToken,
       },
     })
-    .post("/api/account/token/refresh")
+    .post("/api/account/token/refresh");
   return useResponse(req);
 }
 
 const putAccessTokenSettings = async (accessTokenSettings) => await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings));
 const putRefreshTokenSettings = async (refreshTokenSettings) => await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings));
 
-const pickAccessTokenSettings = async () => {
-  console.log("yxcyy");
-  JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
-};
+const pickAccessTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
 const pickRefreshTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("refreshTokenSettings"));
 
 const eraseAccessTokenSettings = async () => await AsyncStorage.removeItem("accessTokenSettings");
 const eraseRefreshTokenSettings = async () => await AsyncStorage.removeItem("refreshTokenSettings");
 
 const pickBearerAccessToken = async () => {
-  console.log("dasda");
   const accessTokenSettings = await pickAccessTokenSettings();
   return `Bearer ${accessTokenSettings.access_Token}`;
 };

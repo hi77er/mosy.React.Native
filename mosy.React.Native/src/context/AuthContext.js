@@ -37,7 +37,7 @@ const signin = (dispatch) => {
         dispatch({ type: 'add_error', payload: "Email and pass are required!" });
       else {
         const result = await authService.login(email, password);
-
+        // console.log(result);
         if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
           await authService.putAccessTokenSettings(result.accessToken);
           await authService.putRefreshTokenSettings(result.refreshToken);

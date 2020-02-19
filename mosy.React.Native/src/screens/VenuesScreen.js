@@ -9,6 +9,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import { venuesService } from '../services/venuesService';
+import { locationHelper } from '../helpers/locationHelper';
 
 const VenuesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
@@ -28,7 +29,7 @@ const VenuesScreen = ({ navigation }) => {
       (location) => {
         // console.log("INFO: Acquired LOCATION!");
         // console.log(location);
-        setGeolocation(location);
+        setGeolocation(location.coords);
       },
     );
   };
@@ -41,9 +42,12 @@ const VenuesScreen = ({ navigation }) => {
         .getClosestVenues({ latitude, longitude })
         .then((res) => {
           if (res) {
+            // const parsed = JSON.parse(res);
+            // console.log(parsed);
+
             // console.log("INFO: Got VENUES!");
             // console.log(res);
-            setClosestVenues([...closestVenues, res]);
+            setClosestVenues(res);
           }
         })
         .catch((err) => console.log(err));
@@ -117,27 +121,12 @@ const VenuesScreen = ({ navigation }) => {
     }
   ];
 
-  const venues = [
-    { id: "1", name: "Venue number 1" },
-    { id: "2", name: "Venue number 2" },
-    { id: "3", name: "Venue number 3" },
-    { id: "4", name: "Venue number 4" },
-    { id: "5", name: "Venue number 5" },
-    { id: "6", name: "Venue number 6" },
-    { id: "7", name: "Venue number 7" },
-    { id: "8", name: "Venue number 8" },
-    { id: "9", name: "Venue number 9" },
-    { id: "10", name: "Venue number 10" },
-    { id: "11", name: "Venue number 11" },
-    { id: "12", name: "Venue number 12" },
-  ];
-
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
   }, []);
 
   useEffect(() => {
-    if (geolocation) loadVenues();
+    loadVenues();
   }, [geolocation]);
 
   return <View style={styles.container}>
@@ -169,17 +158,25 @@ const VenuesScreen = ({ navigation }) => {
       {showFilters ? <FiltersBar filters={filters} /> : null}
     </SafeAreaView>
 
-    <FlatList data={venues} renderItem={({ item }) => {
+    <FlatList data={closestVenues} renderItem={({ item }) => {
       return <Card key={item.id} containerStyle={styles.cardContainerStyle}>
         <View style={styles.cardHeaderContainer}>
           <View style={styles.cardTitleContainer}>
-            <Text style={styles.cardH1}>{item.name}</Text>
-            <Text style={styles.cardH2}>{item.name}</Text>
+            <Text style={styles.cardH1}>{item["name"]}</Text>
+            <Text style={styles.cardH2}>{item.class}</Text>
           </View>
           <View style={styles.cardLabelsContainer}>
-            <Text style={styles.cardLabelGreen}>CLOSED</Text>
-            <Text style={styles.cardLabelYellow}>RECOM</Text>
-            <Text style={styles.cardLabelBlue}>NEW</Text>
+            <Text style={
+              item.workingStatus === "Closed"
+                ? styles.cardLabelRed
+                : (
+                  item.workingStatus === "Open"
+                    ? styles.cardLabelLightGreen
+                    : styles.cardLabelGreen
+                )}>
+              {item.workingStatus.toUpperCase()}
+            </Text>
+            {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
           </View>
         </View>
         <View style={styles.cardBodyContainer}>
@@ -189,11 +186,11 @@ const VenuesScreen = ({ navigation }) => {
           <View style={styles.cardDashboardContainer}>
             <View style={styles.cardDashboardInfo}>
               <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
-              <Text style={styles.cardDashboardInfoLabel}>999km</Text>
+              <Text style={styles.cardDashboardInfoLabel}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
             </View>
             <View style={styles.cardDashboardInfo}>
               <FontAwesome5Icon name="walking" size={28} color="#666" />
-              <Text style={styles.cardDashboardInfoLabel}>38min</Text>
+              <Text style={styles.cardDashboardInfoLabel}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
             </View>
             <View style={styles.cardDashboardButton}>
               <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("Menu")}>
@@ -238,7 +235,8 @@ const styles = StyleSheet.create({
   cardLabelsContainer: { flex: 1 },
   cardH1: { color: "#666", fontSize: 16, fontWeight: "bold" },
   cardH2: { color: "darkgray", fontSize: 13, fontWeight: "bold" },
-  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
+  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "green" },
+  cardLabelLightGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
   cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
   cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
   cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },

@@ -1,19 +1,21 @@
 const handleResponse = (response) => {
-    const data = response.data;
-    if (response.status !== 200) {
-        if (response.status === 401) {
+    const { data, status } = response;
+    if (status !== 200) {
+        if (status === 401) {
             //TODO: THINK WHAT NEEDS TO HAPPEN:
             // -getting api accessToken by email, pass
             // -refreshing api accessToken 
             // -api refreshToken has expired/or not supplied
             // -api accessToken has expired/or not supplied
+        }
 
+        if (status === 403) {
             // -getting user accessToken by email, pass
             // -refreshing userAccessToken
             // -userRefreshToken has expired/or not supplied
             // -userAccessToken has expired/or not supplied
         }
-        const err = data || response.status.text;
+        const err = data || status.text;
         throw new Error(err);
     }
 
@@ -22,4 +24,4 @@ const handleResponse = (response) => {
 
 export default (req) => req
     .then(handleResponse)
-    .catch(err => console.log(err));
+    .catch(err => console.log(err.response));

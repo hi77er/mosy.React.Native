@@ -8,7 +8,7 @@ const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 
-const getClosestVenues = async ({ latitude, longitude }) => {
+const getClosestDishes = async ({ latitude, longitude }) => {
   const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
   const req = axios
     .create({
@@ -19,27 +19,29 @@ const getClosestVenues = async ({ latitude, longitude }) => {
       },
     })
     .post(
-      "/api/fbo/closest",
+      "/api/dishes/closest",
       {
         latitude,
         longitude,
         MaxResultsCount: 10,
         TotalItemsOffset: 0,
         Query: "",
-        SelectedVenueAccessibilityFilterIds: [],
-        SelectedVenueAvailabilityFilterIds: [],
-        SelectedVenueAtmosphereFilterIds: [],
-        SelectedVenueCultureFilterIds: [],
+        SelectedDishTypeFilterIds: [],
+        SelectedDrinksFilterIds: [],
+        SelectedDishRegionFilterIds: [],
+        SelectedDishMainIngredientFilterIds: [],
+        SelectedDishAllergenFilterIds: [],
+        ShowNotRecommendedDishes: false,
         ShowNotWorkingVenues: true,
-        LocalDateTimeOffset: "2020-02-19T10:33:55.585Z",
+        LocalDateTimeOffset: "2020-02-19T18:26:53.693Z",
         SearchedDistanceMeters: 10000,
-        IsDevModeActivated: true
+        IsDevModeActivated: false,
       }
     );
   return useResponse(req);
 }
 
 
-export const venuesService = {
-  getClosestVenues,
+export const dishesService = {
+  getClosestDishes,
 };
