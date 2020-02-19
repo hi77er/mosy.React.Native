@@ -8,16 +8,30 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { Context as AuthContext } from '../context/AuthContext';
-import { Context as LocationContext } from '../context/LocationContext';
-
+import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 
 const VenuesScreen = ({ navigation }) => {
+  const authContext = useContext(AuthContext);
+
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
-  const authContext = useContext(AuthContext);
-  const locationContext = useContext(LocationContext);
+  const [geolocation, setGeolocation] = useState(null);
 
+  const watchLocation = async () => {
+    await requestPermissionsAsync();
 
+    await watchPositionAsync(
+      {
+        accuracy: Accuracy.BestForNavigation,
+        timeInterval: 1000,
+        distanceInterval: 10,
+      },
+      (location) => {
+        console.log("INFO: Acquired LOCATION!");
+        setGeolocation(location);
+      },
+    );
+  };
   const filters = [
     {
       name: "accessibility",
@@ -101,8 +115,10 @@ const VenuesScreen = ({ navigation }) => {
   ];
 
   useEffect(() => {
-    console.log(locationContext.state);
-    console.log(authContext.state);
+    async function init() {
+      await watchLocation();
+    }
+    init();
   }, []);
 
   return <View style={styles.container}>

@@ -51,11 +51,11 @@ const pickBearerRefreshToken = async () => {
 };
 const pickAccessTokenExpiresSec = async () => {
   const accessTokenSettings = await pickAccessTokenSettings();
-  return accessTokenSettings.expores_in;
+  return accessTokenSettings.expires_in;
 };
 const pickRefreshTokenExpiresSec = async () => {
   const refreshTokenSettings = await pickRefreshTokenSettings();
-  return refreshTokenSettings.expores_in;
+  return refreshTokenSettings.expires_in;
 };
 
 
