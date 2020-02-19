@@ -1,22 +1,20 @@
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, StyleSheet, Button, View } from 'react-native';
+import { FlatList, Image, StyleSheet, View } from 'react-native';
 import { Text, SearchBar, Card } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
-import { Context as AuthContext } from '../context/AuthContext';
-import LoginScreen from './LoginScreen';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
+import { venuesService } from '../services/venuesService';
 
 const VenuesScreen = ({ navigation }) => {
-  const authContext = useContext(AuthContext);
-
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
+  const [closestVenues, setClosestVenues] = useState([]);
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -28,11 +26,30 @@ const VenuesScreen = ({ navigation }) => {
         distanceInterval: 10,
       },
       (location) => {
-        console.log("INFO: Acquired LOCATION!");
+        // console.log("INFO: Acquired LOCATION!");
+        // console.log(location);
         setGeolocation(location);
       },
     );
   };
+
+  const loadVenues = () => {
+    if (geolocation) {
+      const { latitude, longitude } = geolocation;
+
+      venuesService
+        .getClosestVenues({ latitude, longitude })
+        .then((res) => {
+          if (res) {
+            // console.log("INFO: Got VENUES!");
+            // console.log(res);
+            setClosestVenues([...closestVenues, res]);
+          }
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+
   const filters = [
     {
       name: "accessibility",
@@ -116,11 +133,12 @@ const VenuesScreen = ({ navigation }) => {
   ];
 
   useEffect(() => {
-    async function init() {
-      await watchLocation();
-    }
-    init();
+    watchLocation().catch((err) => console.log(err));
   }, []);
+
+  useEffect(() => {
+    if (geolocation) loadVenues();
+  }, [geolocation]);
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
