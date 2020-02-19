@@ -9,7 +9,6 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as LocationContext } from '../context/LocationContext';
-import LoginScreen from './LoginScreen';
 
 
 const VenuesScreen = ({ navigation }) => {

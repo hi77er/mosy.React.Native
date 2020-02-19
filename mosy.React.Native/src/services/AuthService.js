@@ -19,7 +19,7 @@ const login = (username, password) => {
 }
 
 const refreshToken = () => {
-  const bearerRefreshToken = "";
+  const bearerRefreshToken = await pickBearerRefreshToken();
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
