@@ -10,12 +10,14 @@ import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import { venuesService } from '../services/venuesService';
 import { locationHelper } from '../helpers/locationHelper';
+import { Context as FiltersContext } from '../context/FiltersContext';
 
 const VenuesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
   const [closestVenues, setClosestVenues] = useState([]);
+  const { state } = useContext(FiltersContext);
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -198,7 +200,9 @@ const VenuesScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
             <View style={styles.cardDashboardButton}>
-              <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("VenueDetails")}>
+              <TouchableOpacity
+                style={styles.cardDashboardButtonTouch}
+                onPress={() => navigation.navigate("VenueDetails")}>
                 <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
               </TouchableOpacity>
             </View>
@@ -206,7 +210,7 @@ const VenuesScreen = ({ navigation }) => {
         </View>
       </Card>
     }} />
-  </View >;
+  </View>;
 };
 
 const styles = StyleSheet.create({
