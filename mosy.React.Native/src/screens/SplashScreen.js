@@ -2,14 +2,19 @@ import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Context as AuthContext } from '../context/AuthContext';
+import { Context as FiltersContext } from '../context/FiltersContext';
+
 
 
 const SplashScreen = ({ onInitializationFinished }) => {
   const { signin } = useContext(AuthContext);
+  const { loadFilters } = useContext(FiltersContext);
+
 
   useEffect(() => {
     async function init() {
       await signin({ email: 'webapiadmin@mosy.com', password: '!23Qwe' });
+      await loadFilters();
 
       if (onInitializationFinished) onInitializationFinished();
     }

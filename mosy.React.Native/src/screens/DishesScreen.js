@@ -44,11 +44,6 @@ const DishesScreen = ({ navigation }) => {
         .getClosestDishes({ latitude, longitude })
         .then((res) => {
           if (res) {
-            // const parsed = JSON.parse(res);
-            // console.log(parsed);
-
-            console.log("INFO: Got DISHES!");
-            console.log(res);
             setClosestDishes(res);
           }
         })
