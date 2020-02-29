@@ -55,6 +55,14 @@ const DishesScreen = ({ navigation }) => {
     }
   };
 
+  const handleShowFilters = () => {
+    setShowFilters(!showFilters);
+
+    // INFO: Only when hiding filters bar.
+    if (!showFilters && state.dishFiltersChanged)
+      loadDishes();
+  };
+
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
   }, []);
@@ -82,7 +90,7 @@ const DishesScreen = ({ navigation }) => {
             </TouchableOpacity>
           }
         />
-        <TouchableOpacity onPress={() => { setShowFilters(!showFilters); console.log(state.selectedFilters) }}>
+        <TouchableOpacity onPress={handleShowFilters}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
@@ -90,7 +98,7 @@ const DishesScreen = ({ navigation }) => {
           }
         </TouchableOpacity>
         {
-          showFilters && state.dishesFiltersChanged
+          showFilters && state.areDefaultDishFilters
             ? <TouchableOpacity
               onPress={() => Alert.alert(
                 "Reset filters?",

@@ -40,9 +40,20 @@ const VenuesScreen = ({ navigation }) => {
   const loadVenues = () => {
     if (geolocation) {
       const { latitude, longitude } = geolocation;
+      const selectedFilters = state.selectedFilters && state.selectedFilters.length
+        ? state.selectedFilters
+        : [];
 
       venuesService
-        .getClosestVenues({ latitude, longitude })
+        .getClosestVenues(
+          latitude, longitude,
+          query = searchQuery,
+          selectedVenueAccessibilityFilterIds = selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
+          selectedVenueAvailabilityFilterIds = selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
+          selectedVenueAthmosphereFilterIds = selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
+          selectedVenueCultureFilterIds = selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
+          showNotWorkingVenues = state.showClosedVenues,
+        )
         .then((res) => {
           if (res) {
             // const parsed = JSON.parse(res);
@@ -55,6 +66,14 @@ const VenuesScreen = ({ navigation }) => {
         })
         .catch((err) => console.log(err));
     }
+  };
+
+  const handleShowFilters = () => {
+    setShowFilters(!showFilters);
+
+    // INFO: Only when hiding filters bar.
+    if (!showFilters && state.venueFiltersChanged)
+      loadVenues();
   };
 
   useEffect(() => {
@@ -83,7 +102,7 @@ const VenuesScreen = ({ navigation }) => {
               <MaterialIcon name="clear" size={24} color="white" />
             </TouchableOpacity>
           } />
-        <TouchableOpacity onPress={() => { setShowFilters(!showFilters); console.log(state.selectedFilters) }}>
+        <TouchableOpacity onPress={handleShowFilters}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
@@ -91,7 +110,7 @@ const VenuesScreen = ({ navigation }) => {
           }
         </TouchableOpacity>
         {
-          showFilters && state.venuesFiltersChanged
+          showFilters && state.areDefaultVenueFilters
             ? <TouchableOpacity
               onPress={() => Alert.alert(
                 "Reset filters?",

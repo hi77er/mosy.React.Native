@@ -66,17 +66,20 @@ const filtersReducer = (state, action) => {
 
   newState = {
     ...newState,
-    venuesFiltersChanged:
+    areDefaultVenueFilters:
       (newState.selectedFilters
         && newState.selectedFilters.length
         && newState.selectedFilters.filter(x => x.filteredType == 1).length)
       || newState.showClosedVenues,
-    dishesFiltersChanged:
+    areDefaultDishFilters:
       (newState.selectedFilters
         && newState.selectedFilters.length
         && newState.selectedFilters.filter(x => x.filteredType == 2).length)
       || newState.showClosedDishes
       || !newState.showRecommendedDishes,
+
+    venueFiltersChanged: false,
+    dishFiltersChanged: false,
   };
   return newState;
 };
@@ -136,7 +139,10 @@ export const { Provider, Context } = createDataContext(
     showClosedVenues: false,
     showClosedDishes: false,
     showRecommendedDishes: true,
-    dishesFiltersChanged: false,
-    venuesFiltersChanged: false,
+
+    areDefaultDishFilters: true,
+    dishFiltersChanged: false,
+    areDefaultVenueFilters: true,
+    venueFiltersChanged: false,
   },
 );
