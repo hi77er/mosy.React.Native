@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, StyleSheet, View } from 'react-native';
+import { FlatList, Image, StyleSheet, View, Alert } from 'react-native';
 import { Text, SearchBar, Card } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -13,11 +13,12 @@ import { locationHelper } from '../helpers/locationHelper';
 import { Context as FiltersContext } from '../context/FiltersContext';
 
 const VenuesScreen = ({ navigation }) => {
+  const { state, resetFilters } = useContext(FiltersContext);
+
   const [searchQuery, setSearchQuery] = useState();
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
   const [closestVenues, setClosestVenues] = useState([]);
-  const { state } = useContext(FiltersContext);
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -56,73 +57,6 @@ const VenuesScreen = ({ navigation }) => {
     }
   };
 
-  const filters = [
-    {
-      name: "accessibility",
-      label: "Accessibility",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "availabilit",
-      label: "Availability",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "athmosphere",
-      label: "Athmosphere",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "experienceNotRequired",
-      label: "Culture",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    }
-  ];
-
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
   }, []);
@@ -149,15 +83,30 @@ const VenuesScreen = ({ navigation }) => {
               <MaterialIcon name="clear" size={24} color="white" />
             </TouchableOpacity>
           } />
-        <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+        <TouchableOpacity onPress={() => { setShowFilters(!showFilters); console.log(state.selectedFilters) }}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
               : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
           }
         </TouchableOpacity>
+        {
+          showFilters && state.venuesFiltersChanged
+            ? <TouchableOpacity
+              onPress={() => Alert.alert(
+                "Reset filters?",
+                "",
+                [
+                  { text: 'Cancel', onPress: () => { } },
+                  { text: 'Set default', onPress: () => resetFilters(1) }
+                ]
+              )}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
       </View>
-      {showFilters ? <FiltersBar filters={filters} /> : null}
+      {showFilters ? <FiltersBar filteredType={1} /> : null}
     </SafeAreaView>
 
     <FlatList data={closestVenues} renderItem={({ item }) => {

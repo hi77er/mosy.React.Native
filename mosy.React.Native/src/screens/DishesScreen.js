@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, View, StyleSheet } from 'react-native';
+import { FlatList, Image, View, StyleSheet, Alert } from 'react-native';
 import { Button, Card, Text, SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -10,14 +10,18 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { dishesService } from '../services/dishesService';
+import { Context as FiltersContext } from '../context/FiltersContext';
 import { locationHelper } from '../helpers/locationHelper';
 
 
 const DishesScreen = ({ navigation }) => {
+  const { state, resetFilters } = useContext(FiltersContext);
+
   const [searchQuery, setSearchQuery] = useState();
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [closestDishes, setClosestDishes] = useState([]);
+
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -51,74 +55,6 @@ const DishesScreen = ({ navigation }) => {
     }
   };
 
-  const filters = [
-    {
-      name: "accessibility",
-      label: "Accessibility",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "availabilit",
-      label: "Availability",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "athmosphere",
-      label: "Athmosphere",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "experienceNotRequired",
-      label: "Culture",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    }
-  ];
-
-
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
   }, []);
@@ -146,15 +82,30 @@ const DishesScreen = ({ navigation }) => {
             </TouchableOpacity>
           }
         />
-        <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+        <TouchableOpacity onPress={() => { setShowFilters(!showFilters); console.log(state.selectedFilters) }}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
               : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
           }
         </TouchableOpacity>
+        {
+          showFilters && state.dishesFiltersChanged
+            ? <TouchableOpacity
+              onPress={() => Alert.alert(
+                "Reset filters?",
+                "",
+                [
+                  { text: 'Cancel', onPress: () => { } },
+                  { text: 'Set default', onPress: () => resetFilters(2) }
+                ]
+              )}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
       </View>
-      {showFilters ? <FiltersBar filters={filters} /> : null}
+      {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
 
     <FlatList data={closestDishes} renderItem={({ item }) => {
