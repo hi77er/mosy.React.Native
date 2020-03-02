@@ -3,6 +3,7 @@ import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
 import { authService } from '../services/authService';
 import { filterService } from '../services/filterService';
+import { filtersHelper } from '../helpers/filtersHelper';
 
 const filtersReducer = (state, action) => {
   let newState = state;
@@ -18,6 +19,10 @@ const filtersReducer = (state, action) => {
       break;
 
     case 'setSelectedFilters':
+      const preSelectedFilterIds = state.selectedFilters && state.selectedFilters.length
+        ? state.selectedFilters.map((x) => x.id)
+        : [];
+
       const currentSelected = state.selectedFilters && state.selectedFilters.length
         ? state.selectedFilters.filter(x => x.filterType != action.payload.filterType)
         : [];
@@ -33,25 +38,59 @@ const filtersReducer = (state, action) => {
           )
         : [];
 
+      const newFiltersSet = [...currentSelected, ...newlySelected];
+      const newFiltersSetIds = newFiltersSet.map((x) => x.id);
+
+      const filtersChanged = filtersHelper.checkFiltersStateChanged(newFiltersSetIds, preSelectedFilterIds);
+
       newState = {
         ...state,
-        selectedFilters: [...currentSelected, ...newlySelected],
+        selectedFilters: newFiltersSet,
+        filtersChanged: state.filtersChanged || filtersChanged
       };
       break;
 
     case 'setShowClosedVenues':
-      newState = { ...state, showClosedVenues: action.payload };
+      newState = {
+        ...state,
+        showClosedVenues: action.payload,
+        filtersChanged: state.filtersChanged || (state.showClosedVenues != action.payload)
+      };
       break;
 
     case 'setShowClosedDishes':
-      newState = { ...state, showClosedDishes: action.payload };
+      newState = {
+        ...state,
+        showClosedDishes: action.payload,
+        filtersChanged: state.filtersChanged || state.showClosedDishes !== action.payload
+      };
       break;
 
     case 'setShowRecommendedDishes':
-      newState = { ...state, showRecommendedDishes: action.payload };
+      newState = {
+        ...state,
+        showRecommendedDishes: action.payload,
+        filtersChanged: state.filtersChanged || state.showRecommendedDishes !== action.payload
+      };
       break;
 
-    case 'resetFilters':
+    case 'setVenuesSearchQuery':
+      newState = {
+        ...state,
+        venuesSearchQuery: action.payload,
+        filtersChanged: state.filtersChanged || state.venuesSearchQuery !== action.payload
+      };
+      break;
+
+    case 'setDishesSearchQuery':
+      newState = {
+        ...state,
+        dishesSearchQuery: action.payload,
+        filtersChanged: state.filtersChanged || state.dishesSearchQuery !== action.payload
+      };
+      break;
+
+    case 'resetSelectedFilters':
       newState = {
         ...state,
         selectedFilters: state.selectedFilters && state.selectedFilters.length
@@ -60,7 +99,17 @@ const filtersReducer = (state, action) => {
         showClosedVenues: action.payload.filteredType == 1 ? false : state.showClosedVenues,
         showClosedDishes: action.payload.filteredType == 2 ? false : state.showClosedDishes,
         showRecommendedDishes: action.payload.filteredType == 2 ? true : state.showRecommendedDishes,
-      }
+        venuesSearchQuery: action.payload.filteredType == 1 ? "" : state.venuesSearchQuery,
+        dishesSearchQuery: action.payload.filteredType == 2 ? "" : state.dishesSearchQuery,
+        filtersChanged: false
+      };
+      break;
+
+    case 'resetFiltersChanged':
+      newState = {
+        ...state,
+        filtersChanged: false
+      };
       break;
   };
 
@@ -77,9 +126,6 @@ const filtersReducer = (state, action) => {
         && newState.selectedFilters.filter(x => x.filteredType == 2).length)
       || newState.showClosedDishes
       || !newState.showRecommendedDishes,
-
-    venueFiltersChanged: false,
-    dishFiltersChanged: false,
   };
   return newState;
 };
@@ -90,6 +136,18 @@ const loadFilters = (dispatch) => {
   return async () => {
     const result = await filterService.getFilters();
     dispatch({ type: 'loadFilters', payload: result });
+  };
+};
+
+const resetSelectedFilters = (dispatch) => {
+  return async (filteredType) => {
+    dispatch({ type: 'resetSelectedFilters', payload: { filteredType } });
+  };
+}
+
+const resetFiltersChanged = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetFiltersChanged', payload: { filtersChanged: false } })
   };
 };
 
@@ -117,21 +175,32 @@ const setShowRecommendedDishes = (dispatch) => {
   };
 }
 
-const resetFilters = (dispatch) => {
-  return async (filteredType) => {
-    dispatch({ type: 'resetFilters', payload: { filteredType } });
+const setVenuesSearchQuery = (dispatch) => {
+  return async (query) => {
+    dispatch({ type: 'setVenuesSearchQuery', payload: query })
   };
-}
+};
+
+const setDishesSearchQuery = (dispatch) => {
+  return async (query) => {
+    dispatch({ type: 'setDishesSearchQuery', payload: query })
+  };
+};
+
+
 
 export const { Provider, Context } = createDataContext(
   filtersReducer,
   {
     loadFilters,
+    resetSelectedFilters,
+    resetFiltersChanged,
     setSelectedFilters,
     setShowClosedVenues,
     setShowClosedDishes,
     setShowRecommendedDishes,
-    resetFilters,
+    setVenuesSearchQuery,
+    setDishesSearchQuery,
   },
   {
     filters: [],
@@ -139,10 +208,11 @@ export const { Provider, Context } = createDataContext(
     showClosedVenues: false,
     showClosedDishes: false,
     showRecommendedDishes: true,
+    venuesSearchQuery: "",
+    dishesSearchQuery: "",
 
     areDefaultDishFilters: true,
-    dishFiltersChanged: false,
     areDefaultVenueFilters: true,
-    venueFiltersChanged: false,
+    filtersChanged: false,
   },
 );

@@ -15,9 +15,13 @@ import { locationHelper } from '../helpers/locationHelper';
 
 
 const DishesScreen = ({ navigation }) => {
-  const { state, resetFilters } = useContext(FiltersContext);
+  const {
+    state,
+    resetSelectedFilters,
+    resetFiltersChanged,
+    setDishesSearchQuery
+  } = useContext(FiltersContext);
 
-  const [searchQuery, setSearchQuery] = useState();
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [closestDishes, setClosestDishes] = useState([]);
@@ -33,8 +37,6 @@ const DishesScreen = ({ navigation }) => {
         distanceInterval: 10,
       },
       (location) => {
-        // console.log("INFO: Acquired LOCATION!");
-        // console.log(location);
         setGeolocation(location.coords);
       },
     );
@@ -43,24 +45,37 @@ const DishesScreen = ({ navigation }) => {
   const loadDishes = () => {
     if (geolocation) {
       const { latitude, longitude } = geolocation;
-
+      const selectedFilters = state.selectedFilters && state.selectedFilters.length
+        ? state.selectedFilters
+        : [];
+        
       dishesService
-        .getClosestDishes({ latitude, longitude })
+        .getClosestDishes(
+          latitude, longitude, 10, 0, state.dishesSearchQuery,
+          selectedFilters.filter(x => x.filterType == 201).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 205).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 202).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 203).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 204).map(x => x.id),
+          !state.showRecommendedDishes,
+          state.showClosedVenues
+        )
         .then((res) => {
-          if (res) {
-            setClosestDishes(res);
-          }
+          if (res) setClosestDishes(res);
         })
         .catch((err) => console.log(err));
     }
   };
 
-  const handleShowFilters = () => {
-    setShowFilters(!showFilters);
-
-    // INFO: Only when hiding filters bar.
-    if (!showFilters && state.dishFiltersChanged)
+  const handleShowHideFilters = () => {
+    if (showFilters && (state.filtersChanged || state.dishesSearchQuery != "")) {
+      setClosestDishes([]);
       loadDishes();
+    }
+    else
+      resetFiltersChanged();
+
+    setShowFilters(!showFilters);
   };
 
   useEffect(() => {
@@ -70,6 +85,7 @@ const DishesScreen = ({ navigation }) => {
   useEffect(() => {
     loadDishes();
   }, [geolocation]);
+
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
@@ -81,16 +97,16 @@ const DishesScreen = ({ navigation }) => {
           searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
           containerStyle={styles.searchContainer}
           inputContainerStyle={styles.searchInputContainer}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          value={state.dishesSearchQuery}
+          onChangeText={setDishesSearchQuery}
           inputStyle={styles.searchInput}
           clearIcon={
-            () => <TouchableOpacity onPress={() => setSearchQuery("")}>
+            () => <TouchableOpacity onPress={() => { setDishesSearchQuery(""); }}>
               <MaterialIcon name="clear" size={24} color="white" />
             </TouchableOpacity>
           }
         />
-        <TouchableOpacity onPress={handleShowFilters}>
+        <TouchableOpacity onPress={handleShowHideFilters}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
@@ -105,7 +121,7 @@ const DishesScreen = ({ navigation }) => {
                 "",
                 [
                   { text: 'Cancel', onPress: () => { } },
-                  { text: 'Set default', onPress: () => resetFilters(2) }
+                  { text: 'Set default', onPress: () => resetSelectedFilters(2) }
                 ]
               )}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />

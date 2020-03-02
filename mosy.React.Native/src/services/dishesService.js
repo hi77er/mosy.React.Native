@@ -8,7 +8,23 @@ const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 
-const getClosestDishes = async ({ latitude, longitude }) => {
+const getClosestDishes = async (
+  latitude,
+  longitude,
+  maxResultsCount = 10,
+  totalItemsOffset = 0,
+  query = "",
+  selectedDishTypeFilterIds = [],
+  selectedDrinksFilterIds = [],
+  selectedDishRegionFilterIds = [],
+  selectedDishMainIngredientFilterIds = [],
+  selectedDishAllergenFilterIds = [],
+  showNotRecommendedDishes = false,
+  showNotWorkingVenues = true,
+  localDateTimeOffset = "2020-02-19T18:26:53.693Z",
+  searchedDistanceMeters = 10000,
+  isDevModeActivated = false,
+) => {
   const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
   const req = axios
     .create({
@@ -23,19 +39,19 @@ const getClosestDishes = async ({ latitude, longitude }) => {
       {
         latitude,
         longitude,
-        MaxResultsCount: 10,
-        TotalItemsOffset: 0,
-        Query: "",
-        SelectedDishTypeFilterIds: [],
-        SelectedDrinksFilterIds: [],
-        SelectedDishRegionFilterIds: [],
-        SelectedDishMainIngredientFilterIds: [],
-        SelectedDishAllergenFilterIds: [],
-        ShowNotRecommendedDishes: false,
-        ShowNotWorkingVenues: true,
-        LocalDateTimeOffset: "2020-02-19T18:26:53.693Z",
-        SearchedDistanceMeters: 10000,
-        IsDevModeActivated: false,
+        maxResultsCount,
+        totalItemsOffset,
+        query,
+        selectedDishTypeFilterIds,
+        selectedDrinksFilterIds,
+        selectedDishRegionFilterIds,
+        selectedDishMainIngredientFilterIds,
+        selectedDishAllergenFilterIds,
+        showNotRecommendedDishes,
+        showNotWorkingVenues,
+        localDateTimeOffset,
+        searchedDistanceMeters,
+        isDevModeActivated,
       }
     );
   return useResponse(req);

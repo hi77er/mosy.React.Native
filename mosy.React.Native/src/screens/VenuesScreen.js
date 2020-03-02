@@ -12,10 +12,10 @@ import { venuesService } from '../services/venuesService';
 import { locationHelper } from '../helpers/locationHelper';
 import { Context as FiltersContext } from '../context/FiltersContext';
 
-const VenuesScreen = ({ navigation }) => {
-  const { state, resetFilters } = useContext(FiltersContext);
 
-  const [searchQuery, setSearchQuery] = useState();
+const VenuesScreen = ({ navigation }) => {
+  const { state, resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = useContext(FiltersContext);
+
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
   const [closestVenues, setClosestVenues] = useState([]);
@@ -30,8 +30,6 @@ const VenuesScreen = ({ navigation }) => {
         distanceInterval: 10,
       },
       (location) => {
-        // console.log("INFO: Acquired LOCATION!");
-        // console.log(location);
         setGeolocation(location.coords);
       },
     );
@@ -46,34 +44,30 @@ const VenuesScreen = ({ navigation }) => {
 
       venuesService
         .getClosestVenues(
-          latitude, longitude,
-          query = searchQuery,
-          selectedVenueAccessibilityFilterIds = selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
-          selectedVenueAvailabilityFilterIds = selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
-          selectedVenueAthmosphereFilterIds = selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
-          selectedVenueCultureFilterIds = selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
-          showNotWorkingVenues = state.showClosedVenues,
+          latitude, longitude, 10, 0, state.venuesSearchQuery,
+          selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
+          state.showClosedVenues
         )
         .then((res) => {
-          if (res) {
-            // const parsed = JSON.parse(res);
-            // console.log(parsed);
-
-            // console.log("INFO: Got VENUES!");
-            // console.log(res);
-            setClosestVenues(res);
-          }
+          if (res) setClosestVenues(res);
         })
         .catch((err) => console.log(err));
     }
   };
 
-  const handleShowFilters = () => {
-    setShowFilters(!showFilters);
-
+  const handleShowHideFilters = () => {
     // INFO: Only when hiding filters bar.
-    if (!showFilters && state.venueFiltersChanged)
+    if (showFilters && (state.filtersChanged || state.venuesSearchQuery != "")) {
+      setClosestVenues([]);
       loadVenues();
+    }
+    else
+      resetFiltersChanged();
+
+    setShowFilters(!showFilters);
   };
 
   useEffect(() => {
@@ -94,15 +88,15 @@ const VenuesScreen = ({ navigation }) => {
           searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
           containerStyle={styles.searchContainer}
           inputContainerStyle={styles.searchInputContainer}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          value={state.venuesSearchQuery}
+          onChangeText={setVenuesSearchQuery}
           inputStyle={styles.searchInput}
           clearIcon={
-            () => <TouchableOpacity onPress={() => setSearchQuery("")}>
+            () => <TouchableOpacity onPress={() => setVenuesSearchQuery("")}>
               <MaterialIcon name="clear" size={24} color="white" />
             </TouchableOpacity>
           } />
-        <TouchableOpacity onPress={handleShowFilters}>
+        <TouchableOpacity onPress={handleShowHideFilters}>
           {
             showFilters
               ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
@@ -117,7 +111,7 @@ const VenuesScreen = ({ navigation }) => {
                 "",
                 [
                   { text: 'Cancel', onPress: () => { } },
-                  { text: 'Set default', onPress: () => resetFilters(1) }
+                  { text: 'Set default', onPress: () => resetSelectedFilters(1) }
                 ]
               )}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
