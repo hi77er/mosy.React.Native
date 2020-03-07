@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, View, StyleSheet, Alert } from 'react-native';
+import { ActivityIndicator, FlatList, Image, View, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { Button, Card, Text, SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -25,6 +25,9 @@ const DishesScreen = ({ navigation }) => {
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [closestDishes, setClosestDishes] = useState([]);
+  const [hasMoreElements, setHasMoreElements] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
 
 
   const watchLocation = async () => {
@@ -42,16 +45,16 @@ const DishesScreen = ({ navigation }) => {
     );
   };
 
-  const loadDishes = () => {
+  const loadDishes = (count, currentClosestDishes) => {
     if (geolocation) {
       const { latitude, longitude } = geolocation;
       const selectedFilters = state.selectedFilters && state.selectedFilters.length
         ? state.selectedFilters
         : [];
-        
+
       dishesService
         .getClosestDishes(
-          latitude, longitude, 10, 0, state.dishesSearchQuery,
+          latitude, longitude, count, currentClosestDishes.length, state.dishesSearchQuery,
           selectedFilters.filter(x => x.filterType == 201).map(x => x.id),
           selectedFilters.filter(x => x.filterType == 205).map(x => x.id),
           selectedFilters.filter(x => x.filterType == 202).map(x => x.id),
@@ -61,21 +64,36 @@ const DishesScreen = ({ navigation }) => {
           state.showClosedVenues
         )
         .then((res) => {
-          if (res) setClosestDishes(res);
+          if (res) {
+            // console.log(res);
+            setClosestDishes([...currentClosestDishes, ...res]);
+            setHasMoreElements(res.length == count);
+            if (isRefreshing) setIsRefreshing(false);
+          }
         })
         .catch((err) => console.log(err));
     }
   };
 
-  const handleShowHideFilters = () => {
-    if (showFilters && (state.filtersChanged || state.dishesSearchQuery != "")) {
-      setClosestDishes([]);
-      loadDishes();
-    }
-    else
-      resetFiltersChanged();
+  const handleSearchFilteredDishes = () => {
+    setClosestDishes([]);
+    loadDishes(12, []);
+    resetFiltersChanged();
 
-    setShowFilters(!showFilters);
+    if (showFilters) setShowFilters(false);
+  };
+
+  const handleRefresh = () => {
+    setClosestDishes([]);
+    setIsRefreshing(true);
+    loadDishes(12, []);
+  }
+
+  const handleLoadMore = () => {
+    if (hasMoreElements)
+      loadDishes(8, closestDishes);
+    else
+      console.log("No more Elem!");
   };
 
   useEffect(() => {
@@ -83,7 +101,8 @@ const DishesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    loadDishes();
+    if (closestDishes == null || closestDishes.length == 0)
+      loadDishes(12, []);
   }, [geolocation]);
 
 
@@ -106,13 +125,20 @@ const DishesScreen = ({ navigation }) => {
             </TouchableOpacity>
           }
         />
-        <TouchableOpacity onPress={handleShowHideFilters}>
-          {
-            showFilters
-              ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
-              : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
-          }
-        </TouchableOpacity>
+        {
+          state.filtersChanged
+            ? <TouchableOpacity onPress={handleSearchFilteredDishes}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+        {
+          !showFilters
+            ? <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
         {
           showFilters && state.areDefaultDishFilters
             ? <TouchableOpacity
@@ -121,7 +147,7 @@ const DishesScreen = ({ navigation }) => {
                 "",
                 [
                   { text: 'Cancel', onPress: () => { } },
-                  { text: 'Set default', onPress: () => resetSelectedFilters(2) }
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(2); handleSearchFilteredDishes(); } }
                 ]
               )}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
@@ -131,73 +157,82 @@ const DishesScreen = ({ navigation }) => {
       </View>
       {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
+    {
+      closestDishes && closestDishes.length
+        ? <FlatList
+          data={closestDishes}
+          renderItem={({ item }) => {
+            return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
+              <Card
+                key={item.id}
+                containerStyle={{
+                  paddingLeft: 7,
+                  paddingBottom: 7,
+                  paddingTop: 7,
+                  paddingRight: 0,
+                  marginTop: 0,
+                  marginLeft: 0,
+                  marginRight: 0,
+                  marginBottom: 7,
+                }}>
+                <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
+                  <Image
+                    style={{ width: 130, height: 130, marginRight: 5 }}
+                    source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, flexDirection: "row" }}>
+                      <View style={{ flex: 3 }}>
+                        <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
+                        <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        {/* open/close/new/recom */}
+                        <Text style={
+                          item.workingStatus === "Closed"
+                            ? styles.cardLabelRed
+                            : (
+                              item.workingStatus === "Open"
+                                ? styles.cardLabelLightGreen
+                                : styles.cardLabelGreen
+                            )}>
+                          {item.workingStatus.toUpperCase()}
+                        </Text>
+                        {!item.isRecommended || <Text style={styles.cardLabelYellow}>RECOM</Text>}
+                        {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
+                      </View>
+                    </View>
+                    <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
+                      {/* distance/time/price */}
+                      <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
+                        {/* distance */}
+                        <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
+                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
+                      </View>
+                      <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
+                        {/* arriving in */}
+                        <FontAwesome5Icon name="walking" size={28} color="#666" />
+                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
+                      </View>
+                      <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
+                        {/* price */}
+                        <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
+                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{item.priceDisplayText}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </Card>
+            </TouchableOpacity>
+          }}
+          onEndReached={handleLoadMore}
+          onEndThreshold={0}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />} />
+        : <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color="white" />
+        </View>
+    }
 
-    <FlatList data={closestDishes} renderItem={({ item }) => {
-      return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
-        <Card
-          key={item.id}
-          containerStyle={{
-            paddingLeft: 7,
-            paddingBottom: 7,
-            paddingTop: 7,
-            paddingRight: 0,
-            marginTop: 0,
-            marginLeft: 0,
-            marginRight: 0,
-            marginBottom: 7,
-          }}>
-          <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
-            <Image
-              style={{ width: 130, height: 130, marginRight: 5 }}
-              source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-            <View style={{ flex: 1 }}>
-              <View style={{ flex: 1, flexDirection: "row" }}>
-                <View style={{ flex: 3 }}>
-                  <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  {/* open/close/new/recom */}
-                  <Text style={
-                    item.workingStatus === "Closed"
-                      ? styles.cardLabelRed
-                      : (
-                        item.workingStatus === "Open"
-                          ? styles.cardLabelLightGreen
-                          : styles.cardLabelGreen
-                      )}>
-                    {item.workingStatus.toUpperCase()}
-                  </Text>
-                  {!item.isRecommended || <Text style={styles.cardLabelYellow}>RECOM</Text>}
-                  {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
-                </View>
-              </View>
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
-                {/* distance/time/price */}
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  {/* distance */}
-                  <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
-                </View>
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
-                  {/* arriving in */}
-                  <FontAwesome5Icon name="walking" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
-                </View>
-                <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
-                  {/* price */}
-                  <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{item.priceDisplayText}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </Card>
-      </TouchableOpacity>
-    }} />
-
-
-  </View >;
+  </View>;
 };
 
 const styles = StyleSheet.create({
