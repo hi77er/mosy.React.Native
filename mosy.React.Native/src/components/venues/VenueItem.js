@@ -49,7 +49,7 @@ const VenueItem = ({ item, navigation }) => {
         <View style={styles.cardDashboardButton}>
           <TouchableOpacity
             style={styles.cardDashboardButtonTouch}
-            onPress={() => navigation.navigate("VenueDetails")}>
+            onPress={() => navigation.navigate("VenueDetails",{ venueId: item.id})}>
             <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
           </TouchableOpacity>
         </View>

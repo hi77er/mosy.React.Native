@@ -1,7 +1,4 @@
-import { AsyncStorage } from 'react-native';
-import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
-import { authService } from '../services/authService';
 import { filterService } from '../services/filterService';
 import { filtersHelper } from '../helpers/filtersHelper';
 

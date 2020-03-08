@@ -13,7 +13,9 @@ import VenueItem from '../components/venues/VenueItem';
 
 
 const VenuesScreen = ({ navigation }) => {
-  const { state, resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = useContext(FiltersContext);
+  const filtersContext = useContext(FiltersContext);
+  const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
+  const filtersState = filtersContext.state;
 
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
@@ -39,18 +41,18 @@ const VenuesScreen = ({ navigation }) => {
   const loadVenues = (count, currentClosestVenues) => {
     if (geolocation) {
       const { latitude, longitude } = geolocation;
-      const selectedFilters = state.selectedFilters && state.selectedFilters.length
-        ? state.selectedFilters
+      const selectedFilters = filtersState.selectedFilters && filtersState.selectedFilters.length
+        ? filtersState.selectedFilters
         : [];
 
       venuesService
         .getClosestVenues(
-          latitude, longitude, count, currentClosestVenues.length, state.venuesSearchQuery,
+          latitude, longitude, count, currentClosestVenues.length, filtersState.venuesSearchQuery,
           selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
           selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
           selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
           selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
-          state.showClosedVenues
+          filtersState.showClosedVenues
         )
         .then((res) => {
           if (res) {
@@ -103,7 +105,7 @@ const VenuesScreen = ({ navigation }) => {
           searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
           containerStyle={styles.searchContainer}
           inputContainerStyle={styles.searchInputContainer}
-          value={state.venuesSearchQuery}
+          value={filtersState.venuesSearchQuery}
           onChangeText={setVenuesSearchQuery}
           inputStyle={styles.searchInput}
           clearIcon={
@@ -112,7 +114,7 @@ const VenuesScreen = ({ navigation }) => {
             </TouchableOpacity>
           } />
         {
-          state.filtersChanged
+          filtersState.filtersChanged
             ? <TouchableOpacity onPress={handleSearchFilteredVenues}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
             </TouchableOpacity>
@@ -126,7 +128,7 @@ const VenuesScreen = ({ navigation }) => {
             : null
         }
         {
-          showFilters && state.areDefaultVenueFilters
+          showFilters && filtersState.areDefaultVenueFilters
             ? <TouchableOpacity
               onPress={() => Alert.alert(
                 "Reset filters?",

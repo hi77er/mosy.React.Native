@@ -5,11 +5,15 @@ import { Text, Card } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
+import { Context as VenuesContext } from '../context/VenuesContext';
 
-const VenueDetailsScreen = () => {
+
+const VenueDetailsScreen = ({ navigation }) => {
+  const venueId = navigation.state.params.venueId;
   const imagesPreviewModalRef = useRef(null);
-
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
+  const { state } = useContext(VenuesContext);
+
 
   return <View style={{ flex: 1 }}>
     <View style={{ height: '45%' }}>
