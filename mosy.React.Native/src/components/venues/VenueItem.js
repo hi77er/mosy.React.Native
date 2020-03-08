@@ -56,7 +56,7 @@ const VenueItem = ({ item, navigation }) => {
       </View>
     </View>
   </Card>
-}
+};
 
 
 const styles = StyleSheet.create({

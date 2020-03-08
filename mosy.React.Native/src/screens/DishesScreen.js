@@ -1,17 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { ActivityIndicator, FlatList, Image, View, StyleSheet, Alert, RefreshControl } from 'react-native';
-import { Button, Card, Text, SearchBar } from 'react-native-elements';
+import { SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { dishesService } from '../services/dishesService';
 import { Context as FiltersContext } from '../context/FiltersContext';
-import { locationHelper } from '../helpers/locationHelper';
+import DishItem from '../components/dishes/DishItem';
 
 
 const DishesScreen = ({ navigation }) => {
@@ -161,69 +159,7 @@ const DishesScreen = ({ navigation }) => {
       closestDishes && closestDishes.length
         ? <FlatList
           data={closestDishes}
-          renderItem={({ item }) => {
-            return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
-              <Card
-                key={item.id}
-                containerStyle={{
-                  paddingLeft: 7,
-                  paddingBottom: 7,
-                  paddingTop: 7,
-                  paddingRight: 0,
-                  marginTop: 0,
-                  marginLeft: 0,
-                  marginRight: 0,
-                  marginBottom: 7,
-                }}>
-                <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
-                  <Image
-                    style={{ width: 130, height: 130, marginRight: 5 }}
-                    source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flex: 1, flexDirection: "row" }}>
-                      <View style={{ flex: 3 }}>
-                        <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-                        <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        {/* open/close/new/recom */}
-                        <Text style={
-                          item.workingStatus === "Closed"
-                            ? styles.cardLabelRed
-                            : (
-                              item.workingStatus === "Open"
-                                ? styles.cardLabelLightGreen
-                                : styles.cardLabelGreen
-                            )}>
-                          {item.workingStatus.toUpperCase()}
-                        </Text>
-                        {!item.isRecommended || <Text style={styles.cardLabelYellow}>RECOM</Text>}
-                        {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
-                      </View>
-                    </View>
-                    <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
-                      {/* distance/time/price */}
-                      <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                        {/* distance */}
-                        <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
-                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
-                      </View>
-                      <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
-                        {/* arriving in */}
-                        <FontAwesome5Icon name="walking" size={28} color="#666" />
-                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
-                      </View>
-                      <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
-                        {/* price */}
-                        <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
-                        <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{item.priceDisplayText}</Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          }}
+          renderItem={({ item }) => <DishItem item={item} navigation={navigation} />}
           onEndReached={handleLoadMore}
           onEndThreshold={0}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />} />

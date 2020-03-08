@@ -53,7 +53,6 @@ const VenuesScreen = ({ navigation }) => {
           state.showClosedVenues
         )
         .then((res) => {
-          console.log(res);
           if (res) {
             setClosestVenues([...currentClosestVenues, ...res]);
             setHasMoreElements(res.length == count);
