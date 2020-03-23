@@ -50,10 +50,27 @@ const getClosestVenues = async (
         isDevModeActivated,
       }
     );
+
+  return useResponse(req);
+}
+
+const getVenue = async (id) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/fbo/id", { params: { id } });
+
   return useResponse(req);
 }
 
 
 export const venuesService = {
   getClosestVenues,
+  getVenue,
 };

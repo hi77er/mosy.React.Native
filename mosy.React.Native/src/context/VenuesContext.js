@@ -2,7 +2,7 @@ import createDataContext from './createDataContext';
 import { venuesService } from '../services/venuesService';
 
 
-let currentState = state;
+let currentState = null;
 
 const venuesReducer = (state, action) => {
   currentState = state;
@@ -12,19 +12,25 @@ const venuesReducer = (state, action) => {
       const { foundVenues, resetResults } = action.payload;
       const venues = foundVenues && foundVenues.length ? foundVenues : [];
 
-      currentState = {
-        ...state,
-        closestVenues: resetResults ? venues : [...closestVenues, ...venues],
-      }
+      currentState = { ...state, closestVenues: resetResults ? venues : [...closestVenues, ...venues], };
       break;
-  }
+    case 'getVenue':
+      const detailedVenue = action.payload;
+
+      currentState = { ...state, detailedVenues: [detailedVenue, ...state.detailedVenues], };
+      break;
+  };
 
   return currentState;
 }
 
 
-const getVenue = {
+const getVenue = (dispatch) => {
+  return async (id) => {
+    const detailedVenue = await venuesService.getVenue(id);
 
+    dispatch({ type: 'getVenue', payload: detailedVenue });
+  };
 };
 
 const loadVenues = (dispatch) => {
@@ -50,9 +56,10 @@ export const { Provider, Context } = createDataContext(
   venuesReducer,
   {
     loadVenues,
-    getVenue
+    getVenue,
   },
   {
     closestVenues: [],
+    detailedVenues: [],
   },
 );
