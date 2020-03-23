@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Image, ImageBackground, Modal, ScrollView, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Text, Card } from 'react-native-elements';
@@ -12,10 +12,24 @@ const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const imagesPreviewModalRef = useRef(null);
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
-  const { state } = useContext(VenuesContext);
+  const { state, getVenue } = useContext(VenuesContext);
+  const venue =
+    state.detailedVenues && state.detailedVenues.length && state.detailedVenues.filter((item) => item.id == venueId).length
+      ? state.detailedVenues.filter((item) => item.id == venueId)[0]
+      : null;
 
+  useEffect(() => {
+    if (!venue) {
+      async function init() {
+        console.log('vliza');
+        await getVenue(venueId);
+      };
+      init();
+    }
+  }, []);
 
   return <View style={{ flex: 1 }}>
+    {console.log("in view1: ", venue)}
     <View style={{ height: '45%' }}>
       <ImageBackground
         source={{ uri: testImageUrl }}
@@ -27,10 +41,10 @@ const VenueDetailsScreen = ({ navigation }) => {
           <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
             <View style={{ flex: 2 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>
-                Barista
+                {venue.name}
               </Text>
               <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>
-                Co-working cafe
+                {venue.class}
               </Text>
             </View>
             <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
@@ -72,6 +86,7 @@ const VenueDetailsScreen = ({ navigation }) => {
     <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
   </View>;
 };
+
 
 const styles = StyleSheet.create({});
 
