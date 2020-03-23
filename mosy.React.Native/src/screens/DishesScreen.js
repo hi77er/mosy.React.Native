@@ -1,23 +1,32 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, View, StyleSheet } from 'react-native';
-import { Button, Card, Text, SearchBar } from 'react-native-elements';
+import { ActivityIndicator, FlatList, Image, View, StyleSheet, Alert, RefreshControl } from 'react-native';
+import { SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { dishesService } from '../services/dishesService';
-import { locationHelper } from '../helpers/locationHelper';
+import { Context as FiltersContext } from '../context/FiltersContext';
+import DishItem from '../components/dishes/DishItem';
 
 
 const DishesScreen = ({ navigation }) => {
-  const [searchQuery, setSearchQuery] = useState();
+  const {
+    state,
+    resetSelectedFilters,
+    resetFiltersChanged,
+    setDishesSearchQuery
+  } = useContext(FiltersContext);
+
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [closestDishes, setClosestDishes] = useState([]);
+  const [hasMoreElements, setHasMoreElements] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -29,103 +38,71 @@ const DishesScreen = ({ navigation }) => {
         distanceInterval: 10,
       },
       (location) => {
-        // console.log("INFO: Acquired LOCATION!");
-        // console.log(location);
         setGeolocation(location.coords);
       },
     );
   };
 
-  const loadDishes = () => {
+  const loadDishes = (count, currentClosestDishes) => {
     if (geolocation) {
       const { latitude, longitude } = geolocation;
+      const selectedFilters = state.selectedFilters && state.selectedFilters.length
+        ? state.selectedFilters
+        : [];
 
       dishesService
-        .getClosestDishes({ latitude, longitude })
+        .getClosestDishes(
+          latitude, longitude, count, currentClosestDishes.length, state.dishesSearchQuery,
+          selectedFilters.filter(x => x.filterType == 201).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 205).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 202).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 203).map(x => x.id),
+          selectedFilters.filter(x => x.filterType == 204).map(x => x.id),
+          !state.showRecommendedDishes,
+          state.showClosedVenues
+        )
         .then((res) => {
           if (res) {
-            setClosestDishes(res);
+            // console.log(res);
+            setClosestDishes([...currentClosestDishes, ...res]);
+            setHasMoreElements(res.length == count);
+            if (isRefreshing) setIsRefreshing(false);
           }
         })
         .catch((err) => console.log(err));
     }
   };
 
-  const filters = [
-    {
-      name: "accessibility",
-      label: "Accessibility",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "availabilit",
-      label: "Availability",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "athmosphere",
-      label: "Athmosphere",
-      type: "MULTI_CHOICE",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    },
-    {
-      name: "experienceNotRequired",
-      label: "Culture",
-      type: "RADIO_BUTTON",
-      items: [
-        { id: '92iijs7yta', name: 'Ondo Ondo Ondo', },
-        { id: 'a0s0a8ssbsd', name: 'Ogun Ogun', },
-        { id: '16hbajsabsd', name: 'Calabar Calabar Calabar', },
-        { id: 'nahs75a5sg', name: 'Lagos Lagos', },
-        { id: '667atsas', name: 'Maiduguri Maiduguri', },
-        { id: 'hsyasajs', name: 'Anambra', },
-        { id: 'djsjudksjd', name: 'Benue', },
-        { id: 'sdhyaysdj', name: 'Kaduna Kaduna Kaduna', },
-        { id: 'suudydjsjd', name: 'Abuja', }
-      ],
-    }
-  ];
+  const handleSearchFilteredDishes = () => {
+    setClosestDishes([]);
+    loadDishes(12, []);
+    resetFiltersChanged();
 
+    if (showFilters) setShowFilters(false);
+  };
+
+  const handleRefresh = () => {
+    setClosestDishes([]);
+    setIsRefreshing(true);
+    loadDishes(12, []);
+  }
+
+  const handleLoadMore = () => {
+    if (hasMoreElements)
+      loadDishes(8, closestDishes);
+    else
+      console.log("No more Elem!");
+  };
 
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
   }, []);
 
   useEffect(() => {
-    loadDishes();
+    if (closestDishes == null || closestDishes.length == 0)
+      loadDishes(12, []);
   }, [geolocation]);
+
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
@@ -137,92 +114,61 @@ const DishesScreen = ({ navigation }) => {
           searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
           containerStyle={styles.searchContainer}
           inputContainerStyle={styles.searchInputContainer}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          value={state.dishesSearchQuery}
+          onChangeText={setDishesSearchQuery}
           inputStyle={styles.searchInput}
           clearIcon={
-            () => <TouchableOpacity onPress={() => setSearchQuery("")}>
+            () => <TouchableOpacity onPress={() => { setDishesSearchQuery(""); }}>
               <MaterialIcon name="clear" size={24} color="white" />
             </TouchableOpacity>
           }
         />
-        <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
-          {
-            showFilters
-              ? <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
-              : <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
-          }
-        </TouchableOpacity>
+        {
+          state.filtersChanged
+            ? <TouchableOpacity onPress={handleSearchFilteredDishes}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+        {
+          !showFilters
+            ? <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+        {
+          showFilters && state.areDefaultDishFilters
+            ? <TouchableOpacity
+              onPress={() => Alert.alert(
+                "Reset filters?",
+                "",
+                [
+                  { text: 'Cancel', onPress: () => { } },
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(2); handleSearchFilteredDishes(); } }
+                ]
+              )}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
       </View>
-      {showFilters ? <FiltersBar filters={filters} /> : null}
+      {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
+    {
+      closestDishes && closestDishes.length
+        ? <FlatList
+          data={closestDishes}
+          renderItem={({ item }) => <DishItem item={item} navigation={navigation} />}
+          onEndReached={handleLoadMore}
+          onEndThreshold={0}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />} />
+        : <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color="white" />
+        </View>
+    }
 
-    <FlatList data={closestDishes} renderItem={({ item }) => {
-      return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
-        <Card
-          key={item.id}
-          containerStyle={{
-            paddingLeft: 7,
-            paddingBottom: 7,
-            paddingTop: 7,
-            paddingRight: 0,
-            marginTop: 0,
-            marginLeft: 0,
-            marginRight: 0,
-            marginBottom: 7,
-          }}>
-          <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
-            <Image
-              style={{ width: 130, height: 130, marginRight: 5 }}
-              source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-            <View style={{ flex: 1 }}>
-              <View style={{ flex: 1, flexDirection: "row" }}>
-                <View style={{ flex: 3 }}>
-                  <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  {/* open/close/new/recom */}
-                  <Text style={
-                    item.workingStatus === "Closed"
-                      ? styles.cardLabelRed
-                      : (
-                        item.workingStatus === "Open"
-                          ? styles.cardLabelLightGreen
-                          : styles.cardLabelGreen
-                      )}>
-                    {item.workingStatus.toUpperCase()}
-                  </Text>
-                  {!item.isRecommended || <Text style={styles.cardLabelYellow}>RECOM</Text>}
-                  {!item.isNew || <Text style={styles.cardLabelBlue}>NEW</Text>}
-                </View>
-              </View>
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
-                {/* distance/time/price */}
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  {/* distance */}
-                  <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatDistanceToVenue(item.distanceToDevice)}</Text>
-                </View>
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
-                  {/* arriving in */}
-                  <FontAwesome5Icon name="walking" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
-                </View>
-                <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
-                  {/* price */}
-                  <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>{item.priceDisplayText}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </Card>
-      </TouchableOpacity>
-    }} />
-
-
-  </View >;
+  </View>;
 };
 
 const styles = StyleSheet.create({

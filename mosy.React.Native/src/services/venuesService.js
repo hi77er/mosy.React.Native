@@ -8,7 +8,21 @@ const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 
-const getClosestVenues = async ({ latitude, longitude }) => {
+const getClosestVenues = async (
+  latitude,
+  longitude,
+  maxResultsCount = 10,
+  totalItemsOffset = 0,
+  query = "",
+  selectedVenueAccessibilityFilterIds = [],
+  selectedVenueAvailabilityFilterIds = [],
+  selectedVenueAtmosphereFilterIds = [],
+  selectedVenueCultureFilterIds = [],
+  showNotWorkingVenues = true,
+  localDateTimeOffset = "2020-02-19T10:33:55.585Z",
+  searchedDistanceMeters = 10000,
+  isDevModeActivated = true
+) => {
   const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
   const req = axios
     .create({
@@ -23,17 +37,17 @@ const getClosestVenues = async ({ latitude, longitude }) => {
       {
         latitude,
         longitude,
-        MaxResultsCount: 10,
-        TotalItemsOffset: 0,
-        Query: "",
-        SelectedVenueAccessibilityFilterIds: [],
-        SelectedVenueAvailabilityFilterIds: [],
-        SelectedVenueAtmosphereFilterIds: [],
-        SelectedVenueCultureFilterIds: [],
-        ShowNotWorkingVenues: true,
-        LocalDateTimeOffset: "2020-02-19T10:33:55.585Z",
-        SearchedDistanceMeters: 10000,
-        IsDevModeActivated: true
+        maxResultsCount,
+        totalItemsOffset,
+        query,
+        selectedVenueAccessibilityFilterIds,
+        selectedVenueAvailabilityFilterIds,
+        selectedVenueAtmosphereFilterIds,
+        selectedVenueCultureFilterIds,
+        showNotWorkingVenues,
+        localDateTimeOffset,
+        searchedDistanceMeters,
+        isDevModeActivated,
       }
     );
   return useResponse(req);
