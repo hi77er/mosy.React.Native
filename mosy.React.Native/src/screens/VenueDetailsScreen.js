@@ -12,7 +12,7 @@ const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const imagesPreviewModalRef = useRef(null);
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
-  const { state, getVenue } = useContext(VenuesContext);
+  const { state, loadVenue } = useContext(VenuesContext);
   const venue =
     state.detailedVenues && state.detailedVenues.length && state.detailedVenues.filter((item) => item.id == venueId).length
       ? state.detailedVenues.filter((item) => item.id == venueId)[0]
@@ -22,7 +22,7 @@ const VenueDetailsScreen = ({ navigation }) => {
     if (!venue) {
       async function init() {
         console.log('vliza');
-        await getVenue(venueId);
+        await loadVenue(venueId);
       };
       init();
     }
@@ -30,6 +30,7 @@ const VenueDetailsScreen = ({ navigation }) => {
 
   return <View style={{ flex: 1 }}>
     {console.log("in view1: ", venue)}
+    {console.log("in view1: ", state)}
     <View style={{ height: '45%' }}>
       <ImageBackground
         source={{ uri: testImageUrl }}
@@ -41,10 +42,10 @@ const VenueDetailsScreen = ({ navigation }) => {
           <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
             <View style={{ flex: 2 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>
-                {venue.name}
+                {venue ? venue.name : ''}
               </Text>
               <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>
-                {venue.class}
+                {venue ? venue.class : ''}
               </Text>
             </View>
             <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
@@ -69,6 +70,13 @@ const VenueDetailsScreen = ({ navigation }) => {
       <Card containerStyle={{ borderRadius: 5 }}>
         <Text style={{ color: "#90002d", fontSize: 16 }}>
           Filters
+        </Text>
+        <Text style={{ color: "silver", }}>
+          {
+            venue && venue.filters && venue.filters.length
+              ? venue.filters.map((item) => item.name)
+              : null
+          }
         </Text>
       </Card>
       <Card containerStyle={{ height: 100, borderRadius: 5 }}>

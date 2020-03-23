@@ -9,15 +9,24 @@ const venuesReducer = (state, action) => {
 
   switch (action.type) {
     case 'loadVenues':
-      const { foundVenues, resetResults } = action.payload;
+      const { foundVenues, resetResults, maxResultsCount } = action.payload;
       const venues = foundVenues && foundVenues.length ? foundVenues : [];
 
-      currentState = { ...state, closestVenues: resetResults ? venues : [...closestVenues, ...venues], };
+      currentState = {
+        ...state,
+        closestVenues: resetResults ? venues : [...state.closestVenues, ...venues],
+        isRefreshingClosestVenues: false,
+        hasMoreClosestVenueResults: venues.length == maxResultsCount,
+      };
+
       break;
-    case 'getVenue':
+    case 'loadVenue':
       const detailedVenue = action.payload;
 
       currentState = { ...state, detailedVenues: [detailedVenue, ...state.detailedVenues], };
+      break;
+    case 'startRefreshingClosestVenues':
+      currentState = { ...state, isRefreshingClosestVenues: true };
       break;
   };
 
@@ -25,30 +34,37 @@ const venuesReducer = (state, action) => {
 }
 
 
-const getVenue = (dispatch) => {
+const loadVenue = (dispatch) => {
   return async (id) => {
-    const detailedVenue = await venuesService.getVenue(id);
+    const detailedVenue = await venuesService.loadVenue(id);
 
-    dispatch({ type: 'getVenue', payload: detailedVenue });
+    dispatch({ type: 'loadVenue', payload: detailedVenue });
   };
 };
 
 const loadVenues = (dispatch) => {
-  return async ({ resetResults, count, latitude, longitude, selectedFilters, venuesSearchQuery, showClosedVenues }) => {
-    const filters = selectedFilters && selectedFilters.length ? selectedFilters : [];
-    const totalItemsOffset = resetResults ? 0 : currentState.closestVenues.length;
-
-    const foundVenues = await venuesService
+  return async (maxResultsCount, currentClosestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, resetResults) => {
+    venuesService
       .getClosestVenues(
-        latitude, longitude, count, totalItemsOffset, venuesSearchQuery,
-        filters.filter(x => x.filterType == 101).map(x => x.id),
-        filters.filter(x => x.filterType == 102).map(x => x.id),
-        filters.filter(x => x.filterType == 103).map(x => x.id),
-        filters.filter(x => x.filterType == 104).map(x => x.id),
+        latitude, longitude, maxResultsCount, currentClosestVenues.length, searchQuery,
+        selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
+        selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
+        selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
+        selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
         showClosedVenues
-      );
+      )
+      .then((foundVenues) => {
+        if (foundVenues) {
+          dispatch({ type: 'loadVenues', payload: { maxResultsCount, resetResults, foundVenues } });
+        }
+      })
+      .catch((err) => console.log(err));
+  };
+};
 
-    dispatch({ type: 'loadVenues', payload: { foundVenues, resetResults } });
+const startRefreshingClosestVenues = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'startRefreshingClosestVenues' });
   };
 };
 
@@ -56,10 +72,13 @@ export const { Provider, Context } = createDataContext(
   venuesReducer,
   {
     loadVenues,
-    getVenue,
+    loadVenue,
+    startRefreshingClosestVenues,
   },
   {
     closestVenues: [],
     detailedVenues: [],
+    isRefreshingClosestVenues: false,
+    hasMoreClosestVenueResults: true,
   },
 );
