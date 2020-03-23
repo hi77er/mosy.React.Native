@@ -9,6 +9,7 @@ import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import { venuesService } from '../services/venuesService';
 import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as VenuesContext } from '../context/VenuesContext';
 import VenueItem from '../components/venues/VenueItem';
 
 
@@ -16,12 +17,14 @@ const VenuesScreen = ({ navigation }) => {
   const filtersContext = useContext(FiltersContext);
   const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
   const filtersState = filtersContext.state;
+  const venuesContext = useContext(VenuesContext);
+  const { loadVenues, startRefreshingClosestVenues } = venuesContext;
+  const venuesState = venuesContext.state;
+
 
   const [showFilters, setShowFilters] = useState(false);
   const [geolocation, setGeolocation] = useState(null);
-  const [closestVenues, setClosestVenues] = useState([]);
-  const [hasMoreElements, setHasMoreElements] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -38,53 +41,41 @@ const VenuesScreen = ({ navigation }) => {
     );
   };
 
-  const loadVenues = (count, currentClosestVenues) => {
+  const handleSearchFilteredVenues = () => {
     if (geolocation) {
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
-      const selectedFilters = filtersState.selectedFilters && filtersState.selectedFilters.length
-        ? filtersState.selectedFilters
-        : [];
 
-      venuesService
-        .getClosestVenues(
-          latitude, longitude, count, currentClosestVenues.length, filtersState.venuesSearchQuery,
-          selectedFilters.filter(x => x.filterType == 101).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 102).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 103).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 104).map(x => x.id),
-          filtersState.showClosedVenues
-        )
-        .then((res) => {
-          if (res) {
-            setClosestVenues([...currentClosestVenues, ...res]);
-            setHasMoreElements(res.length == count);
-            if (isRefreshing) setIsRefreshing(false);
-          }
-        })
-        .catch((err) => console.log(err));
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
+      resetFiltersChanged();
+
+      if (showFilters) setShowFilters(false);
     }
   };
 
-  const handleSearchFilteredVenues = () => {
-    setClosestVenues([]);
-    loadVenues(12, []);
-    resetFiltersChanged();
-
-    if (showFilters) setShowFilters(false);
-  };
-
   const handleRefresh = () => {
-    setClosestVenues([]);
-    setIsRefreshing(true);
-    loadVenues(12, []);
+    if (geolocation) {
+      startRefreshingClosestVenues();
+
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
+    }
   }
 
 
   const handleLoadMore = () => {
-    if (hasMoreElements)
-      loadVenues(8, closestVenues);
-    else
-      console.log("No more Elem!");
+    if (venuesState.hasMoreClosestVenueResults)
+      if (geolocation) {
+        const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+        const { closestVenues } = venuesState;
+        const { latitude, longitude } = geolocation;
+
+        loadVenues(8, closestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+      }
+      else
+        console.log("No more Elem!");
   };
 
   useEffect(() => {
@@ -92,7 +83,12 @@ const VenuesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    loadVenues(12, []);
+    if (geolocation) {
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+    }
   }, [geolocation]);
 
   return <View style={styles.container}>
@@ -147,14 +143,14 @@ const VenuesScreen = ({ navigation }) => {
     </SafeAreaView>
 
     {
-      closestVenues && closestVenues.length
+      venuesState.closestVenues && venuesState.closestVenues.length
         ? (
           <FlatList
-            data={closestVenues}
+            data={venuesState.closestVenues}
             renderItem={({ item }) => <VenueItem item={item} navigation={navigation} />}
             onEndReached={handleLoadMore}
             onEndThreshold={0}
-            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />} />
+            refreshControl={<RefreshControl refreshing={venuesState.isRefreshingClosestVenues} onRefresh={handleRefresh} />} />
         )
         : (
           <View style={{ flex: 1, justifyContent: "center" }}>
