@@ -14,23 +14,27 @@ const VenueDetailsScreen = ({ navigation }) => {
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
   const { state, loadVenue } = useContext(VenuesContext);
   const venue =
-    state.detailedVenues && state.detailedVenues.length && state.detailedVenues.filter((item) => item.id == venueId).length
-      ? state.detailedVenues.filter((item) => item.id == venueId)[0]
+    state.closestVenues && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
+      ? state.closestVenues.filter((item) => item.id == venueId)[0]
       : null;
 
   useEffect(() => {
     if (!venue) {
       async function init() {
-        console.log('vliza');
-        await loadVenue(venueId);
+        console.log('Loading new VENUE!');
+        // BusinessHours
+        // OutdoorImageMeta
+        // Filters
+        // TODO: FBOLocation (check)
+        // TODO: Contacts
+        // TODO: OutdoorImageMeta Content
       };
       init();
     }
+    else console.log(venue);
   }, []);
 
   return <View style={{ flex: 1 }}>
-    {console.log("in view1: ", venue)}
-    {console.log("in view1: ", state)}
     <View style={{ height: '45%' }}>
       <ImageBackground
         source={{ uri: testImageUrl }}
@@ -71,13 +75,13 @@ const VenueDetailsScreen = ({ navigation }) => {
         <Text style={{ color: "#90002d", fontSize: 16 }}>
           Filters
         </Text>
-        <Text style={{ color: "silver", }}>
+        {/* <Text style={{ color: "silver", }}>
           {
             venue && venue.filters && venue.filters.length
               ? venue.filters.map((item) => item.name)
               : null
           }
-        </Text>
+        </Text> */}
       </Card>
       <Card containerStyle={{ height: 100, borderRadius: 5 }}>
         <Text style={{ color: "#90002d", fontSize: 16 }}>

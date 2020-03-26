@@ -83,11 +83,11 @@ const VenuesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (geolocation) {
+    if ((!venuesState.closestVenues || !venuesState.closestVenues.length) && geolocation) {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
-      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+      loadVenues(15, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
     }
   }, [geolocation]);
 
