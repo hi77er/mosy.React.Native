@@ -19,20 +19,7 @@ const VenueDetailsScreen = ({ navigation }) => {
       : null;
 
   useEffect(() => {
-    if (!venue) {
-      async function init() {
-        console.log('Loading new VENUE!');
-        // BusinessHours
-        // OutdoorImageMeta
-        // Filters
-        // TODO: FBOLocation (check)
-        // TODO: Contacts
-        // TODO: OutdoorImageMeta Content
-      };
-      init();
-    }
-    else {
-      // console.log(venue);
+    if (venue) {
       loadLocation(venue.id);
       loadContacts(venue.id);
       if (venue.outdoorImageMeta)
@@ -40,115 +27,115 @@ const VenueDetailsScreen = ({ navigation }) => {
     }
   }, []);
 
-  return <View style={{ flex: 1 }}>
-
-    <View style={{ height: '45%' }}>
-      <ImageBackground
-        source={{ uri: testImageUrl }}
-        style={{ flex: 1, justifyContent: "flex-end" }}
-        imageStyle={{ height: "100%", resizeMode: "stretch" }}>
-        <LinearGradient
-          colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
-          style={{ flex: 1 }}>
-          <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
-            <View style={{ flex: 2 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>
-                {venue ? venue.name : ''}
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>
-                {venue ? venue.class : ''}
-              </Text>
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ height: '45%' }}>
+        <ImageBackground
+          source={{ uri: testImageUrl }}
+          style={{ flex: 1, justifyContent: "flex-end" }}
+          imageStyle={{ height: "100%", resizeMode: "stretch" }}>
+          <LinearGradient
+            colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
+            style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
+              <View style={{ flex: 2 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>
+                  {venue ? venue.name : ''}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>
+                  {venue ? venue.class : ''}
+                </Text>
+              </View>
+              <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
+                <TouchableOpacity
+                  style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                  onPress={() => imagesPreviewModalRef.current.show()}>
+                  <MaterialIcon name="call" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                  onPress={() => { }}>
+                  <MaterialIcon name="directions" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                onPress={() => imagesPreviewModalRef.current.show()}>
-                <MaterialIcon name="call" size={24} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                onPress={() => { }}>
-                <MaterialIcon name="directions" size={24} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </LinearGradient>
-      </ImageBackground>
-    </View>
+          </LinearGradient>
+        </ImageBackground>
+      </View>
 
 
-    <ScrollView style={{ backgroundColor: "#90002d" }}>
-      {
-        venue.filters && venue.filters.length
-          ? (
-            <Card containerStyle={{ borderRadius: 5 }}>
-              <Text style={{ color: "#90002d", fontSize: 16 }}>
-                Filters
+      <ScrollView style={{ backgroundColor: "#90002d" }}>
+        {
+          venue.filters && venue.filters.length
+            ? (
+              <Card containerStyle={{ borderRadius: 5 }}>
+                <Text style={{ color: "#90002d", fontSize: 16 }}>
+                  Filters
               </Text>
-              <Text style={{ color: "silver", }}>
+                <Text style={{ color: "silver", }}>
+                  {
+                    venue && venue.filters && venue.filters.length
+                      ? venue.filters.map((item) => item.name).join(', ')
+                      : null
+                  }
+                </Text>
+              </Card>
+            )
+            : null
+        }
+        {
+          venue.fboContacts
+            ? (
+              <Card containerStyle={{ borderRadius: 5 }}>
+                <Text style={{ color: "#90002d", fontSize: 16 }}>
+                  Contacts
+              </Text>
                 {
-                  venue && venue.filters && venue.filters.length
-                    ? venue.filters.map((item) => item.name).join(', ')
+                  venue.fboContacts.phone
+                    ? <Text style={{ color: "silver", }}>{`${venue.fboContacts.phoneCountryCode} ${venue.fboContacts.phone}`}</Text>
                     : null
                 }
+                {
+                  venue.fboContacts.email
+                    ? <Text style={{ color: "silver", }}>{venue.fboContacts.email}</Text>
+                    : null
+                }
+                {
+                  venue.fboContacts.webPage
+                    ? <Text style={{ color: "silver", }}>{venue.fboContacts.webPage}</Text>
+                    : null
+                }
+                {
+                  venue.fboContacts.facebook
+                    ? <Text style={{ color: "silver", }}>{venue.fboContacts.facebook}</Text>
+                    : null
+                }
+                {
+                  venue.fboContacts.instagram
+                    ? <Text style={{ color: "silver", }}>{venue.fboContacts.instagram}</Text>
+                    : null
+                }
+              </Card>
+            )
+            : null
+        }
+        {
+          venue.fboLocation
+            ? (
+              <Card containerStyle={{ marginBottom: 15, borderRadius: 5 }}>
+                <Text style={{ color: "#90002d", fontSize: 16 }}>
+                  Location
               </Text>
-            </Card>
-          )
-          : null
-      }
-      {
-        venue.fboContacts
-          ? (
-            <Card containerStyle={{ borderRadius: 5 }}>
-              <Text style={{ color: "#90002d", fontSize: 16 }}>
-                Contacts
-              </Text>
-              {console.log(venue.fboContacts)}
-              {
-                venue.fboContacts.phone
-                  ? <Text style={{ color: "silver", }}>{`${venue.fboContacts.phoneCountryCode} ${venue.fboContacts.phone}`}</Text>
-                  : null
-              }
-              {
-                venue.fboContacts.email
-                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.email}</Text>
-                  : null
-              }
-              {
-                venue.fboContacts.webPage
-                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.webPage}</Text>
-                  : null
-              }
-              {
-                venue.fboContacts.facebook
-                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.facebook}</Text>
-                  : null
-              }
-              {
-                venue.fboContacts.instagram
-                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.instagram}</Text>
-                  : null
-              }
-            </Card>
-          )
-          : null
-      }
-      {
-        venue.fboLocation
-          ? (
-            <Card containerStyle={{ marginBottom: 15, borderRadius: 5 }}>
-              <Text style={{ color: "#90002d", fontSize: 16 }}>
-                Location
-              </Text>
-              <Text style={{ color: "silver", }}>{`${venue.fboLocation.latitude}, ${venue.fboLocation.longitude}`}</Text>
-            </Card>
-          )
-          : null
-      }
-    </ScrollView>
+                <Text style={{ color: "silver", }}>{`${venue.fboLocation.latitude}, ${venue.fboLocation.longitude}`}</Text>
+              </Card>
+            )
+            : null
+        }
+      </ScrollView>
 
-    <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
-  </View>;
+      <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
+    </View>
+  );
 };
 
 
