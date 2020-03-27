@@ -12,7 +12,7 @@ const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const imagesPreviewModalRef = useRef(null);
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
-  const { state, loadVenue } = useContext(VenuesContext);
+  const { state, loadVenue, loadLocation, loadContacts, loadOutdoorImageContent } = useContext(VenuesContext);
   const venue =
     state.closestVenues && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
       ? state.closestVenues.filter((item) => item.id == venueId)[0]
@@ -31,10 +31,17 @@ const VenueDetailsScreen = ({ navigation }) => {
       };
       init();
     }
-    else console.log(venue);
+    else {
+      // console.log(venue);
+      loadLocation(venue.id);
+      loadContacts(venue.id);
+      if (venue.outdoorImageMeta)
+        loadOutdoorImageContent(venue.id, venue.outdoorImageMeta.id, 3);
+    }
   }, []);
 
   return <View style={{ flex: 1 }}>
+
     <View style={{ height: '45%' }}>
       <ImageBackground
         source={{ uri: testImageUrl }}
@@ -71,28 +78,73 @@ const VenueDetailsScreen = ({ navigation }) => {
 
 
     <ScrollView style={{ backgroundColor: "#90002d" }}>
-      <Card containerStyle={{ borderRadius: 5 }}>
-        <Text style={{ color: "#90002d", fontSize: 16 }}>
-          Filters
-        </Text>
-        {/* <Text style={{ color: "silver", }}>
-          {
-            venue && venue.filters && venue.filters.length
-              ? venue.filters.map((item) => item.name)
-              : null
-          }
-        </Text> */}
-      </Card>
-      <Card containerStyle={{ height: 100, borderRadius: 5 }}>
-        <Text style={{ color: "#90002d", fontSize: 16 }}>
-          Contacts
-        </Text>
-      </Card>
-      <Card containerStyle={{ height: 300, marginBottom: 15, borderRadius: 5 }}>
-        <Text style={{ color: "#90002d", fontSize: 16 }}>
-          Location
-        </Text>
-      </Card>
+      {
+        venue.filters && venue.filters.length
+          ? (
+            <Card containerStyle={{ borderRadius: 5 }}>
+              <Text style={{ color: "#90002d", fontSize: 16 }}>
+                Filters
+              </Text>
+              <Text style={{ color: "silver", }}>
+                {
+                  venue && venue.filters && venue.filters.length
+                    ? venue.filters.map((item) => item.name).join(', ')
+                    : null
+                }
+              </Text>
+            </Card>
+          )
+          : null
+      }
+      {
+        venue.fboContacts
+          ? (
+            <Card containerStyle={{ borderRadius: 5 }}>
+              <Text style={{ color: "#90002d", fontSize: 16 }}>
+                Contacts
+              </Text>
+              {console.log(venue.fboContacts)}
+              {
+                venue.fboContacts.phone
+                  ? <Text style={{ color: "silver", }}>{`${venue.fboContacts.phoneCountryCode} ${venue.fboContacts.phone}`}</Text>
+                  : null
+              }
+              {
+                venue.fboContacts.email
+                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.email}</Text>
+                  : null
+              }
+              {
+                venue.fboContacts.webPage
+                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.webPage}</Text>
+                  : null
+              }
+              {
+                venue.fboContacts.facebook
+                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.facebook}</Text>
+                  : null
+              }
+              {
+                venue.fboContacts.instagram
+                  ? <Text style={{ color: "silver", }}>{venue.fboContacts.instagram}</Text>
+                  : null
+              }
+            </Card>
+          )
+          : null
+      }
+      {
+        venue.fboLocation
+          ? (
+            <Card containerStyle={{ marginBottom: 15, borderRadius: 5 }}>
+              <Text style={{ color: "#90002d", fontSize: 16 }}>
+                Location
+              </Text>
+              <Text style={{ color: "silver", }}>{`${venue.fboLocation.latitude}, ${venue.fboLocation.longitude}`}</Text>
+            </Card>
+          )
+          : null
+      }
     </ScrollView>
 
     <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />

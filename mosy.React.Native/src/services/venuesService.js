@@ -84,7 +84,55 @@ const getVenue = async (id) => {
   return useResponse(req);
 }
 
+const getLocation = async (venueId) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/fbo/location", { params: { fboId: venueId } });
+
+  return useResponse(req);
+}
+
+const getContacts = async (venueId) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/fbo/contacts", { params: { fboId: venueId } });
+
+  return useResponse(req);
+}
+
+const getOutdoorImageContent = async (imageMetaId, size) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/fbo/images/get", { params: { imageMetaId, size } });
+
+  return useResponse(req);
+}
+
 export const venuesService = {
   getClosestVenues,
   loadVenue,
+  getLocation,
+  getContacts,
+  getOutdoorImageContent,
 };
