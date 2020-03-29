@@ -45,36 +45,60 @@ const venuesReducer = (state, action) => {
       });
       currentState = { ...state, closestVenues };
       break;
-    case 'loadOutdoorImageContent':
-      const { imageMetaId, outdoorImageContent, size } = action.payload;
+    case 'loadImageContent':
+      const { isExterior, imageMetaId, imageContent, size } = action.payload;
       closestVenues = state.closestVenues.map(x => {
 
-        if (x.outdoorImageMeta) {
+        if ((isExterior && x.outdoorImageMeta) || (!isExterior && x.indoorImageMeta)) {
 
           switch (size) {
             case 0:
-              x.outdoorImageMeta = {
-                ...x.outdoorImageMeta,
-                base64Original: x.id == action.payload.venueId ? outdoorImageContent : x.outdoorImageMeta.base64Original,
-              };
+              if (isExterior)
+                x.outdoorImageMeta = {
+                  ...x.outdoorImageMeta,
+                  base64Original: x.id == action.payload.venueId ? imageContent : x.outdoorImageMeta.base64Original,
+                };
+              else
+                x.indoorImageMeta = {
+                  ...x.indoorImageMeta,
+                  base64Original: x.id == action.payload.venueId ? imageContent : x.indoorImageMeta.base64Original,
+                };
               break;
             case 1:
-              x.outdoorImageMeta = {
-                ...x.outdoorImageMeta,
-                base64x100: x.id == action.payload.venueId ? outdoorImageContent : x.outdoorImageMeta.base64x100,
-              };
+              if (isExterior)
+                x.outdoorImageMeta = {
+                  ...x.outdoorImageMeta,
+                  base64x100: x.id == action.payload.venueId ? imageContent : x.outdoorImageMeta.base64x100,
+                };
+              else
+                x.indoorImageMeta = {
+                  ...x.indoorImageMeta,
+                  base64x100: x.id == action.payload.venueId ? imageContent : x.indoorImageMeta.base64x100,
+                };
               break;
             case 2:
-              x.outdoorImageMeta = {
-                ...x.outdoorImageMeta,
-                base64x200: x.id == action.payload.venueId ? outdoorImageContent : x.outdoorImageMeta.base64x200,
-              };
+              if (isExterior)
+                x.outdoorImageMeta = {
+                  ...x.outdoorImageMeta,
+                  base64x200: x.id == action.payload.venueId ? imageContent : x.outdoorImageMeta.base64x200,
+                };
+              else
+                x.indoorImageMeta = {
+                  ...x.indoorImageMeta,
+                  base64x200: x.id == action.payload.venueId ? imageContent : x.indoorImageMeta.base64x200,
+                };
               break;
             case 3:
-              x.outdoorImageMeta = {
-                ...x.outdoorImageMeta,
-                base64x300: x.id == action.payload.venueId ? outdoorImageContent : x.outdoorImageMeta.base64x300,
-              };
+              if (isExterior)
+                x.outdoorImageMeta = {
+                  ...x.outdoorImageMeta,
+                  base64x300: x.id == action.payload.venueId ? imageContent : x.outdoorImageMeta.base64x300,
+                };
+              else
+                x.indoorImageMeta = {
+                  ...x.indoorImageMeta,
+                  base64x300: x.id == action.payload.venueId ? imageContent : x.indoorImageMeta.base64x300,
+                };
               break;
           }
         } else {
@@ -82,25 +106,29 @@ const venuesReducer = (state, action) => {
             case 0:
               x = {
                 ...x,
-                outdoorImageMeta: { id: imageMetaId, base64Original: outdoorImageContent },
+                outdoorImageMeta: isExterior ? { id: imageMetaId, base64Original: imageContent } : x.outdoorImageMeta,
+                indoorImageMeta: !isExterior ? { id: imageMetaId, base64Original: imageContent } : x.indoorImageMeta,
               };
               break;
             case 1:
               x = {
                 ...x,
-                outdoorImageMeta: { id: imageMetaId, base64x100: outdoorImageContent },
+                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x100: imageContent } : x.outdoorImageMeta,
+                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x100: imageContent } : x.indoorImageMeta,
               };
               break;
             case 2:
               x = {
                 ...x,
-                outdoorImageMeta: { id: imageMetaId, base64x200: outdoorImageContent },
+                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x200: imageContent } : x.outdoorImageMeta,
+                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x200: imageContent } : x.indoorImageMeta,
               };
               break;
             case 3:
               x = {
                 ...x,
-                outdoorImageMeta: { id: imageMetaId, base64x300: outdoorImageContent },
+                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x300: imageContent } : x.outdoorImageMeta,
+                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x300: imageContent } : x.indoorImageMeta,
               };
               break;
           }
@@ -169,9 +197,17 @@ const loadContacts = (dispatch) => {
 
 const loadOutdoorImageContent = (dispatch) => {
   return async (venueId, imageMetaId, size) => {
-    const outdoorImageContent = await venuesService.getOutdoorImageContent(imageMetaId, size);
+    const imageContent = await venuesService.getImageContent(imageMetaId, size);
 
-    dispatch({ type: 'loadOutdoorImageContent', payload: { outdoorImageContent: outdoorImageContent.base64Content, imageMetaId, size, venueId } });
+    dispatch({ type: 'loadImageContent', payload: { isExterior: true, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
+  };
+};
+
+const loadIndoorImageContent = (dispatch) => {
+  return async (venueId, imageMetaId, size) => {
+    const imageContent = await venuesService.getImageContent(imageMetaId, size);
+
+    dispatch({ type: 'loadImageContent', payload: { isExterior: false, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
   };
 };
 
@@ -184,6 +220,7 @@ export const { Provider, Context } = createDataContext(
     loadLocation,
     loadContacts,
     loadOutdoorImageContent,
+    loadIndoorImageContent,
   },
   {
     closestVenues: [],

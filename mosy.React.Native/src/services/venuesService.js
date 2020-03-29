@@ -114,7 +114,7 @@ const getContacts = async (venueId) => {
   return useResponse(req);
 }
 
-const getOutdoorImageContent = async (imageMetaId, size) => {
+const getImageContent = async (imageMetaId, size) => {
   const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
   const req = axios
     .create({
@@ -134,5 +134,5 @@ export const venuesService = {
   loadVenue,
   getLocation,
   getContacts,
-  getOutdoorImageContent,
+  getImageContent,
 };

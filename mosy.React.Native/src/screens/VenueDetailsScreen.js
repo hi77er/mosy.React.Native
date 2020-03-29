@@ -12,7 +12,7 @@ const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const imagesPreviewModalRef = useRef(null);
   const testImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4ZA0bTmaUt-QTjm7n9AtFUJPBNANfKS79cWjyBgXGSJEAHST1ug&s";
-  const { state, loadVenue, loadLocation, loadContacts, loadOutdoorImageContent } = useContext(VenuesContext);
+  const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
     state.closestVenues && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
       ? state.closestVenues.filter((item) => item.id == venueId)[0]
@@ -22,8 +22,10 @@ const VenueDetailsScreen = ({ navigation }) => {
     if (venue) {
       loadLocation(venue.id);
       loadContacts(venue.id);
-      if (venue.outdoorImageMeta)
-        loadOutdoorImageContent(venue.id, venue.outdoorImageMeta.id, 3);
+      if (venue.indoorImageMeta) {
+        loadIndoorImageContent(venue.id, venue.indoorImageMeta.id, 3);
+        console.log("load indoor");
+      }
     }
   }, []);
 
@@ -31,7 +33,11 @@ const VenueDetailsScreen = ({ navigation }) => {
     <View style={{ flex: 1 }}>
       <View style={{ height: '45%' }}>
         <ImageBackground
-          source={{ uri: testImageUrl }}
+          source={{
+            uri: venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+              ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
+              : testImageUrl
+          }}
           style={{ flex: 1, justifyContent: "flex-end" }}
           imageStyle={{ height: "100%", resizeMode: "stretch" }}>
           <LinearGradient
