@@ -19,6 +19,11 @@ const VenueDetailsScreen = ({ navigation }) => {
       ? state.closestVenues.filter((item) => item.id == venueId)[0]
       : null;
 
+  const handleShowOriginalImage = () => {
+    if (venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300)
+      imagesPreviewModalRef.current.show();
+  };
+
   useEffect(() => {
     if (venue) {
       loadLocation(venue.id);
@@ -56,7 +61,7 @@ const VenueDetailsScreen = ({ navigation }) => {
               <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
                 <TouchableOpacity
                   style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                  onPress={() => imagesPreviewModalRef.current.show()}>
+                  onPress={handleShowOriginalImage}>
                   <MaterialIcon name="call" size={24} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -140,7 +145,13 @@ const VenueDetailsScreen = ({ navigation }) => {
         }
       </ScrollView>
 
-      <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
+      <ImagesPreviewModal
+        ref={imagesPreviewModalRef}
+        imageUrls={[
+          venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+            ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
+            : venueIndoorBackground
+        ]} />
     </View>
   );
 };

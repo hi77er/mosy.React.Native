@@ -18,7 +18,7 @@ const VenuesScreen = ({ navigation }) => {
   const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
   const filtersState = filtersContext.state;
   const venuesContext = useContext(VenuesContext);
-  const { loadVenues, startRefreshingClosestVenues } = venuesContext;
+  const { loadVenues, startRefreshingClosestVenues, loadOutdoorImageContent } = venuesContext;
   const venuesState = venuesContext.state;
 
 
