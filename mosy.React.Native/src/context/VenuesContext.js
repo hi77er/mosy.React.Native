@@ -47,6 +47,7 @@ const venuesReducer = (state, action) => {
       break;
     case 'loadImageContent':
       const { isExterior, imageMetaId, imageContent, size } = action.payload;
+
       closestVenues = state.closestVenues.map(x => {
 
         if ((isExterior && x.outdoorImageMeta) || (!isExterior && x.indoorImageMeta)) {
@@ -106,29 +107,45 @@ const venuesReducer = (state, action) => {
             case 0:
               x = {
                 ...x,
-                outdoorImageMeta: isExterior ? { id: imageMetaId, base64Original: imageContent } : x.outdoorImageMeta,
-                indoorImageMeta: !isExterior ? { id: imageMetaId, base64Original: imageContent } : x.indoorImageMeta,
+                outdoorImageMeta: x.id == action.payload.venueId
+                  ? (isExterior ? { id: imageMetaId, base64Original: imageContent } : x.outdoorImageMeta)
+                  : x.outdoorImageMeta,
+                indoorImageMeta: x.id == action.payload.venueId
+                  ? (!isExterior ? { id: imageMetaId, base64Original: imageContent } : x.indoorImageMeta)
+                  : x.indoorImageMeta,
               };
               break;
             case 1:
               x = {
                 ...x,
-                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x100: imageContent } : x.outdoorImageMeta,
-                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x100: imageContent } : x.indoorImageMeta,
+                outdoorImageMeta: x.id == action.payload.venueId
+                  ? (isExterior ? { id: imageMetaId, base64x100: imageContent } : x.outdoorImageMeta)
+                  : x.outdoorImageMeta,
+                indoorImageMeta: x.id == action.payload.venueId
+                  ? (!isExterior ? { id: imageMetaId, base64x100: imageContent } : x.indoorImageMeta)
+                  : x.indoorImageMeta,
               };
               break;
             case 2:
               x = {
                 ...x,
-                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x200: imageContent } : x.outdoorImageMeta,
-                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x200: imageContent } : x.indoorImageMeta,
+                outdoorImageMeta: x.id == action.payload.venueId
+                  ? (isExterior ? { id: imageMetaId, base64x200: imageContent } : x.outdoorImageMeta)
+                  : x.outdoorImageMeta,
+                indoorImageMeta: x.id == action.payload.venueId
+                  ? (!isExterior ? { id: imageMetaId, base64x200: imageContent } : x.indoorImageMeta)
+                  : x.indoorImageMeta,
               };
               break;
             case 3:
               x = {
                 ...x,
-                outdoorImageMeta: isExterior ? { id: imageMetaId, base64x300: imageContent } : x.outdoorImageMeta,
-                indoorImageMeta: !isExterior ? { id: imageMetaId, base64x300: imageContent } : x.indoorImageMeta,
+                outdoorImageMeta: x.id == action.payload.venueId
+                  ? (isExterior ? { id: imageMetaId, base64x300: imageContent } : x.outdoorImageMeta)
+                  : x.indoorImageMeta,
+                indoorImageMeta: x.id == action.payload.venueId
+                  ? (!isExterior ? { id: imageMetaId, base64x300: imageContent } : x.indoorImageMeta)
+                  : x.indoorImageMeta,
               };
               break;
           }

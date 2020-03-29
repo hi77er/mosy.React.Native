@@ -28,7 +28,6 @@ const VenueDetailsScreen = ({ navigation }) => {
     if (venue) {
       loadLocation(venue.id);
       loadContacts(venue.id);
-      console.log("load indoor", venue.indoorImageMeta);
       if (venue.indoorImageMeta) {
         loadIndoorImageContent(venue.id, venue.indoorImageMeta.id, 3);
       }
@@ -157,6 +156,8 @@ const VenueDetailsScreen = ({ navigation }) => {
             }
           }
         ]} />
+      {/* {console.log(venue.name)}
+      {console.log(venue.indoorImageMeta)} */}
     </View>
   );
 };
