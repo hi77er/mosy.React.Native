@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
+import MapView, { Marker } from 'react-native-maps';
 
 
 const VenueDetailsScreen = ({ navigation }) => {
@@ -134,10 +135,21 @@ const VenueDetailsScreen = ({ navigation }) => {
           venue.fboLocation
             ? (
               <Card containerStyle={{ marginBottom: 15, borderRadius: 5 }}>
-                <Text style={{ color: "#90002d", fontSize: 16 }}>
-                  Location
-              </Text>
-                <Text style={{ color: "silver", }}>{`${venue.fboLocation.latitude}, ${venue.fboLocation.longitude}`}</Text>
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: venue.fboLocation.latitude,
+                    longitude: venue.fboLocation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01
+                  }}>
+                  <Marker
+                    coordinate={{
+                      latitude: venue.fboLocation.latitude,
+                      longitude: venue.fboLocation.longitude
+                    }}
+                    title={venue.name} />
+                </MapView>
               </Card>
             )
             : null
@@ -163,6 +175,10 @@ const VenueDetailsScreen = ({ navigation }) => {
 };
 
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  map: {
+    height: 250
+  }
+});
 
 export default VenueDetailsScreen;
