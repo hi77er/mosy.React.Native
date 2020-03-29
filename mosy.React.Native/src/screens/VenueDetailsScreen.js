@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 import { Context as VenuesContext } from '../context/VenuesContext';
-import venueIndoorBackground from "../../assets/img/venues/indoor-background-bw.jpg";
+import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
 
 
 const VenueDetailsScreen = ({ navigation }) => {
