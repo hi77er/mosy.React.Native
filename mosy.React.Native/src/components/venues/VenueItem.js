@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Text, Card } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { locationHelper } from '../../helpers/locationHelper';
+import { venuesService } from '../../services/venuesService';
 
 
 const VenueItem = ({ item, navigation }) => {
+  const [imageContent, setImageContent] = useState(
+    item.outdoorImageMeta && item.outdoorImageMeta.contentType && item.outdoorImageMeta.base64x200
+      ? `data:${item.outdoorImageMeta.contentType};base64,${item.outdoorImageMeta.base64x200}`
+      : "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612"
+  );
+
+  useEffect(
+    () => {
+      async function init() {
+        if (item.outdoorImageMeta && item.outdoorImageMeta.id && item.outdoorImageMeta.contentType && !item.outdoorImageMeta.base64x200) {
+          const data = await venuesService.getImageContent(item.outdoorImageMeta.id, 2);
+          setImageContent(`data:${item.outdoorImageMeta.contentType};base64,${data.base64Content}`);
+        }
+      }
+      init();
+    }, []);
+
   return <Card key={item.id} containerStyle={styles.cardContainerStyle}>
     <View style={styles.cardHeaderContainer}>
       <View style={styles.cardTitleContainer}>
@@ -31,7 +49,7 @@ const VenueItem = ({ item, navigation }) => {
     <View style={styles.cardBodyContainer}>
       <Image
         style={styles.cardImage}
-        source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
+        source={{ uri: imageContent }} />
       <View style={styles.cardDashboardContainer}>
         <View style={styles.cardDashboardInfo}>
           <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
@@ -49,7 +67,7 @@ const VenueItem = ({ item, navigation }) => {
         <View style={styles.cardDashboardButton}>
           <TouchableOpacity
             style={styles.cardDashboardButtonTouch}
-            onPress={() => navigation.navigate("VenueDetails",{ venueId: item.id})}>
+            onPress={() => navigation.navigate("VenueDetails", { venueId: item.id })}>
             <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
           </TouchableOpacity>
         </View>
