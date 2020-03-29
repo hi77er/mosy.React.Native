@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 import { Context as VenuesContext } from '../context/VenuesContext';
+import venueIndoorBackground from "../../assets/img/venues/indoor-background-bw.jpg";
 
 
 const VenueDetailsScreen = ({ navigation }) => {
@@ -33,11 +34,11 @@ const VenueDetailsScreen = ({ navigation }) => {
     <View style={{ flex: 1 }}>
       <View style={{ height: '45%' }}>
         <ImageBackground
-          source={{
-            uri: venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
-              ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
-              : testImageUrl
-          }}
+          source={
+            venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+              ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
+              : venueIndoorBackground
+          }
           style={{ flex: 1, justifyContent: "flex-end" }}
           imageStyle={{ height: "100%", resizeMode: "stretch" }}>
           <LinearGradient
