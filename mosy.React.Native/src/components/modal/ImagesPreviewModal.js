@@ -3,7 +3,7 @@ import { Modal } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 
 
-const ImagesPreviewModal = forwardRef(({ imageUrls }, ref) => {
+const ImagesPreviewModal = forwardRef(({ images }, ref) => {
 
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
@@ -16,7 +16,7 @@ const ImagesPreviewModal = forwardRef(({ imageUrls }, ref) => {
 
   return (
     <Modal visible={imageModalVisible} onRequestClose={hide}>
-      <ImageViewer imageUrls={imageUrls} enableSwipeDown onSwipeDown={hide} />
+      <ImageViewer imageUrls={images} enableSwipeDown onSwipeDown={hide} />
     </Modal>
   );
 });

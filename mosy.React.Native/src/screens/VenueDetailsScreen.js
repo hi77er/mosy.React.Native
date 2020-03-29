@@ -28,9 +28,9 @@ const VenueDetailsScreen = ({ navigation }) => {
     if (venue) {
       loadLocation(venue.id);
       loadContacts(venue.id);
+      console.log("load indoor", venue.indoorImageMeta);
       if (venue.indoorImageMeta) {
         loadIndoorImageContent(venue.id, venue.indoorImageMeta.id, 3);
-        console.log("load indoor");
       }
     }
   }, []);
@@ -147,10 +147,15 @@ const VenueDetailsScreen = ({ navigation }) => {
 
       <ImagesPreviewModal
         ref={imagesPreviewModalRef}
-        imageUrls={[
-          venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
-            ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
-            : venueIndoorBackground
+        images={[
+          {
+            url: '',
+            props: {
+              source: venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+                ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
+                : venueIndoorBackground
+            }
+          }
         ]} />
     </View>
   );
