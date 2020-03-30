@@ -4,6 +4,7 @@ import { Text, Card } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { locationHelper } from '../../helpers/locationHelper';
 import { venuesService } from '../../services/venuesService';
 
@@ -12,7 +13,7 @@ const VenueItem = ({ item, navigation }) => {
   const [imageContent, setImageContent] = useState(
     item.outdoorImageMeta && item.outdoorImageMeta.contentType && item.outdoorImageMeta.base64x200
       ? `data:${item.outdoorImageMeta.contentType};base64,${item.outdoorImageMeta.base64x200}`
-      : "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612"
+      : null
   );
 
   useEffect(
@@ -47,9 +48,13 @@ const VenueItem = ({ item, navigation }) => {
       </View>
     </View>
     <View style={styles.cardBodyContainer}>
-      <Image
-        style={styles.cardImage}
-        source={{ uri: imageContent }} />
+      {
+        imageContent
+          ? <Image style={styles.cardImage} source={{ uri: imageContent }} />
+          : <View style={styles.cardImageContainer} >
+            <EntypoIcon name='location' size={63} color={"#90002d"} />
+          </View>
+      }
       <View style={styles.cardDashboardContainer}>
         <View style={styles.cardDashboardInfo}>
           <MaterialCommunityIcon name="map-marker-distance" size={28} color="#666" />
@@ -92,7 +97,7 @@ const styles = StyleSheet.create({
   cardTitleContainer: { flex: 5 },
   cardLabelsContainer: { flex: 1 },
   cardH1: { color: "#666", fontSize: 16, fontWeight: "bold" },
-  cardH2: { color: "darkgray", fontSize: 13, fontWeight: "bold" },
+  cardH2: { color: "darkgray", fontSize: 13, fontWeight: "bold", marginBottom: 3 },
   cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "green" },
   cardLabelLightGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
   cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
@@ -100,6 +105,7 @@ const styles = StyleSheet.create({
   cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
   cardBodyContainer: { flex: 1, flexDirection: "row", marginRight: 7 },
   cardImage: { width: 100, height: 100, marginRight: 5 },
+  cardImageContainer: { width: 100, height: 100, marginRight: 5, alignItems: "center", justifyContent: "center", borderRadius: 3, backgroundColor: "#fbeaef" },
   cardDashboardContainer: { flex: 1, flexDirection: "row" },
   cardDashboardInfo: { flex: 3, alignItems: "center", justifyContent: "flex-end" },
   cardDashboardInfoLabel: { fontWeight: "bold", color: "#666" },
