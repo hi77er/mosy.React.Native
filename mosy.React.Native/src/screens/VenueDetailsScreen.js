@@ -77,11 +77,11 @@ const VenueDetailsScreen = ({ navigation }) => {
               </View>
               <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
                 {
-                  venue.fboContacts && venue.fboContacts.phone
+                  venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
                     ? (
                       <TouchableOpacity
                         style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                        onPress={() => handlePhoneContactClick(venue.fboContacts.phone)}>
+                        onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
                         <MaterialIcon name="call" size={24} color="white" />
                       </TouchableOpacity>
                     )
