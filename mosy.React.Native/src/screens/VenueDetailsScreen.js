@@ -128,7 +128,7 @@ const VenueDetailsScreen = ({ navigation }) => {
                 {
                   venue.fboContacts.phone
                     ? (
-                      <TouchableOpacity onPress={() => handlePhoneContactClick(venue.fboContacts.phone)}>
+                      <TouchableOpacity onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
                         <View style={styles.contactContainer} >
                           <EntypoIcon name={"phone"} size={22} color={"#90002d"} style={styles.contactIcon} />
                           <Text style={{ color: "silver", }}>{`${venue.fboContacts.phoneCountryCode} ${venue.fboContacts.phone}`}</Text>
