@@ -21,11 +21,6 @@ const venuesReducer = (state, action) => {
       };
 
       break;
-    case 'loadVenue':
-      const detailedVenue = action.payload;
-
-      currentState = { ...state, detailedVenues: [detailedVenue, ...state.detailedVenues], };
-      break;
     case 'startRefreshingClosestVenues':
       currentState = { ...state, isRefreshingClosestVenues: true };
       break;
@@ -159,15 +154,6 @@ const venuesReducer = (state, action) => {
   return currentState;
 }
 
-
-const loadVenue = (dispatch) => {
-  return async (id) => {
-    const detailedVenue = await venuesService.loadVenue(id);
-
-    dispatch({ type: 'loadVenue', payload: detailedVenue });
-  };
-};
-
 const loadVenues = (dispatch) => {
   return async (maxResultsCount, currentClosestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, resetResults) => {
     venuesService
@@ -232,7 +218,6 @@ export const { Provider, Context } = createDataContext(
   venuesReducer,
   {
     loadVenues,
-    loadVenue,
     startRefreshingClosestVenues,
     loadLocation,
     loadContacts,

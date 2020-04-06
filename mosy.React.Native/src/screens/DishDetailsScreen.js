@@ -7,10 +7,17 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
+import { Context as DishesContext } from '../context/DishesContext';
 
-const DishDetailsScreen = () => {
+
+const DishDetailsScreen = ({ navigation }) => {
+  const dishId = navigation.state.params.dishId;
   const imagesPreviewModalRef = useRef(null);
-
+  const { state } = useContext(DishesContext);
+  const dish =
+    state.closestDish && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
+      ? state.closestVenues.filter((item) => item.id == venueId)[0]
+      : null;
 
   const testImageUrl = "https://img.buzzfeed.com/video-api-prod/assets/d03461e6d185483da8317cf9ee03433e/BFV18861_ChickenTikkaMasala-ThumbA1080.jpg";
 
@@ -60,22 +67,28 @@ const DishDetailsScreen = () => {
     <ScrollView style={{ backgroundColor: "white" }}>
       <Card containerStyle={{ borderRadius: 5 }}>
         <Text style={{ color: "#666", fontSize: 16 }}>
+          Allergens
+        </Text>
+      </Card>
+      <Card containerStyle={{ borderRadius: 5 }}>
+        <Text style={{ color: "#666", fontSize: 16 }}>
           Filters
-        </Text>
-      </Card>
-      <Card containerStyle={{ height: 100, borderRadius: 5 }}>
-        <Text style={{ color: "#666", fontSize: 16 }}>
-          Contacts
-        </Text>
-      </Card>
-      <Card containerStyle={{ height: 300, marginBottom: 15, borderRadius: 5 }}>
-        <Text style={{ color: "#666", fontSize: 16 }}>
-          Location
         </Text>
       </Card>
     </ScrollView>
 
-    <ImagesPreviewModal ref={imagesPreviewModalRef} imageUrls={[{ url: testImageUrl }]} />
+    <ImagesPreviewModal
+      ref={imagesPreviewModalRef}
+      images={[
+        {
+          url: '',
+          props: {
+            source: venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+              ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
+              : venueIndoorBackground
+          }
+        }
+      ]} />
   </View>;
 };
 

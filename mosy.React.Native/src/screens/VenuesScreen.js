@@ -7,7 +7,6 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
-import { venuesService } from '../services/venuesService';
 import { Context as FiltersContext } from '../context/FiltersContext';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import VenueItem from '../components/venues/VenueItem';
@@ -18,7 +17,7 @@ const VenuesScreen = ({ navigation }) => {
   const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
   const filtersState = filtersContext.state;
   const venuesContext = useContext(VenuesContext);
-  const { loadVenues, startRefreshingClosestVenues, loadOutdoorImageContent } = venuesContext;
+  const { loadVenues, startRefreshingClosestVenues } = venuesContext;
   const venuesState = venuesContext.state;
 
 
