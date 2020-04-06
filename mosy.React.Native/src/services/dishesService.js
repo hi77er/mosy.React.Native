@@ -7,7 +7,6 @@ import { AsyncStorage } from 'react-native';
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
-
 const getClosestDishes = async (
   latitude,
   longitude,
@@ -57,7 +56,23 @@ const getClosestDishes = async (
   return useResponse(req);
 }
 
+const getImageContent = async (imageMetaId, size) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/dishes/images/get", { params: { imageMetaId, size } });
+
+  return useResponse(req);
+}
+
 
 export const dishesService = {
   getClosestDishes,
+  getImageContent,
 };

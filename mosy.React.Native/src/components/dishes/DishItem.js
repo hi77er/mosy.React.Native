@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, View, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-elements';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { locationHelper } from '../../helpers/locationHelper';
+import { dishesService } from '../../services/dishesService';
+
 
 const DishItem = ({ item, navigation }) => {
+  const [imageContent, setImageContent] = useState(
+    item.requestableImageMeta
+      && item.requestableImageMeta.contentType
+      && item.requestableImageMeta.base64x200
+      ? `data:${item.requestableImageMeta.contentType};base64,${item.requestableImageMeta.base64x200}`
+      : null
+  );
+
+  useEffect(
+    () => {
+      async function init() {
+        console.log(item.requestableImageMeta);
+        if (item.requestableImageMeta
+          && item.requestableImageMeta.id
+          && item.requestableImageMeta.contentType
+          && !item.requestableImageMeta.base64x200) {
+          const data = await dishesService.getImageContent(item.requestableImageMeta.id, 2);
+          setImageContent(`data:${item.requestableImageMeta.contentType};base64,${data.base64Content}`);
+
+        }
+      }
+      init();
+    }, []);
+
+
   return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
     <Card
       key={item.id}
@@ -22,9 +50,13 @@ const DishItem = ({ item, navigation }) => {
         marginBottom: 7,
       }}>
       <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
-        <Image
-          style={{ width: 130, height: 130, marginRight: 5 }}
-          source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
+        {
+          imageContent
+            ? <Image style={styles.cardImage} source={{ uri: imageContent }} />
+            : <View style={styles.cardImageContainer} >
+              <EntypoIcon name='location' size={63} color={"#90002d"} />
+            </View>
+        }
         <View style={{ flex: 1 }}>
           <View style={{ flex: 1, flexDirection: "row" }}>
             <View style={{ flex: 3 }}>
@@ -79,6 +111,8 @@ const styles = StyleSheet.create({
   cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
   cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
   cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
+  cardImage: { width: 130, height: 130, marginRight: 5 },
+  cardImageContainer: { width: 100, height: 100, marginRight: 5, alignItems: "center", justifyContent: "center", borderRadius: 3, backgroundColor: "#fbeaef" },
 });
 
 export default DishItem;

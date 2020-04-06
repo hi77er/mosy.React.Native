@@ -7,24 +7,22 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
-import { dishesService } from '../services/dishesService';
 import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as DishesContext } from '../context/DishesContext';
 import DishItem from '../components/dishes/DishItem';
 
 
 const DishesScreen = ({ navigation }) => {
-  const {
-    state,
-    resetSelectedFilters,
-    resetFiltersChanged,
-    setDishesSearchQuery
-  } = useContext(FiltersContext);
+  const filtersContext = useContext(FiltersContext);
+  const { resetSelectedFilters, resetFiltersChanged, setDishesSearchQuery } = filtersContext;
+  const filtersState = filtersContext.state;
+  const dishesContext = useContext(DishesContext);
+  const { loadDishes, startRefreshingClosestDishes } = dishesContext;
+  const dishesState = dishesContext.state;
+
 
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [closestDishes, setClosestDishes] = useState([]);
-  const [hasMoreElements, setHasMoreElements] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
 
 
@@ -43,55 +41,41 @@ const DishesScreen = ({ navigation }) => {
     );
   };
 
-  const loadDishes = (count, currentClosestDishes) => {
-    if (geolocation) {
-      const { latitude, longitude } = geolocation;
-      const selectedFilters = state.selectedFilters && state.selectedFilters.length
-        ? state.selectedFilters
-        : [];
 
-      dishesService
-        .getClosestDishes(
-          latitude, longitude, count, currentClosestDishes.length, state.dishesSearchQuery,
-          selectedFilters.filter(x => x.filterType == 201).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 205).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 202).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 203).map(x => x.id),
-          selectedFilters.filter(x => x.filterType == 204).map(x => x.id),
-          !state.showRecommendedDishes,
-          state.showClosedVenues
-        )
-        .then((res) => {
-          if (res) {
-            // console.log(res);
-            setClosestDishes([...currentClosestDishes, ...res]);
-            setHasMoreElements(res.length == count);
-            if (isRefreshing) setIsRefreshing(false);
-          }
-        })
-        .catch((err) => console.log(err));
+  const handleSearchFilteredDishes = () => {
+    if (geolocation) {
+      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, true);
+      resetFiltersChanged();
+
+      if (showFilters) setShowFilters(false);
     }
   };
 
-  const handleSearchFilteredDishes = () => {
-    setClosestDishes([]);
-    loadDishes(12, []);
-    resetFiltersChanged();
-
-    if (showFilters) setShowFilters(false);
-  };
-
   const handleRefresh = () => {
-    setClosestDishes([]);
-    setIsRefreshing(true);
-    loadDishes(12, []);
+    if (geolocation) {
+      startRefreshingClosestDishes();
+
+      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, true);
+    }
   }
 
   const handleLoadMore = () => {
-    if (hasMoreElements)
-      loadDishes(8, closestDishes);
-    else
-      console.log("No more Elem!");
+    if (dishesState.hasMoreClosestDishResults)
+      if (geolocation) {
+        const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+        const { closestDishes } = dishesState;
+        const { latitude, longitude } = geolocation;
+
+        loadDishes(8, closestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, false);
+      }
+      else
+        console.log("No more Elem!");
   };
 
   useEffect(() => {
@@ -99,8 +83,12 @@ const DishesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (closestDishes == null || closestDishes.length == 0)
-      loadDishes(12, []);
+    if ((!dishesState.closestDishes || !dishesState.closestDishes.length) && geolocation) {
+      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadDishes(15, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, false);
+    }
   }, [geolocation]);
 
 
@@ -114,7 +102,7 @@ const DishesScreen = ({ navigation }) => {
           searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
           containerStyle={styles.searchContainer}
           inputContainerStyle={styles.searchInputContainer}
-          value={state.dishesSearchQuery}
+          value={filtersState.dishesSearchQuery}
           onChangeText={setDishesSearchQuery}
           inputStyle={styles.searchInput}
           clearIcon={
@@ -124,7 +112,7 @@ const DishesScreen = ({ navigation }) => {
           }
         />
         {
-          state.filtersChanged
+          filtersState.filtersChanged
             ? <TouchableOpacity onPress={handleSearchFilteredDishes}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
             </TouchableOpacity>
@@ -138,7 +126,7 @@ const DishesScreen = ({ navigation }) => {
             : null
         }
         {
-          showFilters && state.areDefaultDishFilters
+          showFilters && filtersState.areDefaultDishFilters
             ? <TouchableOpacity
               onPress={() => Alert.alert(
                 "Reset filters?",
@@ -156,13 +144,13 @@ const DishesScreen = ({ navigation }) => {
       {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
     {
-      closestDishes && closestDishes.length
+      dishesState.closestDishes && dishesState.closestDishes.length
         ? <FlatList
-          data={closestDishes}
+          data={dishesState.closestDishes}
           renderItem={({ item }) => <DishItem item={item} navigation={navigation} />}
           onEndReached={handleLoadMore}
           onEndThreshold={0}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />} />
+          refreshControl={<RefreshControl refreshing={dishesState.isRefreshingClosestDishes} onRefresh={handleRefresh} />} />
         : <View style={{ flex: 1, justifyContent: "center" }}>
           <ActivityIndicator size="large" color="white" />
         </View>

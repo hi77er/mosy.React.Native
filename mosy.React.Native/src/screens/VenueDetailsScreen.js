@@ -61,26 +61,26 @@ const VenueDetailsScreen = ({ navigation }) => {
               ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
               : venueIndoorBackground
           }
-          style={{ flex: 1, justifyContent: "flex-end" }}
-          imageStyle={{ height: "100%", resizeMode: "stretch" }}>
+          style={styles.imageBackgroundBorder}
+          imageStyle={styles.imageBackgroundContent}>
           <LinearGradient
             colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
-            style={{ flex: 1 }}>
-            <View style={{ flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" }}>
-              <View style={{ flex: 2 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>
+            style={styles.coverGradient}>
+            <View style={styles.headerContainer}>
+              <View style={styles.titleContainer}>
+                <Text style={styles.venueTitle}>
                   {venue ? venue.name : ''}
                 </Text>
-                <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white' }}>
+                <Text style={styles.venueClass}>
                   {venue ? venue.class : ''}
                 </Text>
               </View>
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" }}>
+              <View style={styles.actionButtonsContainer}>
                 {
                   venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
                     ? (
                       <TouchableOpacity
-                        style={{ marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                        style={styles.ringIcon}
                         onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
                         <MaterialIcon name="call" size={24} color="white" />
                       </TouchableOpacity>
@@ -88,7 +88,7 @@ const VenueDetailsScreen = ({ navigation }) => {
                     : null
                 }
                 <TouchableOpacity
-                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                  style={styles.directionsIcon}
                   onPress={() => { }}>
                   <MaterialIcon name="directions" size={24} color="white" />
                 </TouchableOpacity>
@@ -99,11 +99,11 @@ const VenueDetailsScreen = ({ navigation }) => {
       </View>
 
 
-      <ScrollView style={{ backgroundColor: "#90002d" }}>
+      <ScrollView style={styles.detailsContainer}>
         {
           venue.filters && venue.filters.length
             ? (
-              <Card containerStyle={{ borderRadius: 5 }}>
+              <Card containerStyle={styles.filtersContainer}>
                 <Text style={{ color: "#90002d", fontSize: 16 }}>
                   Filters
                 </Text>
@@ -234,6 +234,18 @@ const VenueDetailsScreen = ({ navigation }) => {
 
 
 const styles = StyleSheet.create({
+  imageBackgroundBorder: { flex: 1, justifyContent: "flex-end" },
+  imageBackgroundContent: { height: "100%", resizeMode: "stretch" },
+  coverGradient: { flex: 1 },
+  headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
+  titleContainer: { flex: 2 },
+  venueTitle: { fontSize: 18, fontWeight: 'bold', color: 'white' },
+  venueClass: { fontSize: 14, fontWeight: 'bold', color: 'white' },
+  actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
+  ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  directionsIcon: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  detailsContainer: { backgroundColor: "#90002d" },
+  filtersContainer: { borderRadius: 5 },
   map: { height: 250 },
   contactContainer: { flexDirection: "row", marginTop: 6 },
   contactIcon: { marginRight: 4 }
