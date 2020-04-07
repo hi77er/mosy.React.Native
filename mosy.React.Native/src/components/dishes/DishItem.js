@@ -22,7 +22,6 @@ const DishItem = ({ item, navigation }) => {
   useEffect(
     () => {
       async function init() {
-        console.log(item.requestableImageMeta);
         if (item.requestableImageMeta
           && item.requestableImageMeta.id
           && item.requestableImageMeta.contentType
@@ -36,7 +35,7 @@ const DishItem = ({ item, navigation }) => {
     }, []);
 
 
-  return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
+  return <TouchableOpacity onPress={() => navigation.navigate("DishDetails", { dishId: item.id })}>
     <Card
       key={item.id}
       containerStyle={{
