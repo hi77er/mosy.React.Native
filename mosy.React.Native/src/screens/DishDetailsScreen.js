@@ -74,8 +74,12 @@ const DishDetailsScreen = ({ navigation }) => {
       </Text>
       <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginLeft: 15, marginRight: 15, textAlign: "center" }}>
         {
-          dish.ingredients && dish.ingredients.length
-            ? dish.ingredients.map((item) => item.name).join(', ')
+          dish.requestableCultures
+            && dish.requestableCultures.length
+            && dish.requestableCultures.filter((item) => item.culture == 'en-US').length
+            && dish.requestableCultures.filter((item) => item.culture == 'en-US')[0].ingredients
+            && dish.requestableCultures.filter((item) => item.culture == 'en-US')[0].ingredients.length
+            ? dish.requestableCultures.filter((item) => item.culture == 'en-US')[0].ingredients.map((item) => item.name).join(', ')
             : null
         }
       </Text>

@@ -53,7 +53,7 @@ const DishItem = ({ item, navigation }) => {
           imageContent
             ? <Image style={styles.cardImage} source={{ uri: imageContent }} />
             : <View style={styles.cardImageContainer} >
-              <EntypoIcon name='location' size={63} color={"#90002d"} />
+              <EntypoIcon name='location' size={75} color={"#90002d"} />
             </View>
         }
         <View style={{ flex: 1 }}>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
   cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
   cardImage: { width: 130, height: 130, marginRight: 5 },
-  cardImageContainer: { width: 100, height: 100, marginRight: 5, alignItems: "center", justifyContent: "center", borderRadius: 3, backgroundColor: "#fbeaef" },
+  cardImageContainer: { width: 130, height: 130, marginRight: 5, alignItems: "center", justifyContent: "center", borderRadius: 3, backgroundColor: "#fbeaef" },
 });
 
 export default DishItem;
