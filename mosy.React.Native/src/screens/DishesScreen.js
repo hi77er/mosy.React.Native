@@ -17,14 +17,12 @@ const DishesScreen = ({ navigation }) => {
   const { resetSelectedFilters, resetFiltersChanged, setDishesSearchQuery } = filtersContext;
   const filtersState = filtersContext.state;
   const dishesContext = useContext(DishesContext);
-  const { loadDishes, startRefreshingClosestDishes } = dishesContext;
+  const { clearDishes, loadDishes, startRefreshingClosestDishes } = dishesContext;
   const dishesState = dishesContext.state;
 
 
   const [geolocation, setGeolocation] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-
-
 
   const watchLocation = async () => {
     await requestPermissionsAsync();
@@ -44,35 +42,39 @@ const DishesScreen = ({ navigation }) => {
 
   const handleSearchFilteredDishes = () => {
     if (geolocation) {
-      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
       const { latitude, longitude } = geolocation;
 
-      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, true);
+      clearDishes();
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, true);
       resetFiltersChanged();
 
       if (showFilters) setShowFilters(false);
     }
   };
 
+
   const handleRefresh = () => {
     if (geolocation) {
       startRefreshingClosestDishes();
 
-      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { selectedFilters, searchQuery, showClosedDishes, showRec, showNotRecommendedDishes } = filtersState;
       const { latitude, longitude } = geolocation;
 
-      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, true);
+      clearDishes();
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, true);
     }
   }
 
   const handleLoadMore = () => {
     if (dishesState.hasMoreClosestDishResults)
       if (geolocation) {
-        const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+        const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
         const { closestDishes } = dishesState;
         const { latitude, longitude } = geolocation;
 
-        loadDishes(8, closestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, false);
+        console.log("showNotRecommendedDishes1: ", showNotRecommendedDishes);
+        loadDishes(8, closestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
       }
       else
         console.log("No more Elem!");
@@ -84,10 +86,10 @@ const DishesScreen = ({ navigation }) => {
 
   useEffect(() => {
     if ((!dishesState.closestDishes || !dishesState.closestDishes.length) && geolocation) {
-      const { selectedFilters, searchQuery, showClosedDishes } = filtersState;
+      const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
       const { latitude, longitude } = geolocation;
 
-      loadDishes(15, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, false);
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
     }
   }, [geolocation]);
 

@@ -9,13 +9,19 @@ const dishesReducer = (state, action) => {
   closestDishes = state.closestDishes;
 
   switch (action.type) {
+    case 'clearDishes':
+      currentState = { ...state, closestDishes: [] };
+      break;
     case 'loadDishes':
       const { foundDishes, resetResults, maxResultsCount } = action.payload;
       const dishes = foundDishes && foundDishes.length ? foundDishes : [];
 
+      const existingIds = state.closestDishes.map(x => x.id);
+      const unique = dishes.filter(x => !existingIds.includes(x.id));
+
       currentState = {
         ...state,
-        closestDishes: resetResults ? dishes : [...state.closestDishes, ...dishes],
+        closestDishes: resetResults ? dishes : [...state.closestDishes, ...unique],
         isRefreshingClosestDishes: false,
         hasMoreClosestDishResults: dishes.length == maxResultsCount,
       };
@@ -102,8 +108,15 @@ const dishesReducer = (state, action) => {
   return currentState;
 }
 
+const clearDishes = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'clearDishes' });
+  };
+};
+
 const loadDishes = (dispatch) => {
   return async (maxResultsCount, currentClosestDishes, latitude, longitude, selectedFilters, searchQuery, showNotWorkingVenues, showNotRecommendedDishes, resetResults) => {
+    console.log("showNotRecommendedDishes2: ", showNotRecommendedDishes);
     dishesService
       .getClosestDishes(
         latitude, longitude, maxResultsCount, currentClosestDishes.length, searchQuery,
@@ -140,6 +153,7 @@ const loadImageContent = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   dishesReducer,
   {
+    clearDishes,
     loadDishes,
     startRefreshingClosestDishes,
     loadImageContent,

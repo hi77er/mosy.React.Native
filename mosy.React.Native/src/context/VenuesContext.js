@@ -9,13 +9,19 @@ const venuesReducer = (state, action) => {
   closestVenues = state.closestVenues;
 
   switch (action.type) {
+    case 'clearVenues':
+      currentState = { ...state, closestVenues: [] };
+      break;
     case 'loadVenues':
       const { foundVenues, resetResults, maxResultsCount } = action.payload;
       const venues = foundVenues && foundVenues.length ? foundVenues : [];
 
+      const existingIds = state.closestVenues.map(x => x.id);
+      const unique = venues.filter(x => !existingIds.includes(x.id));
+
       currentState = {
         ...state,
-        closestVenues: resetResults ? venues : [...state.closestVenues, ...venues],
+        closestVenues: resetResults ? venues : [...state.closestVenues, ...unique],
         isRefreshingClosestVenues: false,
         hasMoreClosestVenueResults: venues.length == maxResultsCount,
       };
@@ -154,6 +160,12 @@ const venuesReducer = (state, action) => {
   return currentState;
 }
 
+const clearVenues = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'clearVenues' });
+  };
+};
+
 const loadVenues = (dispatch) => {
   return async (maxResultsCount, currentClosestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, resetResults) => {
     venuesService
@@ -217,6 +229,7 @@ const loadIndoorImageContent = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   venuesReducer,
   {
+    clearVenues,
     loadVenues,
     startRefreshingClosestVenues,
     loadLocation,

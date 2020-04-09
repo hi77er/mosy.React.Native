@@ -63,11 +63,11 @@ const filtersReducer = (state, action) => {
       };
       break;
 
-    case 'setShowRecommendedDishes':
+    case 'setShowNotRecommendedDishes':
       newState = {
         ...state,
-        showRecommendedDishes: action.payload,
-        filtersChanged: state.filtersChanged || state.showRecommendedDishes !== action.payload
+        showNotRecommendedDishes: action.payload,
+        filtersChanged: state.filtersChanged || state.showNotRecommendedDishes !== action.payload
       };
       break;
 
@@ -95,7 +95,7 @@ const filtersReducer = (state, action) => {
           : state.selectedFilters,
         showClosedVenues: action.payload.filteredType == 1 ? false : state.showClosedVenues,
         showClosedDishes: action.payload.filteredType == 2 ? false : state.showClosedDishes,
-        showRecommendedDishes: action.payload.filteredType == 2 ? true : state.showRecommendedDishes,
+        showNotRecommendedDishes: action.payload.filteredType == 2 ? true : state.showNotRecommendedDishes,
         venuesSearchQuery: action.payload.filteredType == 1 ? "" : state.venuesSearchQuery,
         dishesSearchQuery: action.payload.filteredType == 2 ? "" : state.dishesSearchQuery,
         filtersChanged: false
@@ -122,7 +122,7 @@ const filtersReducer = (state, action) => {
         && newState.selectedFilters.length
         && newState.selectedFilters.filter(x => x.filteredType == 2).length)
       || newState.showClosedDishes
-      || !newState.showRecommendedDishes,
+      || !newState.showNotRecommendedDishes,
   };
   return newState;
 };
@@ -166,9 +166,9 @@ const setShowClosedDishes = (dispatch) => {
   };
 }
 
-const setShowRecommendedDishes = (dispatch) => {
-  return async (showRecommendedDishes) => {
-    dispatch({ type: 'setShowRecommendedDishes', payload: showRecommendedDishes });
+const setShowNotRecommendedDishes = (dispatch) => {
+  return async (showNotRecommendedDishes) => {
+    dispatch({ type: 'setShowNotRecommendedDishes', payload: showNotRecommendedDishes });
   };
 }
 
@@ -195,7 +195,7 @@ export const { Provider, Context } = createDataContext(
     setSelectedFilters,
     setShowClosedVenues,
     setShowClosedDishes,
-    setShowRecommendedDishes,
+    setShowNotRecommendedDishes,
     setVenuesSearchQuery,
     setDishesSearchQuery,
   },
@@ -203,8 +203,8 @@ export const { Provider, Context } = createDataContext(
     filters: [],
     selectedFilters: [],
     showClosedVenues: false,
-    showClosedDishes: false,
-    showRecommendedDishes: true,
+    showClosedDishes: true,
+    showNotRecommendedDishes: false,
     venuesSearchQuery: "",
     dishesSearchQuery: "",
 

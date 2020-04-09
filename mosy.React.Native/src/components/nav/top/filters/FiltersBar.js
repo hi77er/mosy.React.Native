@@ -8,7 +8,7 @@ import { Context as FiltersContext } from '../../../../context/FiltersContext';
 
 const FiltersBar = ({ filteredType }) => {
 
-  const { state, setShowClosedVenues, setShowClosedDishes, setShowRecommendedDishes } = useContext(FiltersContext);
+  const { state, setShowClosedVenues, setShowClosedDishes, setShowNotRecommendedDishes } = useContext(FiltersContext);
 
 
 
@@ -84,12 +84,12 @@ const FiltersBar = ({ filteredType }) => {
           filteredType != 2 ? null
             : <TouchableOpacity
               style={[
-                state.showRecommendedDishes ? styles.boolFilterTrueTouch : styles.boolFilterFalseTouch,
+                state.showNotRecommendedDishes ? styles.boolFilterTrueTouch : styles.boolFilterFalseTouch,
                 styles.boolFilterTouch
               ]}
-              onPress={() => setShowRecommendedDishes(!state.showRecommendedDishes)}>
+              onPress={() => setShowNotRecommendedDishes(!state.showNotRecommendedDishes)}>
               <View style={styles.boolFilterContainer}>
-                <Text style={[state.showRecommendedDishes ? styles.boolFilterLabel : styles.boolFilterFalseLabel, styles.boolFilterLabel]}>Recommended</Text>
+                <Text style={[state.showNotRecommendedDishes ? styles.boolFilterLabel : styles.boolFilterFalseLabel, styles.boolFilterLabel]}>Not recommended</Text>
               </View>
             </TouchableOpacity>
         }

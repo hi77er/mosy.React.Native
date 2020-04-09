@@ -17,7 +17,7 @@ const VenuesScreen = ({ navigation }) => {
   const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
   const filtersState = filtersContext.state;
   const venuesContext = useContext(VenuesContext);
-  const { loadVenues, startRefreshingClosestVenues } = venuesContext;
+  const { clearVenues, loadVenues, startRefreshingClosestVenues } = venuesContext;
   const venuesState = venuesContext.state;
 
 
@@ -45,6 +45,7 @@ const VenuesScreen = ({ navigation }) => {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
+      clearVenues();
       loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
       resetFiltersChanged();
 
@@ -59,10 +60,10 @@ const VenuesScreen = ({ navigation }) => {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
+      clearVenues();
       loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
     }
   }
-
 
   const handleLoadMore = () => {
     if (venuesState.hasMoreClosestVenueResults)
@@ -71,6 +72,7 @@ const VenuesScreen = ({ navigation }) => {
         const { closestVenues } = venuesState;
         const { latitude, longitude } = geolocation;
 
+        console.log("loading more: ", 8, " ", closestVenues.length);
         loadVenues(8, closestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
       }
       else
@@ -86,7 +88,7 @@ const VenuesScreen = ({ navigation }) => {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
-      loadVenues(15, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
     }
   }, [geolocation]);
 
