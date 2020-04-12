@@ -73,7 +73,6 @@ const DishesScreen = ({ navigation }) => {
         const { closestDishes } = dishesState;
         const { latitude, longitude } = geolocation;
 
-        console.log("showNotRecommendedDishes1: ", showNotRecommendedDishes);
         loadDishes(8, closestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
       }
       else

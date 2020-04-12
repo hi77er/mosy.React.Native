@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Image, ImageBackground, Linking, ScrollView, View } from 'react-native';
+import React, { useContext, useEffect, useRef } from 'react';
+import { StyleSheet, ImageBackground, Linking, ScrollView, Share, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Text, Card } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,12 +14,46 @@ import MapView, { Marker } from 'react-native-maps';
 
 const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
+  const geolocation = navigation.state.params.geolocation;
   const imagesPreviewModalRef = useRef(null);
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
     state.closestVenues && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
       ? state.closestVenues.filter((item) => item.id == venueId)[0]
       : null;
+
+
+
+
+  const handleGoToLocationClick = () => {
+    const webUrl = `https://www.google.com/maps/dir/${geolocation.latitude},${geolocation.longitude}/${venue.fboLocation.latitude},${venue.fboLocation.longitude}/@${geolocation.latitude},${geolocation.longitude},14z`;
+    Linking.canOpenURL(webUrl).then(supported => {
+      if (supported)
+        Linking.openURL(webUrl);
+    });
+  };
+
+  const handleShareClick = async () => {
+    try {
+      const result = await Share.share({
+        message: `${venue.name} https://www.treatspark.com/venue/${venue.id}`,
+        url: `https://www.treatspark.com/venue/${venue.id}`,
+        title: venue.name,
+        dialogTitle: venue.name,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   const handleShowOriginalImage = () => {
     if (venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300)
@@ -53,7 +87,7 @@ const VenueDetailsScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#90002d' }}>
       <View style={{ height: '45%' }}>
         <ImageBackground
           source={
@@ -67,13 +101,12 @@ const VenueDetailsScreen = ({ navigation }) => {
             colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
             style={styles.coverGradient}>
             <View style={styles.headerContainer}>
-              <View style={styles.titleContainer}>
-                <Text style={styles.venueTitle}>
-                  {venue ? venue.name : ''}
-                </Text>
-                <Text style={styles.venueClass}>
-                  {venue ? venue.class : ''}
-                </Text>
+              <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
+                <TouchableOpacity
+                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                  onPress={handleShareClick}>
+                  <MaterialIcon name="share" size={24} color="white" />
+                </TouchableOpacity>
               </View>
               <View style={styles.actionButtonsContainer}>
                 {
@@ -87,19 +120,32 @@ const VenueDetailsScreen = ({ navigation }) => {
                     )
                     : null
                 }
-                <TouchableOpacity
-                  style={styles.directionsIcon}
-                  onPress={() => { }}>
-                  <MaterialIcon name="directions" size={24} color="white" />
-                </TouchableOpacity>
+                {
+                  !geolocation || (
+                    <TouchableOpacity
+                      style={styles.directionsIcon}
+                      onPress={handleGoToLocationClick}>
+                      <MaterialIcon name="directions" size={24} color="white" />
+                    </TouchableOpacity>
+                  )
+                }
               </View>
             </View>
           </LinearGradient>
         </ImageBackground>
       </View>
 
+      <View style={styles.titleContainer}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: "center" }}>
+          {venue ? venue.name : ''}
+        </Text>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white', marginLeft: 15, marginRight: 15, textAlign: "center" }}>
+          {venue ? venue.class : ''}
+        </Text>
+      </View>
 
-      <ScrollView style={styles.detailsContainer}>
+
+      <ScrollView>
         {
           venue.filters && venue.filters.length
             ? (
@@ -228,7 +274,7 @@ const VenueDetailsScreen = ({ navigation }) => {
         ]} />
       {/* {console.log(venue.name)}
       {console.log(venue.indoorImageMeta)} */}
-    </View>
+    </View >
   );
 };
 
@@ -238,13 +284,12 @@ const styles = StyleSheet.create({
   imageBackgroundContent: { height: "100%", resizeMode: "stretch" },
   coverGradient: { flex: 1 },
   headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
-  titleContainer: { flex: 2 },
+  titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
   venueTitle: { fontSize: 18, fontWeight: 'bold', color: 'white' },
   venueClass: { fontSize: 14, fontWeight: 'bold', color: 'white' },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   directionsIcon: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  detailsContainer: { backgroundColor: "#90002d" },
   filtersContainer: { borderRadius: 5 },
   map: { height: 250 },
   contactContainer: { flexDirection: "row", marginTop: 6 },
