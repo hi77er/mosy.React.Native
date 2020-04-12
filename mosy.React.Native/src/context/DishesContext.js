@@ -116,7 +116,6 @@ const clearDishes = (dispatch) => {
 
 const loadDishes = (dispatch) => {
   return async (maxResultsCount, currentClosestDishes, latitude, longitude, selectedFilters, searchQuery, showNotWorkingVenues, showNotRecommendedDishes, resetResults) => {
-    console.log("showNotRecommendedDishes2: ", showNotRecommendedDishes);
     dishesService
       .getClosestDishes(
         latitude, longitude, maxResultsCount, currentClosestDishes.length, searchQuery,

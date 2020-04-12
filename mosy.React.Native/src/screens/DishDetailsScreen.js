@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useContext } from 'react';
-import { StyleSheet, Image, ImageBackground, Modal, ScrollView, View } from 'react-native';
+import { StyleSheet, ImageBackground, ScrollView, Share, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Text, Card } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,8 +20,27 @@ const DishDetailsScreen = ({ navigation }) => {
       ? state.closestDishes.filter((item) => item.id == dishId)[0]
       : null;
 
-
-  const testImageUrl = "https://img.buzzfeed.com/video-api-prod/assets/d03461e6d185483da8317cf9ee03433e/BFV18861_ChickenTikkaMasala-ThumbA1080.jpg";
+  const handleShareClick = async () => {
+    try {
+      const result = await Share.share({
+        message: `${dish.name} https://www.treatspark.com/item/${dish.id}`,
+        url: `https://www.treatspark.com/item/${dish.id}`,
+        title: dish.name,
+        dialogTitle: dish.name,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   useEffect(() => {
     if (dish.requestableImageMeta) {
@@ -31,7 +50,6 @@ const DishDetailsScreen = ({ navigation }) => {
 
   return <View style={{ flex: 1 }}>
     <View style={{ height: '45%' }}>
-      {console.log(dish)}
       <ImageBackground
         source={
           dish.requestableImageMeta && dish.requestableImageMeta.contentType && dish.requestableImageMeta.base64x300
@@ -47,7 +65,7 @@ const DishDetailsScreen = ({ navigation }) => {
             <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
               <TouchableOpacity
                 style={{ borderWidth: 2, borderColor: "#90002D", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                onPress={() => imagesPreviewModalRef.current.show()}>
+                onPress={handleShareClick}>
                 <MaterialIcon name="share" size={24} color="#90002D" />
               </TouchableOpacity>
             </View>

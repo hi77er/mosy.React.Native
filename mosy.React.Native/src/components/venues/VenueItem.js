@@ -9,7 +9,7 @@ import { locationHelper } from '../../helpers/locationHelper';
 import { venuesService } from '../../services/venuesService';
 
 
-const VenueItem = ({ item, navigation }) => {
+const VenueItem = ({ item, geolocation, navigation }) => {
   const [imageContent, setImageContent] = useState(
     item.outdoorImageMeta && item.outdoorImageMeta.contentType && item.outdoorImageMeta.base64x200
       ? `data:${item.outdoorImageMeta.contentType};base64,${item.outdoorImageMeta.base64x200}`
@@ -72,7 +72,7 @@ const VenueItem = ({ item, navigation }) => {
         <View style={styles.cardDashboardButton}>
           <TouchableOpacity
             style={styles.cardDashboardButtonTouch}
-            onPress={() => navigation.navigate("VenueDetails", { venueId: item.id })}>
+            onPress={() => navigation.navigate("VenueDetails", { venueId: item.id, geolocation })}>
             <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
           </TouchableOpacity>
         </View>

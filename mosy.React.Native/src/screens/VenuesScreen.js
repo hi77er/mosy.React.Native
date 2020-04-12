@@ -148,7 +148,7 @@ const VenuesScreen = ({ navigation }) => {
         ? (
           <FlatList
             data={venuesState.closestVenues}
-            renderItem={({ item }) => <VenueItem item={item} navigation={navigation} />}
+            renderItem={({ item }) => <VenueItem item={item} geolocation={geolocation} navigation={navigation} />}
             onEndReached={handleLoadMore}
             onEndThreshold={0}
             refreshControl={<RefreshControl refreshing={venuesState.isRefreshingClosestVenues} onRefresh={handleRefresh} />} />
