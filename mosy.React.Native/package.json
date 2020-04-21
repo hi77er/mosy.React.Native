@@ -17,6 +17,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-36.0.0.tar.gz",
     "react-native-action-button": "^2.8.5",
     "react-native-best-viewpager": "^1.0.2",
+    "react-native-collapsible": "^1.5.2",
     "react-native-elements": "^1.2.7",
     "react-native-gesture-handler": "^1.5.3",
     "react-native-image-zoom-viewer": "^2.2.27",

@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Image, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button } from 'react-native-elements';
 import { PagerTabIndicator, IndicatorViewPager, PagerTitleIndicator, PagerDotIndicator } from 'react-native-best-viewpager';
 import { FlatList } from 'react-native-gesture-handler';
+import Accordion from 'react-native-collapsible/Accordion';
 
 
 const MenuScreen = () => {
@@ -70,6 +71,8 @@ const MenuScreen = () => {
     },
   ]
 
+  const [activeItems, setActiveItems] = useState([]);
+
   const _renderTitleIndicator = () => {
     return <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList) => menuList.title)} />;
   };
@@ -105,6 +108,37 @@ const MenuScreen = () => {
           menuLists.map((menuList) => (
             <View style={{ padding: 30 }}>
               <Text style={{ color: "grey", fontSize: 18, textAlign: "center", marginBottom: 20 }}>{menuList.title}</Text>
+              <ScrollView>
+                <Accordion
+                  sections={menuList.items}
+                  activeSections={activeItems}
+                  onChange={setActiveItems}
+                  /*
+                  renderSectionTitle={(item) => {
+                    return (
+                      <View style={styles.content}>
+                        <Text>{item.price}</Text>
+                      </View>
+                    );
+                  }}
+                  */
+                  renderHeader={(item) => {
+                    return (
+                      <View style={styles.header}>
+                        <Text style={styles.headerText}>{item.name}</Text>
+                      </View>
+                    );
+                  }}
+                  renderContent={(item) => {
+                    return (
+                      <View style={styles.content}>
+                        <Text>{item.price}</Text>
+                      </View>
+                    );
+                  }}
+                />
+              </ScrollView>
+              {/*
               <FlatList
                 data={menuList.items}
                 renderItem={({ item }) => (
@@ -112,7 +146,8 @@ const MenuScreen = () => {
                     <Text style={{ flex: 1, fontSize: 16 }}>{item.name}</Text>
                     <Text style={{ width: 50, fontSize: 16, textAlign: "right" }}>{item.price}</Text>
                   </View>
-                )} />
+                )} /> 
+                */}
             </View>
           ))
         }
@@ -129,7 +164,22 @@ const styles = StyleSheet.create({
   scene: {
     flex: 1,
   },
-  venueImage: { width: 120, height: 120, },
+  venueImage: {
+    width: 120,
+    height: 120,
+  },
+  header: {
+    backgroundColor: '#F5FCFF',
+    padding: 10,
+  },
+  headerText: {
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  content: {
+    padding: 20,
+    backgroundColor: '#fff',
+  },
 });
 
 export default MenuScreen;
