@@ -1,104 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Image, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button } from 'react-native-elements';
 import { PagerTabIndicator, IndicatorViewPager, PagerTitleIndicator, PagerDotIndicator } from 'react-native-best-viewpager';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
-import Accordion from 'react-native-collapsible/Accordion';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
+import { Context as VenuesContext } from '../context/VenuesContext';
+import { venuesService } from '../services/venuesService';
 
 
-const MenuScreen = () => {
-  const data = [
-    {
-      id: 1,
-      title: "Page1",
-      items: [
-        { id: 5, name: "sdsa 1", price: 54 },
-        { id: 6, name: "sdsa 2", price: 54 },
-        { id: 7, name: "sdsa 3", price: 54 },
-        { id: 8, name: "sdsa 4", price: 54 },
-        { id: 9, name: "sdsa 5", price: 54 },
-        { id: 10, name: "sdsa 6", price: 54 },
-      ],
-      activeItemIds: [],
-    },
-    {
-      id: 2,
-      title: "Page2",
-      items: [
-        { id: 1, name: "sdsa", price: 54 },
-        { id: 2, name: "sdsa", price: 54 },
-        { id: 3, name: "sdsa", price: 54 },
-        { id: 4, name: "sdsa", price: 54 },
-      ],
-      activeItemIds: [],
-    },
-    {
-      id: 3,
-      title: "Page3",
-      items: [
-        { id: 1, name: "sdsa", price: 54 },
-        { id: 2, name: "sdsa", price: 54 },
-        { id: 3, name: "sdsa", price: 54 },
-        { id: 4, name: "sdsa", price: 54 },
-        { id: 5, name: "sdsa", price: 54 },
-        { id: 6, name: "sdsa", price: 54 },
-        { id: 7, name: "sdsa", price: 54 },
-        { id: 8, name: "sdsa", price: 54 },
-        { id: 9, name: "sdsa", price: 54 },
-        { id: 10, name: "sdsa", price: 54 },
-      ],
-      activeItemIds: [],
-    },
-    {
-      id: 4,
-      title: "Page4",
-      items: [
-        { id: 1, name: "sdsa", price: 54 },
-        { id: 2, name: "sdsa", price: 54 },
-        { id: 3, name: "sdsa", price: 54 },
-        { id: 4, name: "sdsa", price: 54 },
-        { id: 5, name: "sdsa", price: 54 },
-        { id: 6, name: "sdsa", price: 54 },
-        { id: 7, name: "sdsa", price: 54 },
-        { id: 8, name: "sdsa", price: 54 },
-        { id: 9, name: "sdsa", price: 54 },
-        { id: 10, name: "sdsa", price: 54 },
-        { id: 11, name: "sdsa", price: 54 },
-        { id: 12, name: "sdsa", price: 54 },
-        { id: 13, name: "sdsa", price: 54 },
-        { id: 14, name: "sdsa", price: 54 },
-        { id: 15, name: "sdsa", price: 54 },
-      ],
-      activeItemIds: [],
-    },
-    {
-      id: 5,
-      title: "Page5",
-      items: [
-        { id: 1, name: "sdsa", price: 54 },
-        { id: 2, name: "sdsa", price: 54 },
-        { id: 3, name: "sdsa", price: 54 },
-      ],
-      activeItemIds: [],
-    },
-  ]
-  const [menuLists, setMenuLists] = useState(data);
+
+
+
+const MenuScreen = ({ navigation }) => {
+  const venueId = navigation.state.params.venueId;
+  const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
+  const venue =
+    state.closestVenues && state.closestVenues.length && state.closestVenues.filter((venue) => venue.id == venueId).length
+      ? state.closestVenues.filter((venue) => venue.id == venueId)[0]
+      : null;
+
+  const [imageContent, setImageContent] = useState(
+    venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x200
+      ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x200}`
+      : null
+  );
+  const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
+
+
 
   const _renderTitleIndicator = () => {
-    return <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList, key) => <Text key={key}>{menuList.title}</Text>)} />;
+    return <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList, key) => <Text key={key}>{menuList.name}</Text>)} />;
   };
 
+  useEffect(
+    () => {
+      //console.log(venue);
+      async function initVenueIndoorImage() {
+        if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
+          const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
+          setImageContent(`data:${venue.indoorImageMeta.contentType};base64,${image.base64Content}`);
+        }
+      }
+      async function initMenu() {
+        if (venue && !venue.brochures) {
+          const result = await venuesService.getMenu(venueId);
+          //console.log(result.brochures);
+          result.brochures = result
+            .brochures
+            .map((list) => {
+              list.activeItemIds = [];
+              return list;
+            });
+          setMenuLists(result.brochures);
+        }
+      }
+      initVenueIndoorImage();
+      initMenu();
+
+    }, []);
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "flex-end", padding: 15 }}>
         <View style={{ flex: 1 }}>
-          <Text h4>Restaurant</Text>
-          <Text>Restaurant</Text>
+          <Text h4>{venue.name}</Text>
+          <Text>{venue.class}</Text>
         </View>
-        <Image
-          style={styles.venueImage}
-          source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
+        {
+          imageContent
+            ? <Image style={styles.venueImage} source={{ uri: imageContent }} />
+            : <View style={styles.venueImageContainer} >
+              <EntypoIcon name='location' size={63} color={"#90002d"} />
+            </View>
+        }
+
       </View>
 
       <View style={{ flex: 1 }}>
@@ -110,12 +85,12 @@ const MenuScreen = () => {
               <View key={index}>
                 <View>
                   <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 5 }}>
-                    {menuList.title}
+                    {menuList.name}
                   </Text>
                 </View>
 
                 <FlatList
-                  data={menuList.items}
+                  data={menuList.requestables}
                   renderItem={({ item }) => (
                     <View key={index} style={{ padding: 5 }}>
                       <TouchableOpacity onPress={() => setMenuLists(
@@ -135,7 +110,7 @@ const MenuScreen = () => {
                       {
                         menuList.activeItemIds && menuList.activeItemIds.includes(item.id)
                           ? <View style={{ height: 50, padding: 5, backgroundColor: 'gray' }}>
-                            <Text>{item.price}</Text>
+                            <Text>{item.priceDisplayText}</Text>
                           </View>
                           : null
                       }
@@ -162,6 +137,15 @@ const styles = StyleSheet.create({
   venueImage: {
     width: 120,
     height: 120,
+  },
+  venueImageContainer: {
+    width: 100,
+    height: 100,
+    marginRight: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 3,
+    backgroundColor: "#fbeaef"
   },
   header: {
     backgroundColor: '#F5FCFF',

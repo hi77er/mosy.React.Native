@@ -65,7 +65,7 @@ const VenueItem = ({ item, geolocation, navigation }) => {
           <Text style={styles.cardDashboardInfoLabel}>{locationHelper.formatWalkingTimeToVenue(item.distanceToDevice)}</Text>
         </View>
         <View style={styles.cardDashboardButton}>
-          <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("Menu")}>
+          <TouchableOpacity style={styles.cardDashboardButtonTouch} onPress={() => navigation.navigate("Menu", { venueId: item.id })}>
             <Text style={styles.cardDashboardButtonLabel}>MENU</Text>
           </TouchableOpacity>
         </View>

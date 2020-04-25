@@ -129,10 +129,26 @@ const getImageContent = async (imageMetaId, size) => {
   return useResponse(req);
 }
 
+const getMenu = async (venueId) => {
+  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .get("/api/fbo/publicmenu", { params: { fboId: venueId } });
+
+  return useResponse(req);
+}
+
 export const venuesService = {
   getClosestVenues,
   loadVenue,
   getLocation,
   getContacts,
   getImageContent,
+  getMenu
 };
