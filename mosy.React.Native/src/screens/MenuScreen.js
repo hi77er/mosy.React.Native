@@ -7,9 +7,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import { venuesService } from '../services/venuesService';
 import MenuItem from '../components/menu/MenuItem';
-
-
-
+import { Dropdown } from 'react-native-material-dropdown';
 
 
 const MenuScreen = ({ navigation }) => {
@@ -25,37 +23,52 @@ const MenuScreen = ({ navigation }) => {
       ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x200}`
       : null
   );
+
   const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
+  const [menuCultures, setMenuCultures] = useState([]);
+  const [defaultMenuCulture, setDefaultMenuCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : null);
+  const [selectedCulture, setSelectedCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : "");
 
 
 
+  useEffect(() => {
+    setSelectedCulture(
+      menuCultures && menuCultures.length
+        ? (
+          defaultMenuCulture && menuCultures.filter(x => x == defaultMenuCulture).length
+            ? menuCultures.filter(x => x == defaultMenuCulture)[0]
+            : menuCultures[0]
+        )
+        : ""
+    );
+  }, [menuCultures]);
 
-  useEffect(
-    () => {
-      //console.log(venue);
-      async function initVenueIndoorImage() {
-        if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
-          const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
-          setImageContent(`data:${venue.indoorImageMeta.contentType};base64,${image.base64Content}`);
-        }
+  useEffect(() => {
+    //console.log(venue);
+    async function initVenueIndoorImage() {
+      if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
+        const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
+        setImageContent(`data:${venue.indoorImageMeta.contentType};base64,${image.base64Content}`);
       }
-      async function initMenu() {
-        if (venue && !venue.brochures) {
-          const result = await venuesService.getMenu(venueId);
-          //console.log(result.brochures);
-          result.brochures = result
-            .brochures
-            .map((list) => {
-              list.activeItemIds = [];
-              return list;
-            });
-          setMenuLists(result.brochures);
-        }
+    }
+    async function initMenu() {
+      if (venue && !venue.brochures && !(menuCultures && menuCultures.length)) {
+        const result = await venuesService.getMenu(venueId);
+        setDefaultMenuCulture(result.defaultMenuCulture);
+        setMenuCultures(result.menuCultures);
+        result.brochures = result
+          .brochures
+          .map((list) => {
+            list.activeItemIds = [];
+            return list;
+          });
+        setMenuLists(result.brochures);
       }
-      initVenueIndoorImage();
-      initMenu();
+    }
+    initVenueIndoorImage();
+    initMenu();
 
-    }, []);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -92,13 +105,22 @@ const MenuScreen = ({ navigation }) => {
                 <FlatList
                   data={menuList.requestables}
                   renderItem={({ item }) => <MenuItem item={item} key={item.id} />}
-                  keyExtractor={item => item.id}
-                />
+                  keyExtractor={item => item.id} />
               </View>
             ))
           }
 
         </IndicatorViewPager>
+        {
+          menuCultures && menuCultures.length > 1
+            ? <View style={{ height: 100 }}>
+              <Dropdown
+                value={selectedCulture}
+                data={menuCultures.filter(c => c != selectedCulture).map(c => ({ value: c }))}
+                onChangeText={(v) => setSelectedCulture(v)} />
+            </View>
+            : null
+        }
       </View>
 
     </View >
