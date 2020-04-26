@@ -28,11 +28,21 @@ const MenuScreen = ({ navigation }) => {
   );
   const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
   const [menuCultures, setMenuCultures] = useState([]);
+  const [defaultMenuCulture, setDefaultMenuCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : null);
   const [selectedCulture, setSelectedCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : "");
 
 
+
   useEffect(() => {
-    setSelectedCulture(menuCultures && menuCultures.length ? menuCultures[0] : "")
+    setSelectedCulture(
+      menuCultures && menuCultures.length
+        ? (
+          defaultMenuCulture && menuCultures.filter(x => x == defaultMenuCulture).length
+            ? menuCultures.filter(x => x == defaultMenuCulture)[0]
+            : menuCultures[0]
+        )
+        : ""
+    );
   }, [menuCultures]);
 
   useEffect(() => {
@@ -46,6 +56,7 @@ const MenuScreen = ({ navigation }) => {
     async function initMenu() {
       if (venue && !venue.brochures && !(menuCultures && menuCultures.length)) {
         const result = await venuesService.getMenu(venueId);
+        setDefaultMenuCulture(result.defaultMenuCulture);
         setMenuCultures(result.menuCultures);
         result.brochures = result
           .brochures
@@ -103,12 +114,12 @@ const MenuScreen = ({ navigation }) => {
 
         </IndicatorViewPager>
         {
-          menuCultures && menuCultures.length
+          menuCultures && menuCultures.length > 1
             ? <View style={{ height: 100 }}>
               <Dropdown
-                label={selectedCulture}
+                value={selectedCulture}
                 data={menuCultures.filter(c => c != selectedCulture).map(c => ({ value: c }))}
-                valueExtractor={({ value }) => console.log(value)} />
+                onChangeText={(v) => setSelectedCulture(v)} />
             </View>
             : null
         }
