@@ -7,6 +7,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import { venuesService } from '../services/venuesService';
 import MenuItem from '../components/menu/MenuItem';
+import { Dropdown } from 'react-native-material-dropdown';
 
 
 
@@ -26,6 +27,7 @@ const MenuScreen = ({ navigation }) => {
       : null
   );
   const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
+  const [menuCultures, setMenuCultures] = useState([]);
 
 
 
@@ -40,9 +42,9 @@ const MenuScreen = ({ navigation }) => {
         }
       }
       async function initMenu() {
-        if (venue && !venue.brochures) {
+        if (venue && !venue.brochures && !(menuCultures && menuCultures.length)) {
           const result = await venuesService.getMenu(venueId);
-          //console.log(result.brochures);
+          setMenuCultures(result.menuCultures);
           result.brochures = result
             .brochures
             .map((list) => {
@@ -94,11 +96,16 @@ const MenuScreen = ({ navigation }) => {
                   renderItem={({ item }) => <MenuItem item={item} key={item.id} />}
                   keyExtractor={item => item.id}
                 />
+
+
               </View>
             ))
           }
 
         </IndicatorViewPager>
+        <View style={{ height: 30 }}>
+          <Dropdown textColor={"rgba(0,0,0,0)"} label={"Select"} data={menuCultures.map(culture => { value: culture })} />
+        </View>
       </View>
 
     </View >

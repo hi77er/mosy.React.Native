@@ -21,6 +21,7 @@
     "react-native-gesture-handler": "^1.5.3",
     "react-native-image-zoom-viewer": "^2.2.27",
     "react-native-maps": "^0.27.1",
+    "react-native-material-dropdown": "^0.11.1",
     "react-native-modals": "^0.19.9",
     "react-native-multiple-select": "^0.5.5",
     "react-native-reanimated": "^1.7.0",
