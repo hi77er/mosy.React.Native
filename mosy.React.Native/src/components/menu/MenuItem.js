@@ -36,12 +36,12 @@ const MenuItem = ({ item }) => {
   return (
     <View style={{ padding: 5 }}>
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-        <View style={{ flexDirection: "row", padding: 5, backgroundColor: 'lightblue' }}>
+        <View style={{ flexDirection: "row", padding: 5, backgroundColor: '#f5d5df' }}>
           <View style={{ flex: 3 }}>
-            <Text>{item.requestableCultures[0].requestableName}</Text>
+            <Text style={{ color: "#90002D" }}>{item.requestableCultures[0].requestableName}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ textAlign: "right" }}>{item.priceDisplayText}</Text>
+            <Text style={{ textAlign: "right", color: '#90002D', fontStyle: 'italic' }}>{item.priceDisplayText}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -58,7 +58,7 @@ const MenuItem = ({ item }) => {
               }
             </View>
             <View style={{ flex: 1, padding: 5 }}>
-              <Text style={{ fontStyle: 'italic', color: 'gray' }}>
+              <Text style={{ fontStyle: 'italic', color: 'lightgray' }}>
                 {
                   item.requestableCultures[0].ingredients && item.requestableCultures[0].ingredients.length
                     ? item.requestableCultures[0].ingredients.map(i => i.name).join(', ')
