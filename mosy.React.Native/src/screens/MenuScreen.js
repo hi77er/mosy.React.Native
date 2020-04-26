@@ -6,6 +6,7 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import { venuesService } from '../services/venuesService';
+import MenuItem from '../components/menu/MenuItem';
 
 
 
@@ -28,9 +29,6 @@ const MenuScreen = ({ navigation }) => {
 
 
 
-  const _renderTitleIndicator = () => {
-    return <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList, key) => <Text key={key}>{menuList.name}</Text>)} />;
-  };
 
   useEffect(
     () => {
@@ -79,7 +77,9 @@ const MenuScreen = ({ navigation }) => {
       <View style={{ flex: 1 }}>
         <IndicatorViewPager
           style={{ flex: 1, paddingTop: 20, backgroundColor: 'white' }}
-          indicator={_renderTitleIndicator()}>
+          indicator={
+            <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList) => menuList.name)} />
+          }>
           {
             menuLists.map((menuList, index) => (
               <View key={index}>
@@ -91,31 +91,7 @@ const MenuScreen = ({ navigation }) => {
 
                 <FlatList
                   data={menuList.requestables}
-                  renderItem={({ item }) => (
-                    <View key={index} style={{ padding: 5 }}>
-                      <TouchableOpacity onPress={() => setMenuLists(
-                        menuLists.map((list) => {
-                          if (list.id == menuList.id) {
-                            list.activeItemIds = list.activeItemIds.includes(item.id)
-                              ? list.activeItemIds.filter(x => x != item.id)
-                              : list.activeItemIds = [...list.activeItemIds, item.id];
-                          }
-                          return list;
-                        })
-                      )}>
-                        <View style={{ height: 30, padding: 5, backgroundColor: 'lightblue' }}>
-                          <Text>{item.name}</Text>
-                        </View>
-                      </TouchableOpacity>
-                      {
-                        menuList.activeItemIds && menuList.activeItemIds.includes(item.id)
-                          ? <View style={{ height: 50, padding: 5, backgroundColor: 'gray' }}>
-                            <Text>{item.priceDisplayText}</Text>
-                          </View>
-                          : null
-                      }
-                    </View>
-                  )}
+                  renderItem={({ item }) => <MenuItem item={item} key={item.id} />}
                   keyExtractor={item => item.id}
                 />
               </View>

@@ -59,7 +59,7 @@ const DishItem = ({ item, navigation }) => {
         <View style={{ flex: 1 }}>
           <View style={{ flex: 1, flexDirection: "row" }}>
             <View style={{ flex: 3 }}>
-              <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
+              <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.requestableCultures[0].requestableName}</Text>
               <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.fboName}</Text>
             </View>
             <View style={{ flex: 1 }}>
