@@ -28,36 +28,38 @@ const MenuScreen = ({ navigation }) => {
   );
   const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
   const [menuCultures, setMenuCultures] = useState([]);
+  const [selectedCulture, setSelectedCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : "");
 
 
+  useEffect(() => {
+    setSelectedCulture(menuCultures && menuCultures.length ? menuCultures[0] : "")
+  }, [menuCultures]);
 
-
-  useEffect(
-    () => {
-      //console.log(venue);
-      async function initVenueIndoorImage() {
-        if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
-          const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
-          setImageContent(`data:${venue.indoorImageMeta.contentType};base64,${image.base64Content}`);
-        }
+  useEffect(() => {
+    //console.log(venue);
+    async function initVenueIndoorImage() {
+      if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
+        const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
+        setImageContent(`data:${venue.indoorImageMeta.contentType};base64,${image.base64Content}`);
       }
-      async function initMenu() {
-        if (venue && !venue.brochures && !(menuCultures && menuCultures.length)) {
-          const result = await venuesService.getMenu(venueId);
-          setMenuCultures(result.menuCultures);
-          result.brochures = result
-            .brochures
-            .map((list) => {
-              list.activeItemIds = [];
-              return list;
-            });
-          setMenuLists(result.brochures);
-        }
+    }
+    async function initMenu() {
+      if (venue && !venue.brochures && !(menuCultures && menuCultures.length)) {
+        const result = await venuesService.getMenu(venueId);
+        setMenuCultures(result.menuCultures);
+        result.brochures = result
+          .brochures
+          .map((list) => {
+            list.activeItemIds = [];
+            return list;
+          });
+        setMenuLists(result.brochures);
       }
-      initVenueIndoorImage();
-      initMenu();
+    }
+    initVenueIndoorImage();
+    initMenu();
 
-    }, []);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -94,18 +96,22 @@ const MenuScreen = ({ navigation }) => {
                 <FlatList
                   data={menuList.requestables}
                   renderItem={({ item }) => <MenuItem item={item} key={item.id} />}
-                  keyExtractor={item => item.id}
-                />
-
-
+                  keyExtractor={item => item.id} />
               </View>
             ))
           }
 
         </IndicatorViewPager>
-        <View style={{ height: 30 }}>
-          <Dropdown textColor={"rgba(0,0,0,0)"} label={"Select"} data={menuCultures.map(culture => { value: culture })} />
-        </View>
+        {
+          menuCultures && menuCultures.length
+            ? <View style={{ height: 100 }}>
+              <Dropdown
+                label={selectedCulture}
+                data={menuCultures.filter(c => c != selectedCulture).map(c => ({ value: c }))}
+                valueExtractor={({ value }) => console.log(value)} />
+            </View>
+            : null
+        }
       </View>
 
     </View >
