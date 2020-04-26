@@ -1,17 +1,23 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, Image, StyleSheet, ScrollView } from 'react-native';
-import { Text, Button } from 'react-native-elements';
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { Image, ImageBackground, Linking, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Card, Text, Button } from 'react-native-elements';
 import { PagerTabIndicator, IndicatorViewPager, PagerTitleIndicator, PagerDotIndicator } from 'react-native-best-viewpager';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { Dropdown } from 'react-native-material-dropdown';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import { venuesService } from '../services/venuesService';
 import MenuItem from '../components/menu/MenuItem';
-import { Dropdown } from 'react-native-material-dropdown';
+import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
+import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
 
 
 const MenuScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
+  const geolocation = navigation.state.params.geolocation;
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
     state.closestVenues && state.closestVenues.length && state.closestVenues.filter((venue) => venue.id == venueId).length
@@ -29,6 +35,28 @@ const MenuScreen = ({ navigation }) => {
   const [defaultMenuCulture, setDefaultMenuCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : null);
   const [selectedCulture, setSelectedCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : "");
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: `${venue.name} https://www.treatspark.com/venue/${venue.id}`,
+        url: `https://www.treatspark.com/venue/${venue.id}`,
+        title: venue.name,
+        dialogTitle: venue.name,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
 
 
   useEffect(() => {
@@ -42,6 +70,14 @@ const MenuScreen = ({ navigation }) => {
         : ""
     );
   }, [menuCultures]);
+
+  useEffect(() => {
+    if (venue) {
+      if (venue.indoorImageMeta) {
+        loadIndoorImageContent(venue.id, venue.indoorImageMeta.id, 3);
+      }
+    }
+  }, [venue]);
 
   useEffect(() => {
     //console.log(venue);
@@ -71,33 +107,72 @@ const MenuScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "flex-end", padding: 15 }}>
-        <View style={{ flex: 1 }}>
-          <Text h4>{venue.name}</Text>
-          <Text>{venue.class}</Text>
-        </View>
-        {
-          imageContent
-            ? <Image style={styles.venueImage} source={{ uri: imageContent }} />
-            : <View style={styles.venueImageContainer} >
-              <EntypoIcon name='location' size={63} color={"#90002d"} />
+    <View style={{ flex: 1, backgroundColor: '#90002d' }}>
+      <View style={{ height: '45%' }}>
+        <ImageBackground
+          source={
+            venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+              ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
+              : venueIndoorBackground
+          }
+          style={styles.imageBackgroundBorder}
+          imageStyle={styles.imageBackgroundContent}>
+          <LinearGradient
+            colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
+            style={styles.coverGradient}>
+            <View style={styles.headerContainer}>
+              <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
+                <TouchableOpacity
+                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                  onPress={handleShare}>
+                  <MaterialIcon name="share" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.actionButtonsContainer}>
+                {/* {
+                  venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
+                    ? (
+                      <TouchableOpacity
+                        style={styles.ringIcon}
+                        onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
+                        <MaterialIcon name="call" size={24} color="white" />
+                      </TouchableOpacity>
+                    )
+                    : null
+                } */}
+                {
+                  <View style={styles.cardDashboardButton}>
+                    <TouchableOpacity
+                      style={styles.cardDashboardButtonTouch}
+                      onPress={() => navigation.navigate("VenueDetails", { venueId, geolocation })}>
+                      <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              </View>
             </View>
-        }
+          </LinearGradient>
+        </ImageBackground>
+      </View>
 
+      <View style={styles.titleContainer}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: "center" }}>
+          {venue ? venue.name : ''}
+        </Text>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'white', marginLeft: 15, marginRight: 15, textAlign: "center" }}>
+          Menu
+        </Text>
       </View>
 
       <View style={{ flex: 1 }}>
         <IndicatorViewPager
-          style={{ flex: 1, paddingTop: 20, backgroundColor: 'white' }}
-          indicator={
-            <PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList) => menuList.name)} />
-          }>
+          style={{ flex: 1, paddingTop: 20, backgroundColor: "#90002D" }}
+          indicator={<PagerTitleIndicator trackScroll={true} titles={menuLists.map((menuList) => menuList.name)} />}>
           {
             menuLists.map((menuList, index) => (
               <View key={index}>
                 <View>
-                  <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 5 }}>
+                  <Text style={{ color: 'white', textAlign: 'center', fontStyle: 'italic', fontSize: 16, marginBottom: 5 }}>
                     {menuList.name}
                   </Text>
                 </View>
@@ -109,21 +184,9 @@ const MenuScreen = ({ navigation }) => {
               </View>
             ))
           }
-
         </IndicatorViewPager>
-        {
-          menuCultures && menuCultures.length > 1
-            ? <View style={{ height: 100 }}>
-              <Dropdown
-                value={selectedCulture}
-                data={menuCultures.filter(c => c != selectedCulture).map(c => ({ value: c }))}
-                onChangeText={(v) => setSelectedCulture(v)} />
-            </View>
-            : null
-        }
       </View>
-
-    </View >
+    </View>
   );
 };
 
@@ -157,6 +220,17 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
+  imageBackgroundBorder: { flex: 1, justifyContent: "flex-end" },
+  imageBackgroundContent: { height: "100%", resizeMode: "stretch" },
+  coverGradient: { flex: 1 },
+  headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
+  titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
+  actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
+  ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  directionsIcon: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  cardDashboardButton: { alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
 });
 
 export default MenuScreen;

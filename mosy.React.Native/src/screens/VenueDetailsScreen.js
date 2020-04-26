@@ -22,9 +22,6 @@ const VenueDetailsScreen = ({ navigation }) => {
       ? state.closestVenues.filter((item) => item.id == venueId)[0]
       : null;
 
-
-
-
   const handleGoToLocationClick = () => {
     const webUrl = `https://www.google.com/maps/dir/${geolocation.latitude},${geolocation.longitude}/${venue.fboLocation.latitude},${venue.fboLocation.longitude}/@${geolocation.latitude},${geolocation.longitude},14z`;
     Linking.canOpenURL(webUrl).then(supported => {
@@ -128,6 +125,15 @@ const VenueDetailsScreen = ({ navigation }) => {
                       <MaterialIcon name="directions" size={24} color="white" />
                     </TouchableOpacity>
                   )
+                }
+                {
+                  <View style={styles.cardDashboardButton}>
+                    <TouchableOpacity
+                      style={styles.cardDashboardButtonTouch}
+                      onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
+                      <Text style={styles.cardDashboardButtonLabel}>MENU</Text>
+                    </TouchableOpacity>
+                  </View>
                 }
               </View>
             </View>
@@ -289,11 +295,14 @@ const styles = StyleSheet.create({
   venueClass: { fontSize: 14, fontWeight: 'bold', color: 'white' },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  directionsIcon: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  directionsIcon: { marginRight: 9, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   filtersContainer: { borderRadius: 5 },
   map: { height: 250 },
   contactContainer: { flexDirection: "row", marginTop: 6 },
-  contactIcon: { marginRight: 4 }
+  contactIcon: { marginRight: 4 },
+  cardDashboardButton: { alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
 });
 
 export default VenueDetailsScreen;

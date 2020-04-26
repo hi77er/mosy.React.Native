@@ -45,7 +45,12 @@ const venuesFlow = createStackNavigator(
         headerShown: false,
       },
     },
-    Menu: MenuScreen,
+    Menu: {
+      screen: MenuScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
