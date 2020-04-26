@@ -10,9 +10,6 @@ import MenuItem from '../components/menu/MenuItem';
 import { Dropdown } from 'react-native-material-dropdown';
 
 
-
-
-
 const MenuScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
@@ -26,6 +23,7 @@ const MenuScreen = ({ navigation }) => {
       ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x200}`
       : null
   );
+
   const [menuLists, setMenuLists] = useState(venue && venue.brochures && venue.brochures.length ? venue.brochures : []);
   const [menuCultures, setMenuCultures] = useState([]);
   const [defaultMenuCulture, setDefaultMenuCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : null);
