@@ -8,7 +8,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { dishesService } from '../../services/dishesService';
 
 
-const MenuItem = ({ item }) => {
+const MenuItem = ({ item, selectedCulture }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageContent, setImageContent] = useState(
     item.requestableImageMeta
@@ -27,7 +27,6 @@ const MenuItem = ({ item }) => {
           && !item.requestableImageMeta.base64x200) {
           const data = await dishesService.getImageContent(item.requestableImageMeta.id, 2);
           setImageContent(`data:${item.requestableImageMeta.contentType};base64,${data.base64Content}`);
-
         }
       }
       init();
@@ -38,7 +37,14 @@ const MenuItem = ({ item }) => {
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
         <View style={{ flexDirection: "row", padding: 5, backgroundColor: '#f5d5df' }}>
           <View style={{ flex: 3 }}>
-            <Text style={{ color: "#90002D" }}>{item.requestableCultures[0].requestableName}</Text>
+            <Text style={{ color: "#90002D" }}>
+              {console.log(item.requestableCultures.filter(x => x.culture == selectedCulture))}
+              {
+                selectedCulture && item.requestableCultures.filter(x => x.culture == selectedCulture).length
+                  ? item.requestableCultures.filter(x => x.culture == selectedCulture)[0].requestableName
+                  : item.requestableCultures[0].requestableName
+              }
+            </Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ textAlign: "right", color: '#90002D', fontStyle: 'italic' }}>{item.priceDisplayText}</Text>

@@ -132,7 +132,7 @@ const VenueDetailsScreen = ({ navigation }) => {
                       style={styles.cardDashboardButtonTouch}
                       onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
                       <Text style={styles.cardDashboardButtonLabel}>MENU</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>``
                   </View>
                 }
               </View>
@@ -291,8 +291,6 @@ const styles = StyleSheet.create({
   coverGradient: { flex: 1 },
   headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
   titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
-  venueTitle: { fontSize: 18, fontWeight: 'bold', color: 'white' },
-  venueClass: { fontSize: 14, fontWeight: 'bold', color: 'white' },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   directionsIcon: { marginRight: 9, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },

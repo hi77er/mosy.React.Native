@@ -57,8 +57,6 @@ const MenuScreen = ({ navigation }) => {
     }
   };
 
-
-
   useEffect(() => {
     setSelectedCulture(
       menuCultures && menuCultures.length
@@ -80,7 +78,6 @@ const MenuScreen = ({ navigation }) => {
   }, [venue]);
 
   useEffect(() => {
-    //console.log(venue);
     async function initVenueIndoorImage() {
       if (venue && venue.indoorImageMeta && venue.indoorImageMeta.id && venue.indoorImageMeta.contentType && !venue.indoorImageMeta.base64x200) {
         const image = await venuesService.getImageContent(venue.indoorImageMeta.id, 2);
@@ -103,12 +100,11 @@ const MenuScreen = ({ navigation }) => {
     }
     initVenueIndoorImage();
     initMenu();
-
   }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#90002d' }}>
-      <View style={{ height: '45%' }}>
+      <View style={{ height: '30%' }}>
         <ImageBackground
           source={
             venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
@@ -129,25 +125,27 @@ const MenuScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
               <View style={styles.actionButtonsContainer}>
-                {/* {
-                  venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
-                    ? (
-                      <TouchableOpacity
-                        style={styles.ringIcon}
-                        onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
-                        <MaterialIcon name="call" size={24} color="white" />
-                      </TouchableOpacity>
-                    )
-                    : null
-                } */}
                 {
-                  <View style={styles.cardDashboardButton}>
+                  <View style={styles.headerActionButton}>
                     <TouchableOpacity
-                      style={styles.cardDashboardButtonTouch}
+                      style={styles.headerActionButtonTouch}
                       onPress={() => navigation.navigate("VenueDetails", { venueId, geolocation })}>
-                      <Text style={styles.cardDashboardButtonLabel}>VENUE INFO</Text>
+                      <Text style={styles.headerActionButtonLabel}>VENUE INFO</Text>
                     </TouchableOpacity>
                   </View>
+                }
+                {
+                  menuCultures && menuCultures.length > 1
+                    ? <View style={styles.languageHeaderActionButton}>
+                      <Dropdown
+                        label={selectedCulture}
+                        baseColor="white"
+                        containerStyle={styles.languageHeaderActionButtonTouch}
+                        value={selectedCulture}
+                        data={menuCultures.filter(c => c != selectedCulture).map(c => ({ value: c }))}
+                        onChangeText={(v) => setSelectedCulture(v)} />
+                    </View>
+                    : null
                 }
               </View>
             </View>
@@ -179,8 +177,9 @@ const MenuScreen = ({ navigation }) => {
 
                 <FlatList
                   data={menuList.requestables}
-                  renderItem={({ item }) => <MenuItem item={item} key={item.id} />}
+                  renderItem={({ item }) => <MenuItem selectedCulture={selectedCulture} item={item} key={item.id} />}
                   keyExtractor={item => item.id} />
+
               </View>
             ))
           }
@@ -192,45 +191,19 @@ const MenuScreen = ({ navigation }) => {
 
 
 const styles = StyleSheet.create({
-  scene: {
-    flex: 1,
-  },
-  venueImage: {
-    width: 120,
-    height: 120,
-  },
-  venueImageContainer: {
-    width: 100,
-    height: 100,
-    marginRight: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 3,
-    backgroundColor: "#fbeaef"
-  },
-  header: {
-    backgroundColor: '#F5FCFF',
-    padding: 10,
-  },
-  headerText: {
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  content: {
-    padding: 20,
-    backgroundColor: '#fff',
-  },
   imageBackgroundBorder: { flex: 1, justifyContent: "flex-end" },
-  imageBackgroundContent: { height: "100%", resizeMode: "stretch" },
+  imageBackgroundContent: { height: "100%", resizeMode: "cover" },
   coverGradient: { flex: 1 },
   headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
   titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
-  ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  ringIcon: { marginRight: 8, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   directionsIcon: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  cardDashboardButton: { alignItems: "center", justifyContent: "flex-end" },
-  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
+  languageHeaderActionButton: { alignItems: "center", justifyContent: "flex-end" },
+  languageHeaderActionButtonTouch: { paddingBottom: 4, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  headerActionButton: { marginRight: 10, alignItems: "center", justifyContent: "flex-end" },
+  headerActionButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  headerActionButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
 });
 
 export default MenuScreen;
