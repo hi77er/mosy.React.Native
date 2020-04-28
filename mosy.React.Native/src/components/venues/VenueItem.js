@@ -21,7 +21,8 @@ const VenueItem = ({ item, geolocation, navigation }) => {
       async function init() {
         if (item.outdoorImageMeta && item.outdoorImageMeta.id && item.outdoorImageMeta.contentType && !item.outdoorImageMeta.base64x200) {
           const data = await venuesService.getImageContent(item.outdoorImageMeta.id, 2);
-          setImageContent(`data:${item.outdoorImageMeta.contentType};base64,${data.base64Content}`);
+          if (data && data.base64Content)
+            setImageContent(`data:${item.outdoorImageMeta.contentType};base64,${data.base64Content}`);
         }
       }
       init();

@@ -6,7 +6,7 @@ let currentState = null;
 
 const dishesReducer = (state, action) => {
   currentState = state;
-  closestDishes = state.closestDishes;
+  let closestDishes = state.closestDishes;
 
   switch (action.type) {
     case 'clearDishes':
@@ -128,7 +128,7 @@ const loadDishes = (dispatch) => {
       )
       .then((foundDishes) => {
         if (foundDishes) {
-          dispatch({ type: 'loadDishes', payload: { maxResultsCount, resetResults, foundDishes } });
+          dispatch({ type: 'loadDishes', payload: { foundDishes, resetResults, maxResultsCount } });
         }
       })
       .catch((err) => console.log(err));

@@ -6,7 +6,7 @@ let currentState = null;
 
 const venuesReducer = (state, action) => {
   currentState = state;
-  closestVenues = state.closestVenues;
+  let closestVenues = state.closestVenues;
 
   switch (action.type) {
     case 'clearVenues':

@@ -72,7 +72,6 @@ const VenuesScreen = ({ navigation }) => {
         const { closestVenues } = venuesState;
         const { latitude, longitude } = geolocation;
 
-        console.log("loading more: ", 8, " ", closestVenues.length);
         loadVenues(8, closestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
       }
       else
