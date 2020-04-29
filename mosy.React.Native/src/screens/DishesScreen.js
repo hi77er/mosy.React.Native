@@ -10,6 +10,7 @@ import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { Context as FiltersContext } from '../context/FiltersContext';
 import { Context as DishesContext } from '../context/DishesContext';
 import DishItem from '../components/dishes/DishItem';
+import MatchingFiltersItem from '../components/filters/MatchingFiltersItem';
 
 
 const DishesScreen = ({ navigation }) => {
@@ -70,10 +71,10 @@ const DishesScreen = ({ navigation }) => {
     if (dishesState.hasMoreClosestDishResults)
       if (geolocation) {
         const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
-        const { closestDishes } = dishesState;
+        const { unbundledClosestDishes } = dishesState;
         const { latitude, longitude } = geolocation;
 
-        loadDishes(8, closestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
+        loadDishes(8, unbundledClosestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
       }
       else
         console.log("No more Elem!");
@@ -84,7 +85,7 @@ const DishesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if ((!dishesState.closestDishes || !dishesState.closestDishes.length) && geolocation) {
+    if ((!dishesState.unbundledClosestDishes || !dishesState.unbundledClosestDishes.length) && geolocation) {
       const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
       const { latitude, longitude } = geolocation;
 
@@ -145,10 +146,16 @@ const DishesScreen = ({ navigation }) => {
       {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
     {
-      dishesState.closestDishes && dishesState.closestDishes.length
+      dishesState.bundledClosestDishes && dishesState.bundledClosestDishes.length
         ? <FlatList
-          data={dishesState.closestDishes}
-          renderItem={({ item }) => <DishItem item={item} navigation={navigation} />}
+          data={dishesState.bundledClosestDishes}
+          renderItem={({ item }) => {
+            if (item.renderType == 1)
+              return <MatchingFiltersItem matchingFiltersIds={item.renderItem.matchingFiltersIds} mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
+            else {
+              return <DishItem item={item.renderItem} navigation={navigation} />;
+            }
+          }}
           onEndReached={handleLoadMore}
           onEndThreshold={0}
           refreshControl={<RefreshControl refreshing={dishesState.isRefreshingClosestDishes} onRefresh={handleRefresh} />} />
