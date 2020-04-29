@@ -24,7 +24,6 @@ const dishesReducer = (state, action) => {
 
       const grouped = unbundled
         .reduce((resultGroups, dishItem) => {
-          //console.log(dishItem);
           const matchingFiltersIds = dishItem.matchingFiltersIds && dishItem.matchingFiltersIds.length
             ? dishItem.matchingFiltersIds.sort()
             : null;
@@ -38,9 +37,7 @@ const dishesReducer = (state, action) => {
           const keyPart2 = mismatchingFiltersIds && mismatchingFiltersIds.length
             ? mismatchingFiltersIds.join("|")
             : "";
-          //console.log(keyPart1, keyPart2);
           const key = `${keyPart1}-${keyPart2}`;
-          //console.log(key);
 
           resultGroups[key] = resultGroups[key] || [];
           resultGroups[key].push(dishItem);
@@ -48,10 +45,7 @@ const dishesReducer = (state, action) => {
           return resultGroups;
         }, {});
 
-      //grouped.forEach((x, y) => console.log(x));
-
       const bundled = [];
-
       Object.entries(grouped).forEach(([key, items]) => {
         if (items && items.length) {
           if (key !== '-') {
