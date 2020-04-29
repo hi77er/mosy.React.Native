@@ -16,8 +16,8 @@ const DishDetailsScreen = ({ navigation }) => {
   const imagesPreviewModalRef = useRef(null);
   const { state, loadImageContent } = useContext(DishesContext);
   const dish =
-    state.closestDishes && state.closestDishes.length && state.closestDishes.filter((item) => item.id == dishId).length
-      ? state.closestDishes.filter((item) => item.id == dishId)[0]
+    state.unbundledClosestDishes && state.unbundledClosestDishes.length && state.unbundledClosestDishes.filter((item) => item.id == dishId).length
+      ? state.unbundledClosestDishes.filter((item) => item.id == dishId)[0]
       : null;
 
   const handleShareClick = async () => {

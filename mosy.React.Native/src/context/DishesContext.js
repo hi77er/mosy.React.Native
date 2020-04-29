@@ -6,22 +6,84 @@ let currentState = null;
 
 const dishesReducer = (state, action) => {
   currentState = state;
-  let closestDishes = state.closestDishes;
+  let unbundledClosestDishes = state.unbundledClosestDishes;
 
   switch (action.type) {
     case 'clearDishes':
-      currentState = { ...state, closestDishes: [] };
+      currentState = { ...state, unbundledClosestDishes: [] };
+
       break;
     case 'loadDishes':
       const { foundDishes, resetResults, maxResultsCount } = action.payload;
       const dishes = foundDishes && foundDishes.length ? foundDishes : [];
 
-      const existingIds = state.closestDishes.map(x => x.id);
+      const existingIds = state.unbundledClosestDishes.map(x => x.id);
       const unique = dishes.filter(x => !existingIds.includes(x.id));
+
+      const unbundled = resetResults ? dishes : [...state.unbundledClosestDishes, ...unique];
+
+      const grouped = unbundled
+        .reduce((resultGroups, dishItem) => {
+          //console.log(dishItem);
+          const matchingFiltersIds = dishItem.matchingFiltersIds && dishItem.matchingFiltersIds.length
+            ? dishItem.matchingFiltersIds.sort()
+            : null;
+          const mismatchingFiltersIds = dishItem.mismatchingFiltersIds && dishItem.mismatchingFiltersIds.length
+            ? dishItem.mismatchingFiltersIds.sort()
+            : null;
+
+          const keyPart1 = matchingFiltersIds && matchingFiltersIds.length
+            ? matchingFiltersIds.join("|")
+            : "";
+          const keyPart2 = mismatchingFiltersIds && mismatchingFiltersIds.length
+            ? mismatchingFiltersIds.join("|")
+            : "";
+          //console.log(keyPart1, keyPart2);
+          const key = `${keyPart1}-${keyPart2}`;
+          //console.log(key);
+
+          resultGroups[key] = resultGroups[key] || [];
+          resultGroups[key].push(dishItem);
+
+          return resultGroups;
+        }, {});
+
+      //grouped.forEach((x, y) => console.log(x));
+
+      const bundled = [];
+
+      Object.entries(grouped).forEach(([key, items]) => {
+        if (items && items.length) {
+          if (key !== '-') {
+
+            bundled.push(
+              {
+                renderType: 1,//"MATCHING_FILTERS_ITEM",
+                renderItem: {
+                  matchingFiltersIds: items[0].matchingFiltersIds,
+                  mismatchingFiltersIds: items[0].mismatchingFiltersIds,
+                }
+              }
+            );
+          }
+
+          items.forEach((item) =>
+            bundled.push(
+              {
+                renderType: 2,//"DISH_ITEM",
+                renderItem: item,
+              }
+            )
+          );
+        }
+      });
+
+      console.log(bundled.map(i => i.renderType));
 
       currentState = {
         ...state,
-        closestDishes: resetResults ? dishes : [...state.closestDishes, ...unique],
+        bundledClosestDishes: bundled,
+        unbundledClosestDishes: unbundled,
         isRefreshingClosestDishes: false,
         hasMoreClosestDishResults: dishes.length == maxResultsCount,
       };
@@ -33,7 +95,7 @@ const dishesReducer = (state, action) => {
     case 'loadImageContent':
       const { imageMetaId, imageContent, size } = action.payload;
 
-      closestDishes = state.closestDishes.map(x => {
+      unbundledClosestDishes = state.unbundledClosestDishes.map(x => {
 
         if (x.requestableImageMeta) {
 
@@ -101,7 +163,7 @@ const dishesReducer = (state, action) => {
         }
         return x;
       });
-      currentState = { ...state, closestDishes };
+      currentState = { ...state, unbundledClosestDishes };
       break;
   };
 
@@ -115,10 +177,10 @@ const clearDishes = (dispatch) => {
 };
 
 const loadDishes = (dispatch) => {
-  return async (maxResultsCount, currentClosestDishes, latitude, longitude, selectedFilters, searchQuery, showNotWorkingVenues, showNotRecommendedDishes, resetResults) => {
+  return async (maxResultsCount, currentUnbundledClosestDishes, latitude, longitude, selectedFilters, searchQuery, showNotWorkingVenues, showNotRecommendedDishes, resetResults) => {
     dishesService
       .getClosestDishes(
-        latitude, longitude, maxResultsCount, currentClosestDishes.length, searchQuery,
+        latitude, longitude, maxResultsCount, currentUnbundledClosestDishes.length, searchQuery,
         selectedFilters.filter(x => x.filterType == 201).map(x => x.id),
         selectedFilters.filter(x => x.filterType == 205).map(x => x.id),
         selectedFilters.filter(x => x.filterType == 202).map(x => x.id),
@@ -158,7 +220,8 @@ export const { Provider, Context } = createDataContext(
     loadImageContent,
   },
   {
-    closestDishes: [],
+    bundledClosestDishes: [],
+    unbundledClosestDishes: [],
     isRefreshingClosestDishes: false,
     hasMoreClosestDishResults: true,
   },
