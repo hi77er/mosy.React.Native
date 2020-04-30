@@ -6,22 +6,76 @@ let currentState = null;
 
 const venuesReducer = (state, action) => {
   currentState = state;
-  let closestVenues = state.closestVenues;
+  let unbundledClosestVenues = state.unbundledClosestVenues;
 
   switch (action.type) {
     case 'clearVenues':
-      currentState = { ...state, closestVenues: [] };
+      currentState = { ...state, unbundledClosestVenues: [] };
       break;
     case 'loadVenues':
       const { foundVenues, resetResults, maxResultsCount } = action.payload;
       const venues = foundVenues && foundVenues.length ? foundVenues : [];
 
-      const existingIds = state.closestVenues.map(x => x.id);
+      const existingIds = state.unbundledClosestVenues.map(x => x.id);
       const unique = venues.filter(x => !existingIds.includes(x.id));
+
+      const unbundled = resetResults ? venues : [...state.unbundledClosestVenues, ...unique];
+
+      const grouped = unbundled
+        .reduce((resultGroups, venueItem) => {
+          const matchingFiltersIds = venueItem.matchingFiltersIds && venueItem.matchingFiltersIds.length
+            ? venueItem.matchingFiltersIds.sort()
+            : null;
+          const mismatchingFiltersIds = venueItem.mismatchingFiltersIds && venueItem.mismatchingFiltersIds.length
+            ? venueItem.mismatchingFiltersIds.sort()
+            : null;
+
+          const keyPart1 = matchingFiltersIds && matchingFiltersIds.length
+            ? matchingFiltersIds.join("|")
+            : "";
+          const keyPart2 = mismatchingFiltersIds && mismatchingFiltersIds.length
+            ? mismatchingFiltersIds.join("|")
+            : "";
+          const key = `${keyPart1}-${keyPart2}`;
+
+          resultGroups[key] = resultGroups[key] || [];
+          resultGroups[key].push(venueItem);
+
+          return resultGroups;
+        }, {});
+
+      const bundled = [];
+      Object.entries(grouped).forEach(([key, items]) => {
+        if (items && items.length) {
+          if (key !== '-') {
+
+            bundled.push(
+              {
+                renderType: 1,//"MATCHING_FILTERS_ITEM",
+                renderItem: {
+                  matchingFiltersIds: items[0].matchingFiltersIds,
+                  mismatchingFiltersIds: items[0].mismatchingFiltersIds,
+                }
+              }
+            );
+          }
+
+          items.forEach((item) =>
+            bundled.push(
+              {
+                renderType: 2,//"DISH_ITEM",
+                renderItem: item,
+              }
+            )
+          );
+        }
+      });
 
       currentState = {
         ...state,
-        closestVenues: resetResults ? venues : [...state.closestVenues, ...unique],
+        //closestVenues: resetResults ? venues : [...state.closestVenues, ...unique],
+        bundledClosestVenues: bundled,
+        unbundledClosestVenues: unbundled,
         isRefreshingClosestVenues: false,
         hasMoreClosestVenueResults: venues.length == maxResultsCount,
       };
@@ -32,24 +86,24 @@ const venuesReducer = (state, action) => {
       break;
     case 'loadLocation':
       const { venueLocation } = action.payload;
-      closestVenues = state.closestVenues.map(x => {
+      unbundledClosestVenues = state.unbundledClosestVenues.map(x => {
         x.fboLocation = x.id == action.payload.venueId ? venueLocation : x.fboLocation;
         return x;
       });
-      currentState = { ...state, closestVenues };
+      currentState = { ...state, unbundledClosestVenues };
       break;
     case 'loadContacts':
       const { venueContacts } = action.payload;
-      closestVenues = state.closestVenues.map(x => {
+      unbundledClosestVenues = state.unbundledClosestVenues.map(x => {
         x.fboContacts = x.id == action.payload.venueId ? venueContacts : x.fboContacts;
         return x;
       });
-      currentState = { ...state, closestVenues };
+      currentState = { ...state, unbundledClosestVenues };
       break;
     case 'loadImageContent':
       const { isExterior, imageMetaId, imageContent, size } = action.payload;
 
-      closestVenues = state.closestVenues.map(x => {
+      unbundledClosestVenues = state.unbundledClosestVenues.map(x => {
 
         if ((isExterior && x.outdoorImageMeta) || (!isExterior && x.indoorImageMeta)) {
 
@@ -153,7 +207,7 @@ const venuesReducer = (state, action) => {
         }
         return x;
       });
-      currentState = { ...state, closestVenues };
+      currentState = { ...state, unbundledClosestVenues };
       break;
   };
 
@@ -238,7 +292,8 @@ export const { Provider, Context } = createDataContext(
     loadIndoorImageContent,
   },
   {
-    closestVenues: [],
+    bundledClosestVenues: [],
+    unbundledClosestVenues: [],
     isRefreshingClosestVenues: false,
     hasMoreClosestVenueResults: true,
   },
