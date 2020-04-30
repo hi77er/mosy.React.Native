@@ -10,6 +10,8 @@ import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-loca
 import { Context as FiltersContext } from '../context/FiltersContext';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import VenueItem from '../components/venues/VenueItem';
+import MatchingFiltersItem from '../components/filters/MatchingFiltersItem';
+
 
 
 const VenuesScreen = ({ navigation }) => {
@@ -69,10 +71,10 @@ const VenuesScreen = ({ navigation }) => {
     if (venuesState.hasMoreClosestVenueResults)
       if (geolocation) {
         const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
-        const { closestVenues } = venuesState;
+        const { unbundledClosestVenues } = venuesState;
         const { latitude, longitude } = geolocation;
 
-        loadVenues(8, closestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+        loadVenues(8, unbundledClosestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
       }
       else
         console.log("No more Elem!");
@@ -83,7 +85,7 @@ const VenuesScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if ((!venuesState.closestVenues || !venuesState.closestVenues.length) && geolocation) {
+    if ((!venuesState.unbundledClosestVenues || !venuesState.unbundledClosestVenues.length) && geolocation) {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
@@ -143,11 +145,17 @@ const VenuesScreen = ({ navigation }) => {
     </SafeAreaView>
 
     {
-      venuesState.closestVenues && venuesState.closestVenues.length
+      venuesState.bundledClosestVenues && venuesState.bundledClosestVenues.length
         ? (
           <FlatList
-            data={venuesState.closestVenues}
-            renderItem={({ item }) => <VenueItem item={item} geolocation={geolocation} navigation={navigation} />}
+            data={venuesState.bundledClosestVenues}
+            renderItem={({ item }) => {
+              if (item.renderType == 1)
+                return <MatchingFiltersItem matchingFiltersIds={item.renderItem.matchingFiltersIds} mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
+              else {
+                return <VenueItem item={item.renderItem} geolocation={geolocation} navigation={navigation} />;
+              }
+            }}
             onEndReached={handleLoadMore}
             onEndThreshold={0}
             refreshControl={<RefreshControl refreshing={venuesState.isRefreshingClosestVenues} onRefresh={handleRefresh} />} />
