@@ -10,7 +10,7 @@ const venuesReducer = (state, action) => {
 
   switch (action.type) {
     case 'clearVenues':
-      currentState = { ...state, unbundledClosestVenues: [] };
+      currentState = { ...state, unbundledClosestVenues: [], bundledClosestVenues: [] };
       break;
     case 'loadVenues':
       const { foundVenues, resetResults, maxResultsCount } = action.payload;

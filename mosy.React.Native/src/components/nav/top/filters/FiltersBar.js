@@ -7,10 +7,7 @@ import { Context as FiltersContext } from '../../../../context/FiltersContext';
 
 
 const FiltersBar = ({ filteredType }) => {
-
   const { state, setShowClosedVenues, setShowClosedDishes, setShowNotRecommendedDishes } = useContext(FiltersContext);
-
-
 
   const renderFilterGroups = () => {
     let groups = null;

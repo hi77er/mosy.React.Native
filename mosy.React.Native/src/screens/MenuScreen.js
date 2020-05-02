@@ -20,8 +20,8 @@ const MenuScreen = ({ navigation }) => {
   const geolocation = navigation.state.params.geolocation;
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
-    state.closestVenues && state.closestVenues.length && state.closestVenues.filter((venue) => venue.id == venueId).length
-      ? state.closestVenues.filter((venue) => venue.id == venueId)[0]
+    state.unbundledClosestVenues && state.unbundledClosestVenues.length && state.unbundledClosestVenues.filter((venue) => venue.id == venueId).length
+      ? state.unbundledClosestVenues.filter((venue) => venue.id == venueId)[0]
       : null;
 
   const [imageContent, setImageContent] = useState(
@@ -107,7 +107,7 @@ const MenuScreen = ({ navigation }) => {
       <View style={{ height: '30%' }}>
         <ImageBackground
           source={
-            venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+            venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
               ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
               : venueIndoorBackground
           }

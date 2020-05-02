@@ -18,8 +18,8 @@ const VenueDetailsScreen = ({ navigation }) => {
   const imagesPreviewModalRef = useRef(null);
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
-    state.closestVenues && state.closestVenues.length && state.closestVenues.filter((item) => item.id == venueId).length
-      ? state.closestVenues.filter((item) => item.id == venueId)[0]
+    state.unbundledClosestVenues && state.unbundledClosestVenues.length && state.unbundledClosestVenues.filter((item) => item.id == venueId).length
+      ? state.unbundledClosestVenues.filter((item) => item.id == venueId)[0]
       : null;
 
   const handleGoToLocationClick = () => {
@@ -77,6 +77,7 @@ const VenueDetailsScreen = ({ navigation }) => {
     if (venue) {
       loadLocation(venue.id);
       loadContacts(venue.id);
+
       if (venue.indoorImageMeta) {
         loadIndoorImageContent(venue.id, venue.indoorImageMeta.id, 3);
       }
@@ -88,7 +89,7 @@ const VenueDetailsScreen = ({ navigation }) => {
       <View style={{ height: '45%' }}>
         <ImageBackground
           source={
-            venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+            venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
               ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
               : venueIndoorBackground
           }
@@ -107,7 +108,7 @@ const VenueDetailsScreen = ({ navigation }) => {
               </View>
               <View style={styles.actionButtonsContainer}>
                 {
-                  venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
+                  venue && venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
                     ? (
                       <TouchableOpacity
                         style={styles.ringIcon}
@@ -127,13 +128,11 @@ const VenueDetailsScreen = ({ navigation }) => {
                   )
                 }
                 {
-                  <View style={styles.cardDashboardButton}>
-                    <TouchableOpacity
-                      style={styles.cardDashboardButtonTouch}
-                      onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
-                      <Text style={styles.cardDashboardButtonLabel}>MENU</Text>
-                    </TouchableOpacity>``
-                  </View>
+                  <TouchableOpacity
+                    style={styles.menuIcon}
+                    onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
+                    <Text style={styles.menuButtonLabel}>MENU</Text>
+                  </TouchableOpacity>
                 }
               </View>
             </View>
@@ -150,10 +149,9 @@ const VenueDetailsScreen = ({ navigation }) => {
         </Text>
       </View>
 
-
       <ScrollView>
         {
-          venue.filters && venue.filters.length
+          venue && venue.filters && venue.filters.length
             ? (
               <Card containerStyle={styles.filtersContainer}>
                 <Text style={{ color: "#90002d", fontSize: 16 }}>
@@ -171,7 +169,7 @@ const VenueDetailsScreen = ({ navigation }) => {
             : null
         }
         {
-          venue.fboContacts
+          venue && venue.fboContacts
             ? (
               <Card containerStyle={{ borderRadius: 5 }}>
                 <Text style={{ color: "#90002d", fontSize: 16 }}>
@@ -242,7 +240,7 @@ const VenueDetailsScreen = ({ navigation }) => {
             : null
         }
         {
-          venue.fboLocation
+          venue && venue.fboLocation
             ? (
               <Card containerStyle={{ marginBottom: 15, borderRadius: 5, padding: 1 }}>
                 <MapView
@@ -272,15 +270,13 @@ const VenueDetailsScreen = ({ navigation }) => {
           {
             url: '',
             props: {
-              source: venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+              source: venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
                 ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
                 : venueIndoorBackground
             }
           }
         ]} />
-      {/* {console.log(venue.name)}
-      {console.log(venue.indoorImageMeta)} */}
-    </View >
+    </View>
   );
 };
 
@@ -294,13 +290,12 @@ const styles = StyleSheet.create({
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   directionsIcon: { marginRight: 9, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  menuIcon: { marginRight: 9, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
   filtersContainer: { borderRadius: 5 },
   map: { height: 250 },
   contactContainer: { flexDirection: "row", marginTop: 6 },
   contactIcon: { marginRight: 4 },
-  cardDashboardButton: { alignItems: "center", justifyContent: "flex-end" },
-  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
+  menuButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
 });
 
 export default VenueDetailsScreen;

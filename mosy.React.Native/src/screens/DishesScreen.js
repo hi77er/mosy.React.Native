@@ -41,13 +41,13 @@ const DishesScreen = ({ navigation }) => {
   };
 
 
-  const handleSearchFilteredDishes = () => {
+  const handleSearchFilteredDishes = (useFilters) => {
     if (geolocation) {
       const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
       const { latitude, longitude } = geolocation;
 
       clearDishes();
-      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, true);
+      loadDishes(12, [], latitude, longitude, useFilters ? selectedFilters : [], searchQuery, showClosedDishes, showNotRecommendedDishes, true);
       resetFiltersChanged();
 
       if (showFilters) setShowFilters(false);
@@ -115,7 +115,7 @@ const DishesScreen = ({ navigation }) => {
         />
         {
           filtersState.filtersChanged
-            ? <TouchableOpacity onPress={handleSearchFilteredDishes}>
+            ? <TouchableOpacity onPress={() => handleSearchFilteredDishes(true)}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
             </TouchableOpacity>
             : null
@@ -135,7 +135,7 @@ const DishesScreen = ({ navigation }) => {
                 "",
                 [
                   { text: 'Cancel', onPress: () => { } },
-                  { text: 'Set default', onPress: () => { resetSelectedFilters(2); handleSearchFilteredDishes(); } }
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(2); handleSearchFilteredDishes(false); } }
                 ]
               )}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />

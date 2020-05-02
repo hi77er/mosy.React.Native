@@ -10,8 +10,7 @@ const dishesReducer = (state, action) => {
 
   switch (action.type) {
     case 'clearDishes':
-      currentState = { ...state, unbundledClosestDishes: [] };
-
+      currentState = { ...state, unbundledClosestDishes: [], bundledClosestDishes: [] };
       break;
     case 'loadDishes':
       const { foundDishes, resetResults, maxResultsCount } = action.payload;

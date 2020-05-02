@@ -42,13 +42,13 @@ const VenuesScreen = ({ navigation }) => {
     );
   };
 
-  const handleSearchFilteredVenues = () => {
+  const handleSearchFilteredVenues = (useFilters) => {
     if (geolocation) {
       const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
       const { latitude, longitude } = geolocation;
 
       clearVenues();
-      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
+      loadVenues(12, [], latitude, longitude, useFilters ? selectedFilters : [], searchQuery, showClosedVenues, true);
       resetFiltersChanged();
 
       if (showFilters) setShowFilters(false);
@@ -113,7 +113,7 @@ const VenuesScreen = ({ navigation }) => {
           } />
         {
           filtersState.filtersChanged
-            ? <TouchableOpacity onPress={handleSearchFilteredVenues}>
+            ? <TouchableOpacity onPress={() => handleSearchFilteredVenues(true)}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
             </TouchableOpacity>
             : null
@@ -133,7 +133,7 @@ const VenuesScreen = ({ navigation }) => {
                 "",
                 [
                   { text: 'Cancel', onPress: () => { } },
-                  { text: 'Set default', onPress: () => { resetSelectedFilters(1); handleSearchFilteredVenues(); } }
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(1); handleSearchFilteredVenues(false); } }
                 ]
               )}>
               <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
