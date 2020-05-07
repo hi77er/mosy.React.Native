@@ -2,6 +2,7 @@ import { AsyncStorage } from 'react-native';
 import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
 import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 
 const authReducer = (state, action) => {
   let result = state;
@@ -15,6 +16,7 @@ const authReducer = (state, action) => {
         ...state,
         accessToken: action.payload.accessToken.access_token,
         refreshToken: action.payload.refreshToken.access_token,
+        user: action.payload.user,
         isAuthorized: true
       };
       break;
@@ -37,17 +39,19 @@ const signin = (dispatch) => {
         dispatch({ type: 'add_error', payload: "Email and pass are required!" });
       else {
         const result = await authService.login(email, password);
-        // console.log(result);
+        let user = null;
         if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
           await authService.putAccessTokenSettings(result.accessToken);
           await authService.putRefreshTokenSettings(result.refreshToken);
+
+          user = await userService.getUser();
 
           const expiresInSec = await authService.pickAccessTokenExpiresSec();
           const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
 
           scheduleRefreshToken(intervalMs);
 
-          dispatch({ type: 'signin', payload: result });
+          dispatch({ type: 'signin', payload: { ...result, user } });
         }
       }
     }
@@ -89,6 +93,7 @@ export const { Provider, Context } = createDataContext(
     errorMessage: "",
     accessToken: null,
     refreshToken: null,
+    user: null,
     isAuthorized: false,
   },
 );
