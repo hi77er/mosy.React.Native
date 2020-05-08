@@ -26,10 +26,6 @@ import TabBarButton from './src/components/nav/bottom/TabBarButton';
 
 import { setNavigator } from './src/navigationRef';
 
-const loginFlow = createStackNavigator({
-  Login: LoginScreen,
-  SignUp: SignUpScreen,
-});
 
 const venuesFlow = createStackNavigator(
   {
@@ -47,6 +43,18 @@ const venuesFlow = createStackNavigator(
     },
     Menu: {
       screen: MenuScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Login: {
+      screen: LoginScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    SignUp: {
+      screen: SignUpScreen,
       navigationOptions: {
         headerShown: false,
       },
@@ -69,6 +77,18 @@ const dishesFlow = createStackNavigator(
     },
     DishDetails: {
       screen: DishDetailsScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Login: {
+      screen: LoginScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    SignUp: {
+      screen: SignUpScreen,
       navigationOptions: {
         headerShown: false,
       },
@@ -101,7 +121,6 @@ const operatorFlow = createStackNavigator(
 
 const switchNavigator = createSwitchNavigator(
   {
-    loginFlow,
     mainFlow: createBottomTabNavigator(
       {
         venuesFlow,

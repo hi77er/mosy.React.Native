@@ -20,6 +20,9 @@ const authReducer = (state, action) => {
         isAuthorized: true
       };
       break;
+    case 'signup':
+
+      break;
     case 'signout':
       result = {
         ...state,
@@ -56,10 +59,23 @@ const signin = (dispatch) => {
       }
     }
     catch {
-      dispatch({
-        type: "add_error",
-        payload: "Something went wrong.",
-      });
+      dispatch({ type: "add_error", payload: "Something went wrong." });
+    }
+  };
+};
+
+const signup = (dispatch) => {
+  return async ({ email, password }) => {
+    try {
+      if (!email || !password)
+        dispatch({ type: 'add_error', payload: "Email and pass are required!" });
+      else {
+        const result = await authService.signup(email, password);
+        dispatch({ type: 'signup', payload: { ...result } });
+      }
+    }
+    catch {
+      dispatch({ type: "add_error", payload: "Something went wrong." });
     }
   };
 };
@@ -88,7 +104,7 @@ const signout = (dispatch) => {
 
 export const { Provider, Context } = createDataContext(
   authReducer,
-  { signin, signout },
+  { signin, signout, signup },
   {
     errorMessage: "",
     accessToken: null,

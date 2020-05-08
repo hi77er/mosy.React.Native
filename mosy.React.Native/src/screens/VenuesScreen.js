@@ -82,6 +82,8 @@ const VenuesScreen = ({ navigation }) => {
 
   useEffect(() => {
     watchLocation().catch((err) => console.log(err));
+
+
   }, []);
 
   useEffect(() => {
@@ -149,11 +151,17 @@ const VenuesScreen = ({ navigation }) => {
         ? (
           <FlatList
             data={venuesState.bundledClosestVenues}
+            keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => {
               if (item.renderType == 1)
-                return <MatchingFiltersItem matchingFiltersIds={item.renderItem.matchingFiltersIds} mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
+                return <MatchingFiltersItem
+                  matchingFiltersIds={item.renderItem.matchingFiltersIds}
+                  mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
               else {
-                return <VenueItem item={item.renderItem} geolocation={geolocation} navigation={navigation} />;
+                return <VenueItem
+                  item={item.renderItem}
+                  geolocation={geolocation}
+                  navigation={navigation} />;
               }
             }}
             onEndReached={handleLoadMore}
