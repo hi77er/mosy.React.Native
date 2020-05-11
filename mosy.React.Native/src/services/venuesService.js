@@ -23,7 +23,8 @@ const getClosestVenues = async (
   searchedDistanceMeters = 10000,
   isDevModeActivated = true
 ) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const accessTokenSettings = JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
+  const bearerAccessToken = `Bearer ${accessTokenSettings.access_token}`; // await authService.pickBearerAccessToken();
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

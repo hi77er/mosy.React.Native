@@ -13,7 +13,7 @@ const SplashScreen = ({ onInitializationFinished }) => {
 
   useEffect(() => {
     async function init() {
-      await signin({ email: 'webapiadmin@mosy.com', password: '!23Qwe' });
+      await signin({ email: process.env.MOSY_WEBAPI_USER, password: process.env.MOSY_WEBAPI_PASS });
       await loadFilters();
 
       if (onInitializationFinished) onInitializationFinished();
