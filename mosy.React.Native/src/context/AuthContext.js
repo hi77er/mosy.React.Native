@@ -23,44 +23,13 @@ const authReducer = (state, action) => {
     case 'signup':
 
       break;
-    case 'signout':
-      result = {
-        ...state,
-        accessToken: null,
-        refreshToken: null,
-        isAuthorized: false
-      };
-      break;
   }
   return result;
 };
 
 const signin = (dispatch) => {
   return async ({ email, password }) => {
-    try {
-      if (!email || !password)
-        dispatch({ type: 'add_error', payload: "Email and pass are required!" });
-      else {
-        const result = await authService.login(email, password);
-        let user = null;
-        if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
-          await authService.putAccessTokenSettings(result.accessToken);
-          await authService.putRefreshTokenSettings(result.refreshToken);
-
-          user = await userService.getUser();
-
-          const expiresInSec = await authService.pickAccessTokenExpiresSec();
-          const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
-
-          scheduleRefreshToken(intervalMs);
-
-          dispatch({ type: 'signin', payload: { ...result, user } });
-        }
-      }
-    }
-    catch {
-      dispatch({ type: "add_error", payload: "Something went wrong." });
-    }
+    await handleSignIn(dispatch, { email, password });
   };
 };
 
@@ -93,18 +62,45 @@ const scheduleRefreshToken = (intervalMs) => {
   }, intervalMs);
 };
 
-const signout = (dispatch) => {
+const signoutUser = (dispatch) => {
   return async () => {
     await authService.eraseAccessTokenSettings();
     await authService.eraseRefreshTokenSettings();
-    dispatch({ type: "signout" });
+    await handleSignIn(dispatch, { email: process.env.MOSY_WEBAPI_USER , password: process.env.MOSY_WEBAPI_PASS });
     navigate("mainFlow");
   }
 };
 
+const handleSignIn = async (dispatch, { email, password }) => {
+  try {
+    if (!email || !password)
+      dispatch({ type: 'add_error', payload: "Email and pass are required!" });
+    else {
+      const result = await authService.login(email, password);
+      let user = null;
+      if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+        await authService.putAccessTokenSettings(result.accessToken);
+        await authService.putRefreshTokenSettings(result.refreshToken);
+
+        user = await userService.getUser();
+
+        const expiresInSec = await authService.pickAccessTokenExpiresSec();
+        const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
+
+        scheduleRefreshToken(intervalMs);
+
+        dispatch({ type: 'signin', payload: { ...result, user } });
+      }
+    }
+  }
+  catch {
+    dispatch({ type: "add_error", payload: "Something went wrong." });
+  }
+}
+
 export const { Provider, Context } = createDataContext(
   authReducer,
-  { signin, signout, signup },
+  { signin, signoutUser, signup },
   {
     errorMessage: "",
     accessToken: null,

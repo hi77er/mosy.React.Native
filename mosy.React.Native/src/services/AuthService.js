@@ -31,6 +31,11 @@ const refreshToken = async () => {
   return useResponse(req);
 }
 
+const isAuthorized = async () => {
+  const accessTokenSettings = await pickAccessTokenSettings();
+  return accessTokenSettings && accessTokenSettings.access_Token;
+};
+
 const putAccessTokenSettings = async (accessTokenSettings) => await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings));
 const putRefreshTokenSettings = async (refreshTokenSettings) => await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings));
 
@@ -62,6 +67,7 @@ const pickRefreshTokenExpiresSec = async () => {
 export const authService = {
   login,
   refreshToken,
+  isAuthorized,
   putAccessTokenSettings,
   putRefreshTokenSettings,
   eraseAccessTokenSettings,
