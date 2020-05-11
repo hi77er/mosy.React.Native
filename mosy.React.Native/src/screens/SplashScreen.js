@@ -4,16 +4,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as FiltersContext } from '../context/FiltersContext';
 
-
+import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
 
 const SplashScreen = ({ onInitializationFinished }) => {
   const { signin } = useContext(AuthContext);
   const { loadFilters } = useContext(FiltersContext);
 
-
   useEffect(() => {
     async function init() {
-      await signin({ email: process.env.MOSY_WEBAPI_USER, password: process.env.MOSY_WEBAPI_PASS });
+      await signin({ email: MOSY_WEBAPI_USER, password: MOSY_WEBAPI_PASS });
       await loadFilters();
 
       if (onInitializationFinished) onInitializationFinished();

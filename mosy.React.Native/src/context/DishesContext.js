@@ -71,8 +71,6 @@ const dishesReducer = (state, action) => {
         }
       });
 
-      console.log(bundled.map(i => i.renderType));
-
       currentState = {
         ...state,
         bundledClosestDishes: bundled,

@@ -66,9 +66,17 @@ const signoutUser = (dispatch) => {
   return async () => {
     await authService.eraseAccessTokenSettings();
     await authService.eraseRefreshTokenSettings();
-    await handleSignIn(dispatch, { email: process.env.MOSY_WEBAPI_USER , password: process.env.MOSY_WEBAPI_PASS });
+    await handleSignIn(dispatch, { email: process.env.MOSY_WEBAPI_USER, password: process.env.MOSY_WEBAPI_PASS });
     navigate("mainFlow");
   }
+};
+
+const loadUserImageContent = (dispatch) => {
+  return async (venueId, imageMetaId, size) => {
+    const imageContent = await userService.getImageContent(size);
+
+    dispatch({ type: 'loadImageContent', payload: { isExterior: false, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
+  };
 };
 
 const handleSignIn = async (dispatch, { email, password }) => {
@@ -100,7 +108,12 @@ const handleSignIn = async (dispatch, { email, password }) => {
 
 export const { Provider, Context } = createDataContext(
   authReducer,
-  { signin, signoutUser, signup },
+  {
+    signin,
+    signoutUser,
+    signup,
+    loadUserImageContent,
+  },
   {
     errorMessage: "",
     accessToken: null,

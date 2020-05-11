@@ -26,8 +26,6 @@ const ProfileScreen = () => {
       }
     };
     init();
-
-
   }, [state.user]);
 
   return (
@@ -39,7 +37,7 @@ const ProfileScreen = () => {
             {
               state.user && [state.user.firstName || "", state.user.lastName || ""].join(" ").trim().length
                 ? [state.user.firstName || "", state.user.lastName || ""].join(" ").trim()
-                : state.user.email
+                : state.user.username
             }
           </Text>
           <View style={styles.bottomActionsContainer}>

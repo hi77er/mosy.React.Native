@@ -203,7 +203,7 @@ export const { Provider, Context } = createDataContext(
     filters: [],
     selectedFilters: [],
     showClosedVenues: false,
-    showClosedDishes: true,
+    showClosedDishes: false,
     showNotRecommendedDishes: false,
     venuesSearchQuery: "",
     dishesSearchQuery: "",

@@ -38,7 +38,6 @@ const MenuItem = ({ item, selectedCulture }) => {
         <View style={{ flexDirection: "row", padding: 5, backgroundColor: '#f5d5df' }}>
           <View style={{ flex: 3 }}>
             <Text style={{ color: "#90002D" }}>
-              {console.log(item.requestableCultures.filter(x => x.culture == selectedCulture))}
               {
                 selectedCulture && item.requestableCultures.filter(x => x.culture == selectedCulture).length
                   ? item.requestableCultures.filter(x => x.culture == selectedCulture)[0].requestableName
