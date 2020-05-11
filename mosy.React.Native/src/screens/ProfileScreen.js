@@ -35,7 +35,13 @@ const ProfileScreen = () => {
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
         <View style={styles.logoutForm}>
           <Image source={logo} style={styles.profileImage} />
-          <Text style={styles.names}>Test Testov</Text>
+          <Text style={styles.names}>
+            {
+              state.user && [state.user.firstName || "", state.user.lastName || ""].join(" ").trim().length
+                ? [state.user.firstName || "", state.user.lastName || ""].join(" ").trim()
+                : state.user.email
+            }
+          </Text>
           <View style={styles.bottomActionsContainer}>
             {
               isSignOutLoading
