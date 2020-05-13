@@ -33,7 +33,7 @@ const SignUpScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
-      navigation.navigate("mainAuthorizedFlow");
+      navigation.navigate("mainCustomerFlow");
     }
 
     return () => { };

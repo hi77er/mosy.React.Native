@@ -19,10 +19,9 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (state.user && state.user.profileImage) {
+      if (state.user && state.user.profileImage && !state.user.profileImage.base64x300) {
         loadUserImageContent(3);
       }
-
       const isAuthorized = authService.isAuthorized();
       if (!isAuthorized) {
         navigation.navigate("mainFlow");
@@ -50,6 +49,16 @@ const ProfileScreen = () => {
                 : state.user.username
             }
           </Text>
+
+          {
+            state.user && state.user.roles && state.user.roles.length
+              ? (
+                <Text style={styles.roles}>
+                  {`(${state.user.roles.map(x => x.displayName).join(', ')})`}
+                </Text>
+              )
+              : null
+          }
 
           <View style={styles.bottomActionsContainer}>
             {
@@ -94,7 +103,7 @@ const styles = StyleSheet.create({
   },
   profileImage: {
     alignSelf: 'center',
-    marginTop: 100,
+    marginTop: 80,
     width: 140,
     height: 140,
     borderRadius: 70,
@@ -103,10 +112,20 @@ const styles = StyleSheet.create({
   },
   names: {
     alignSelf: 'center',
+    textAlign: 'center',
     marginTop: 20,
     fontSize: 20,
     color: "white",
     fontWeight: "bold",
+  },
+  roles: {
+    alignSelf: 'center',
+    textAlign: 'center',
+    marginLeft: 30,
+    marginRight: 30,
+    fontSize: 12,
+    color: "white",
+    fontStyle: "italic",
   },
   logoutForm: {
     marginLeft: 10,

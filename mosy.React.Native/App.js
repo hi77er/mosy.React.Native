@@ -140,7 +140,7 @@ const switchNavigator = createSwitchNavigator(
         },
       }
     ),
-    mainAuthorizedFlow: createBottomTabNavigator(
+    mainCustomerFlow: createBottomTabNavigator(
       {
         venuesFlow,
         dishesFlow,

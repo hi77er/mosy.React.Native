@@ -32,7 +32,10 @@ const LoginScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
-      navigation.navigate("mainAuthorizedFlow");
+      if (state.user.roles.filter(role => role.name == "TableAccountOperator").length)
+        navigation.navigate("mainOperatorFlow");
+      else
+        navigation.navigate("mainCustomerFlow");
     }
 
     return () => { };
