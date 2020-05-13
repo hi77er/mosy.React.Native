@@ -268,7 +268,8 @@ const loadOutdoorImageContent = (dispatch) => {
   return async (venueId, imageMetaId, size) => {
     const imageContent = await venuesService.getImageContent(imageMetaId, size);
 
-    dispatch({ type: 'loadImageContent', payload: { isExterior: true, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
+    if (imageContent)
+      dispatch({ type: 'loadImageContent', payload: { isExterior: true, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
   };
 };
 

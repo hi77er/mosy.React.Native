@@ -9,9 +9,8 @@ import { authService } from '../services/authService';
 
 
 const ProfileScreen = () => {
-  const { state, signoutUser } = useContext(AuthContext);
+  const { state, signoutUser, loadUserImageContent } = useContext(AuthContext);
   const [isSignOutLoading, setIsSignOutLoading] = useState("");
-
 
   const handleSignOut = async () => {
     setIsSignOutLoading(true);
@@ -20,6 +19,10 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     const init = async () => {
+      if (state.user && state.user.profileImage) {
+        loadUserImageContent(3);
+      }
+
       const isAuthorized = authService.isAuthorized();
       if (!isAuthorized) {
         navigation.navigate("mainFlow");
@@ -32,7 +35,14 @@ const ProfileScreen = () => {
     <SafeAreaView forceInset={{ top: "always" }} style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
         <View style={styles.logoutForm}>
-          <Image source={logo} style={styles.profileImage} />
+          <Image
+            style={styles.profileImage}
+            source={
+              state.user && state.user.profileImage && state.user.profileImage.contentType && state.user.profileImage.base64x300
+                ? { uri: `data:${state.user.profileImage.contentType};base64,${state.user.profileImage.base64x300}` }
+                : logo
+            } />
+
           <Text style={styles.names}>
             {
               state.user && [state.user.firstName || "", state.user.lastName || ""].join(" ").trim().length
@@ -40,6 +50,7 @@ const ProfileScreen = () => {
                 : state.user.username
             }
           </Text>
+
           <View style={styles.bottomActionsContainer}>
             {
               isSignOutLoading

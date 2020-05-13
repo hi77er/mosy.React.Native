@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
 
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as FiltersContext } from '../context/FiltersContext';
 
-import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
 
 const SplashScreen = ({ onInitializationFinished }) => {
   const { signin } = useContext(AuthContext);

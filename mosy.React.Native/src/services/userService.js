@@ -29,7 +29,7 @@ const getImageContent = async (size) => {
         "Authorization": bearerAccessToken,
       },
     })
-    .post("/api/user/image/get");
+    .get("/api/user/image/get", { params: { size } });
   return useResponse(req);
 }
 

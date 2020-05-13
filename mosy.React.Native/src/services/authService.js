@@ -36,30 +36,44 @@ const isAuthorized = async () => {
   return accessTokenSettings && accessTokenSettings.access_Token;
 };
 
-const putAccessTokenSettings = async (accessTokenSettings) => await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings));
-const putRefreshTokenSettings = async (refreshTokenSettings) => await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings));
+const putAccessTokenSettings = async (accessTokenSettings) => {
+  return accessTokenSettings
+    ? await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings))
+    : null;
+};
+const putRefreshTokenSettings = async (refreshTokenSettings) => {
+  return refreshTokenSettings
+    ? await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings))
+    : null;
+};
 
-const pickAccessTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
-const pickRefreshTokenSettings = async () => JSON.parse(await AsyncStorage.getItem("refreshTokenSettings"));
+const pickAccessTokenSettings = async () => {
+  const settings = await AsyncStorage.getItem("accessTokenSettings");
+  return settings ? JSON.parse(settings) : null;
+};
+const pickRefreshTokenSettings = async () => {
+  const settings = await AsyncStorage.getItem("refreshTokenSettings");
+  return settings ? JSON.parse(settings) : null;
+};
 
 const eraseAccessTokenSettings = async () => await AsyncStorage.removeItem("accessTokenSettings");
 const eraseRefreshTokenSettings = async () => await AsyncStorage.removeItem("refreshTokenSettings");
 
 const pickBearerAccessToken = async () => {
-  const accessTokenSettings = await pickAccessTokenSettings();
-  return `Bearer ${accessTokenSettings.access_Token}`;
+  const settings = await pickAccessTokenSettings();
+  return settings ? `Bearer ${settings.access_Token}` : null;
 };
 const pickBearerRefreshToken = async () => {
-  const refreshTokenSettings = await pickRefreshTokenSettings();
-  return `Bearer ${refreshTokenSettings.access_Token}`;
+  const settings = await pickRefreshTokenSettings();
+  return settings ? `Bearer ${settings.access_Token}` : null;
 };
 const pickAccessTokenExpiresSec = async () => {
-  const accessTokenSettings = await pickAccessTokenSettings();
-  return accessTokenSettings.expires_in;
+  const settings = await pickAccessTokenSettings();
+  return settings ? settings.expires_in : null;
 };
 const pickRefreshTokenExpiresSec = async () => {
-  const refreshTokenSettings = await pickRefreshTokenSettings();
-  return refreshTokenSettings.expires_in;
+  const settings = await pickRefreshTokenSettings();
+  return settings ? settings.expires_in : null;
 };
 
 

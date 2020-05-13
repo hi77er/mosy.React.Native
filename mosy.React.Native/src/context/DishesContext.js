@@ -198,7 +198,8 @@ const loadImageContent = (dispatch) => {
   return async (dishId, imageMetaId, size) => {
     const imageContent = await dishesService.getImageContent(imageMetaId, size);
 
-    dispatch({ type: 'loadImageContent', payload: { imageContent: imageContent.base64Content, imageMetaId, size, dishId } });
+    if (imageContent)
+      dispatch({ type: 'loadImageContent', payload: { imageContent: imageContent.base64Content, imageMetaId, size, dishId } });
   };
 };
 

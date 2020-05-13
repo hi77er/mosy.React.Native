@@ -1,4 +1,6 @@
 import { AsyncStorage } from 'react-native';
+import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
+
 import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
 import { authService } from '../services/authService';
@@ -23,7 +25,29 @@ const authReducer = (state, action) => {
     case 'signup':
 
       break;
+    case 'loadImageContent':
+      const { imageContent, size } = action.payload;
+      const user = state.user;
+      let profileImage = null;
+
+      switch (size) {
+        case 0:
+          profileImage = { ...user.profileImage, base64Original: imageContent, };
+          break;
+        case 1:
+          profileImage = { ...user.profileImage, base64x100: imageContent, };
+          break;
+        case 2:
+          profileImage = { ...user.profileImage, base64x200: imageContent, };
+          break;
+        case 3:
+          profileImage = { ...user.profileImage, base64x300: imageContent, };
+          break;
+      }
+
+      result = { ...state, user: { ...user, profileImage }, };
   }
+
   return result;
 };
 
@@ -66,16 +90,17 @@ const signoutUser = (dispatch) => {
   return async () => {
     await authService.eraseAccessTokenSettings();
     await authService.eraseRefreshTokenSettings();
-    await handleSignIn(dispatch, { email: process.env.MOSY_WEBAPI_USER, password: process.env.MOSY_WEBAPI_PASS });
+    await handleSignIn(dispatch, { email: MOSY_WEBAPI_USER, password: MOSY_WEBAPI_PASS });
     navigate("mainFlow");
   }
 };
 
 const loadUserImageContent = (dispatch) => {
-  return async (venueId, imageMetaId, size) => {
+  return async (size) => {
     const imageContent = await userService.getImageContent(size);
 
-    dispatch({ type: 'loadImageContent', payload: { isExterior: false, imageContent: imageContent.base64Content, imageMetaId, size, venueId } });
+    if (imageContent)
+      dispatch({ type: 'loadImageContent', payload: { imageContent: imageContent.base64Content, size } });
   };
 };
 
@@ -90,12 +115,12 @@ const handleSignIn = async (dispatch, { email, password }) => {
         await authService.putAccessTokenSettings(result.accessToken);
         await authService.putRefreshTokenSettings(result.refreshToken);
 
-        user = await userService.getUser();
-
         const expiresInSec = await authService.pickAccessTokenExpiresSec();
         const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
 
         scheduleRefreshToken(intervalMs);
+
+        user = await userService.getUser();
 
         dispatch({ type: 'signin', payload: { ...result, user } });
       }
@@ -104,7 +129,7 @@ const handleSignIn = async (dispatch, { email, password }) => {
   catch {
     dispatch({ type: "add_error", payload: "Something went wrong." });
   }
-}
+};
 
 export const { Provider, Context } = createDataContext(
   authReducer,
