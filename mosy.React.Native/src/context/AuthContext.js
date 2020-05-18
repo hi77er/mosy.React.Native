@@ -23,7 +23,10 @@ const authReducer = (state, action) => {
       };
       break;
     case 'signup':
-
+      result = {
+        ...state,
+        message: "Done! Confirm your email, please."
+      };
       break;
     case 'loadImageContent':
       const { imageContent, size } = action.payload;
@@ -58,13 +61,19 @@ const signin = (dispatch) => {
 };
 
 const signup = (dispatch) => {
-  return async ({ email, password }) => {
+  return async ({ email, password, confirmPassword }) => {
     try {
       if (!email || !password)
         dispatch({ type: 'add_error', payload: "Email and pass are required!" });
+      else if (password != confirmPassword)
+        dispatch({ type: 'add_error', payload: "Passwords should match!" });
       else {
-        const result = await authService.signup(email, password);
-        dispatch({ type: 'signup', payload: { ...result } });
+        const result = await authService.signup(email, password, confirmPassword, "recaptchaResponseToken");
+        console.log(result);
+        if (result && result.isSuccessful)
+          dispatch({ type: 'signup' });
+        else
+          dispatch({ type: 'add_error', payload: result && result.errorMessage ? result.errorMessage : 'Something went wrong.' });
       }
     }
     catch {

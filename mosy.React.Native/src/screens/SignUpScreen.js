@@ -1,8 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
+//import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-navigation';
-import { StyleSheet, TouchableOpacity, Image, ImageBackground, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, WebView } from 'react-native';
 import { Button, Input, Text, withTheme } from 'react-native-elements';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ReCaptchaV3 from '@haskkor/react-native-recaptchav3';
 
 import Spacer from '../components/Spacer';
 import { Context as AuthContext } from '../context/AuthContext';
@@ -12,7 +14,7 @@ import backgroundImage from '../../assets/img/login/login_background.jpg'
 import logo from '../../assets/img/logo_no_background.png';
 
 const SignUpScreen = ({ navigation }) => {
-  const { state, signup } = useContext(AuthContext);
+  const { state, signup, signin } = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -21,15 +23,12 @@ const SignUpScreen = ({ navigation }) => {
 
   const handleSignUp = async () => {
     setIsLoading(true);
-    // await signin({ email, password: pass, repeatPassword: repeatPass });
+    await signup({ email, password: pass, confirmPassword: repeatPass, recaptchaResponseToken: "recaptchaResponseToken" });
   };
 
-  // useEffect(() => {
-  //   async function init() {
-
-  //   }
-  //   init();
-  // }, []);
+  useEffect(() => {
+    setIsLoading(false);
+  }, [state.message, state.errorMessage]);
 
   useEffect(() => {
     if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
@@ -87,27 +86,41 @@ const SignUpScreen = ({ navigation }) => {
             leftIcon={<MaterialCommunityIcon name='lock' size={24} color='white' />} />
 
           {state.errorMessage ? <Text style={styles.errorMessage}>{state.errorMessage}</Text> : null}
+          {state.message ? <Text style={styles.message}>{state.message}</Text> : null}
 
           {
-            isLoading
-              ? <Button
-                loading
-                title="Sign up"
-                loadingProps={{ color: '#90002D' }}
-                onPress={handleSignUp}
-                titleStyle={styles.loginButtonTitle}
-                buttonStyle={styles.loginButtonContainer} />
-              : <Button
-                title="Sign up"
-                loadingProps={{ color: '#90002D' }}
-                onPress={handleSignUp}
-                titleStyle={styles.loginButtonTitle}
-                buttonStyle={styles.loginButtonContainer} />
+            !state.message
+              ? (
+                isLoading
+                  ? <Button
+                    loading
+                    title="Sign up"
+                    loadingProps={{ color: '#90002D' }}
+                    onPress={handleSignUp}
+                    titleStyle={styles.loginButtonTitle}
+                    buttonStyle={styles.loginButtonContainer} />
+                  : <Button
+                    title="Sign up"
+                    loadingProps={{ color: '#90002D' }}
+                    onPress={handleSignUp}
+                    titleStyle={styles.loginButtonTitle}
+                    buttonStyle={styles.loginButtonContainer} />
+              )
+              : null
           }
 
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
             <Text style={styles.link}>Already have an account? Log in instead.</Text>
           </TouchableOpacity>
+
+          {/*<WebView source={{ uri: "https://facebook.github.io/react-native/" }} />
+
+          {/*https://www.google.com/recaptcha/api/siteverify */}
+          <ReCaptchaV3
+            onReceiveToken={(key) => console.log(key)}
+            captchaDomain={"treatsparkweb.azurewebsite.net"}
+            siteKey={"6LfX_rgUAAAAALk9lAtnvEVUOEqjLm06gXkawVLu"}
+          />
         </View>
       </ImageBackground>
     </SafeAreaView>
@@ -140,6 +153,13 @@ const styles = StyleSheet.create({
   errorMessage: {
     fontSize: 13,
     color: "white",
+    fontStyle: 'italic',
+    marginLeft: 15,
+    marginBottom: 30,
+  },
+  message: {
+    fontSize: 13,
+    color: "lightgreen",
     fontStyle: 'italic',
     marginLeft: 15,
     marginBottom: 30,

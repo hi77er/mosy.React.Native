@@ -76,10 +76,29 @@ const pickRefreshTokenExpiresSec = async () => {
   return settings ? settings.expires_in : null;
 };
 
+const signup = (email, password, confirmPassword, recaptchaResponseToken) => {
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+    .post("/api/account/signup", { 
+      email, 
+      password, 
+      confirmPassword, 
+      originMobile: true, 
+      isManager: false, 
+      recaptchaResponseToken });
+  return useResponse(req);
+}
+
 
 
 export const authService = {
   login,
+  signup,
   refreshToken,
   isAuthorized,
   putAccessTokenSettings,
