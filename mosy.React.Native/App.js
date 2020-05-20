@@ -19,7 +19,6 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import CheckEmailScreen from './src/screens/CheckEmailScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
-import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
 
@@ -116,14 +115,18 @@ const dishesFlow = createStackNavigator(
 
 const operatorFlow = createStackNavigator(
   {
-    OperatorVenues: {
-      screen: OperatorVenuesScreen,
+    OperatorTableAccounts: {
+      screen: OperatorTableAccountsScreen,
       navigationOptions: {
         headerShown: false,
       },
     },
-    OperatorTableAccounts: OperatorTableAccountsScreen,
-    OperatorTableOrders: OperatorTableOrdersScreen,
+    OperatorTableOrders: {
+      screen: OperatorTableOrdersScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
