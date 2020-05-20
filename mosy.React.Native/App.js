@@ -16,6 +16,7 @@ import MenuScreen from './src/screens/MenuScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import CheckEmailScreen from './src/screens/CheckEmailScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
 import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
@@ -59,6 +60,12 @@ const venuesFlow = createStackNavigator(
         headerShown: false,
       },
     },
+    CheckEmail: {
+      screen: CheckEmailScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
@@ -89,6 +96,12 @@ const dishesFlow = createStackNavigator(
     },
     SignUp: {
       screen: SignUpScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    CheckEmail: {
+      screen: CheckEmailScreen,
       navigationOptions: {
         headerShown: false,
       },

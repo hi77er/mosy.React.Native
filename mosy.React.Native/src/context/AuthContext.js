@@ -22,9 +22,17 @@ const authReducer = (state, action) => {
         isAuthorized: true
       };
       break;
+    case 'signupClear':
+      result = {
+        ...state,
+        signupSuccess: false,
+        message: null
+      };
+      break;
     case 'signup':
       result = {
         ...state,
+        signupSuccess: true,
         message: "Done! Confirm your email, please."
       };
       break;
@@ -62,23 +70,33 @@ const signin = (dispatch) => {
 
 const signup = (dispatch) => {
   return async ({ email, password, confirmPassword }) => {
-    try {
-      if (!email || !password)
-        dispatch({ type: 'add_error', payload: "Email and pass are required!" });
-      else if (password != confirmPassword)
-        dispatch({ type: 'add_error', payload: "Passwords should match!" });
-      else {
-        const result = await authService.signup(email, password, confirmPassword, "recaptchaResponseToken");
-        console.log(result);
-        if (result && result.isSuccessful)
-          dispatch({ type: 'signup' });
-        else
-          dispatch({ type: 'add_error', payload: result && result.errorMessage ? result.errorMessage : 'Something went wrong.' });
-      }
+    if (!email || !password)
+      dispatch({ type: 'add_error', payload: "Email and pass are required!" });
+    else if (password != confirmPassword)
+      dispatch({ type: 'add_error', payload: "Passwords should match!" });
+    else {
+      const result = await authService
+        .signup(email, password, confirmPassword)
+        .catch((err) => {
+          let message = "Something went wrong!";
+          if (err && err.response && err.response.data && err.response.data.errorMessage)
+            message = err.response.data.errorMessage;
+          else
+            console.log(err.response ? err.response : err);
+
+          dispatch({ type: 'add_error', payload: message });
+        });
+
+      if (result && result.isSuccessful)
+        dispatch({ type: 'signup' });
     }
-    catch {
-      dispatch({ type: "add_error", payload: "Something went wrong." });
-    }
+  };
+};
+
+
+const signupClear = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'signupClear' });
   };
 };
 
@@ -118,7 +136,18 @@ const handleSignIn = async (dispatch, { email, password }) => {
     if (!email || !password)
       dispatch({ type: 'add_error', payload: "Email and pass are required!" });
     else {
-      const result = await authService.login(email, password);
+      const result = await authService
+        .login(email, password)
+        .catch((err) => {
+          let message = "Something went wrong!";
+          if (err && err.response && err.response.data && err.response.data.errorMessage)
+            message = err.response.data.errorMessage;
+          else
+            console.log(err.response ? err.response : err);
+
+          dispatch({ type: 'add_error', payload: message });
+        });
+
       let user = null;
       if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
         await authService.putAccessTokenSettings(result.accessToken);
@@ -136,7 +165,7 @@ const handleSignIn = async (dispatch, { email, password }) => {
     }
   }
   catch {
-    dispatch({ type: "add_error", payload: "Something went wrong." });
+    dispatch({ type: "add_error", payload: "Something went wrong!" });
   }
 };
 
@@ -146,6 +175,7 @@ export const { Provider, Context } = createDataContext(
     signin,
     signoutUser,
     signup,
+    signupClear,
     loadUserImageContent,
   },
   {
@@ -154,5 +184,6 @@ export const { Provider, Context } = createDataContext(
     refreshToken: null,
     user: null,
     isAuthorized: false,
+    signupSuccess: false,
   },
 );

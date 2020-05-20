@@ -1,29 +1,32 @@
-import React, { useContext, useState, useEffect } from 'react';
-//import { WebView } from 'react-native-webview';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, WebView } from 'react-native';
-import { Button, Input, Text, withTheme } from 'react-native-elements';
+import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, Keyboard } from 'react-native';
+import { Button, Input, Text } from 'react-native-elements';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import ReCaptchaV3 from '@haskkor/react-native-recaptchav3';
 
 import Spacer from '../components/Spacer';
 import { Context as AuthContext } from '../context/AuthContext';
 import { navigate } from '../navigationRef';
 import { authService } from '../services/authService';
-import backgroundImage from '../../assets/img/login/login_background.jpg'
+import backgroundImage from '../../assets/img/login/signup_background.jpg'
 import logo from '../../assets/img/logo_no_background.png';
 
 const SignUpScreen = ({ navigation }) => {
-  const { state, signup, signin } = useContext(AuthContext);
+  const { state, signup, signupClear } = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [repeatPass, setRepeatPass] = useState("");
   const [isLoading, setIsLoading] = useState("");
 
+  const emailInputRef = useRef(null);
+  const passInputRef = useRef(null);
+  const repeatPassInputRef = useRef(null);
+
   const handleSignUp = async () => {
+    Keyboard.dismiss();
     setIsLoading(true);
-    await signup({ email, password: pass, confirmPassword: repeatPass, recaptchaResponseToken: "recaptchaResponseToken" });
+    await signup({ email, password: pass, confirmPassword: repeatPass });
   };
 
   useEffect(() => {
@@ -31,13 +34,11 @@ const SignUpScreen = ({ navigation }) => {
   }, [state.message, state.errorMessage]);
 
   useEffect(() => {
-    if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
-      navigation.navigate("mainCustomerFlow");
+    if (state.signupSuccess) {
+      navigation.navigate("CheckEmail", { email: email });
+      signupClear();
     }
-
-    return () => { };
-  }, [state.user]);
-
+  }, [state.signupSuccess]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,24 +47,31 @@ const SignUpScreen = ({ navigation }) => {
           <Image width={100} height={100} source={logo} style={styles.logo} />
 
           <Input
+            ref={emailInputRef}
             inputStyle={styles.input}
             containerStyle={styles.inputUpperContainer}
             inputContainerStyle={styles.inputContainer}
             leftIconContainerStyle={styles.inputLeftIconContainer}
             placeholder='Email address'
             placeholderTextColor="rgba(255, 255, 255, .8)"
+            keyboardType="email-address"
+            returnKeyType="next"
+            onSubmitEditing={() => passInputRef.current.focus()}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none" autoCorrect={false}
             leftIcon={<MaterialCommunityIcon name='email' size={24} color='white' />} />
 
           <Input
+            ref={passInputRef}
             inputStyle={styles.input}
             containerStyle={styles.inputUpperContainer}
             inputContainerStyle={styles.inputContainer}
             placeholderTextColor="rgba(255, 255, 255, .8)"
             leftIconContainerStyle={styles.inputLeftIconContainer}
             secureTextEntry
+            returnKeyType="next"
+            onSubmitEditing={() => repeatPassInputRef.current.focus()}
             placeholder='Password'
             value={pass}
             onChangeText={setPass}
@@ -72,6 +80,7 @@ const SignUpScreen = ({ navigation }) => {
             leftIcon={<MaterialCommunityIcon name='lock' size={24} color='white' />} />
 
           <Input
+            ref={repeatPassInputRef}
             inputStyle={styles.input}
             containerStyle={styles.inputUpperContainer}
             inputContainerStyle={styles.inputContainer}
@@ -79,6 +88,9 @@ const SignUpScreen = ({ navigation }) => {
             leftIconContainerStyle={styles.inputLeftIconContainer}
             secureTextEntry
             placeholder='Repeat password'
+            returnKeyType="go"
+            enablesReturnKeyAutomatically={false}
+            onSubmitEditing={handleSignUp}
             value={repeatPass}
             onChangeText={setRepeatPass}
             autoCapitalize="none"
@@ -94,12 +106,14 @@ const SignUpScreen = ({ navigation }) => {
                 isLoading
                   ? <Button
                     loading
+                    disabled
                     title="Sign up"
                     loadingProps={{ color: '#90002D' }}
                     onPress={handleSignUp}
                     titleStyle={styles.loginButtonTitle}
                     buttonStyle={styles.loginButtonContainer} />
                   : <Button
+                    disabled={!(email && pass && repeatPass)}
                     title="Sign up"
                     loadingProps={{ color: '#90002D' }}
                     onPress={handleSignUp}
@@ -113,14 +127,6 @@ const SignUpScreen = ({ navigation }) => {
             <Text style={styles.link}>Already have an account? Log in instead.</Text>
           </TouchableOpacity>
 
-          {/*<WebView source={{ uri: "https://facebook.github.io/react-native/" }} />
-
-          {/*https://www.google.com/recaptcha/api/siteverify */}
-          <ReCaptchaV3
-            onReceiveToken={(key) => console.log(key)}
-            captchaDomain={"treatsparkweb.azurewebsite.net"}
-            siteKey={"6LfX_rgUAAAAALk9lAtnvEVUOEqjLm06gXkawVLu"}
-          />
         </View>
       </ImageBackground>
     </SafeAreaView>

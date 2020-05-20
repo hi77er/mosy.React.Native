@@ -76,7 +76,7 @@ const pickRefreshTokenExpiresSec = async () => {
   return settings ? settings.expires_in : null;
 };
 
-const signup = (email, password, confirmPassword, recaptchaResponseToken) => {
+const signup = (email, password, confirmPassword) => {
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -84,13 +84,13 @@ const signup = (email, password, confirmPassword, recaptchaResponseToken) => {
         "Content-Type": "application/json"
       },
     })
-    .post("/api/account/signup", { 
-      email, 
-      password, 
-      confirmPassword, 
-      originMobile: true, 
-      isManager: false, 
-      recaptchaResponseToken });
+    .post("/api/account/signupmobile", {
+      email: email.trim(),
+      password: password.trim(),
+      confirmPassword,
+      originMobile: true,
+      isManager: false
+    });
   return useResponse(req);
 }
 

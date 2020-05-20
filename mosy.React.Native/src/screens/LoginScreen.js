@@ -1,6 +1,6 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { StyleSheet, TouchableOpacity, Image, ImageBackground, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, Keyboard } from 'react-native';
 import { Button, Input, Text, withTheme } from 'react-native-elements';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -14,21 +14,22 @@ import logo from '../../assets/img/logo_no_background.png';
 const LoginScreen = ({ navigation }) => {
   const { state, signin } = useContext(AuthContext);
 
+  const emailInputRef = useRef(null);
+  const passInputRef = useRef(null);
+
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [isLoading, setIsLoading] = useState("");
 
   const handleSignIn = async () => {
+    Keyboard.dismiss();
     setIsLoading(true);
     await signin({ email, password: pass });
   };
 
-  // useEffect(() => {
-  //   async function init() {
-
-  //   }
-  //   init();
-  // }, []);
+  useEffect(() => {
+    setIsLoading(false);
+  }, [state.errorMessage]);
 
   useEffect(() => {
     if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
@@ -49,11 +50,14 @@ const LoginScreen = ({ navigation }) => {
           <Image width={100} height={100} source={logo} style={styles.logo} />
 
           <Input
+            ref={emailInputRef}
             inputStyle={styles.input}
             containerStyle={styles.inputUpperContainer}
             inputContainerStyle={styles.inputContainer}
             leftIconContainerStyle={styles.inputLeftIconContainer}
             placeholder='Email address'
+            returnKeyType="next"
+            onSubmitEditing={() => passInputRef.current.focus()}
             placeholderTextColor="rgba(255, 255, 255, .8)"
             value={email}
             onChangeText={setEmail}
@@ -61,6 +65,7 @@ const LoginScreen = ({ navigation }) => {
             leftIcon={<MaterialCommunityIcon name='email' size={24} color='white' />} />
 
           <Input
+            ref={passInputRef}
             inputStyle={styles.input}
             containerStyle={styles.inputUpperContainer}
             inputContainerStyle={styles.inputContainer}
@@ -68,6 +73,9 @@ const LoginScreen = ({ navigation }) => {
             leftIconContainerStyle={styles.inputLeftIconContainer}
             secureTextEntry
             placeholder='Password'
+            returnKeyType="go"
+            enablesReturnKeyAutomatically={!(email && pass)}
+            onSubmitEditing={handleSignIn}
             value={pass}
             onChangeText={setPass}
             autoCapitalize="none"
@@ -80,12 +88,14 @@ const LoginScreen = ({ navigation }) => {
             isLoading
               ? <Button
                 loading
+                disabled
                 title="Log in"
                 loadingProps={{ color: '#90002D' }}
                 onPress={handleSignIn}
                 titleStyle={styles.loginButtonTitle}
                 buttonStyle={styles.loginButtonContainer} />
               : <Button
+                disabled={!(email && pass)}
                 title="Log in"
                 loadingProps={{ color: '#90002D' }}
                 onPress={handleSignIn}
