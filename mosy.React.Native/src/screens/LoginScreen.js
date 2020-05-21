@@ -6,13 +6,18 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 
 import Spacer from '../components/Spacer';
 import { Context as AuthContext } from '../context/AuthContext';
+import { Context as UserContext } from '../context/UserContext';
 import { navigate } from '../navigationRef';
 import { authService } from '../services/authService';
 import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
 
 const LoginScreen = ({ navigation }) => {
-  const { state, signin } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+  const { signin, signinClear } = useContext(AuthContext);
+
+  const userContext = useContext(UserContext);
+  const { clearUser, loadUser } = userContext;
 
   const emailInputRef = useRef(null);
   const passInputRef = useRef(null);
@@ -24,27 +29,38 @@ const LoginScreen = ({ navigation }) => {
   const handleSignIn = async () => {
     Keyboard.dismiss();
     setIsLoading(true);
+    await clearUser();
     await signin({ email, password: pass });
   };
 
   useEffect(() => {
     setIsLoading(false);
-  }, [state.errorMessage]);
+  }, [authContext.state.errorMessage]);
 
   useEffect(() => {
-    if (state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(role => role.name != "WebApiUser").length) {
-      if (state.user.roles.filter(role => role.name == "TableAccountOperator").length)
+    if (authContext.state.signinSuccess
+      && userContext.state.user
+      && userContext.state.user.roles
+      && userContext.state.user.roles.length
+      && userContext.state.user.roles.filter(role => role.name != "WebApiUser").length) {
+
+      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length)
         navigation.navigate("mainOperatorFlow");
       else
         navigation.navigate("mainCustomerFlow");
     }
 
-    return () => { };
-  }, [state.user]);
+    signinClear();
+  }, [userContext.state.user]);
 
+  useEffect(() => {
+    if (authContext.state.signinSuccess && !userContext.state.user)
+      loadUser();
+  }, [authContext.state.signinSuccess]);
 
   return (
     <SafeAreaView style={styles.container}>
+      {console.log(userContext.state.user)}
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
         <View style={styles.loginForm}>
           <Image width={100} height={100} source={logo} style={styles.logo} />
@@ -82,7 +98,7 @@ const LoginScreen = ({ navigation }) => {
             autoCorrect={false}
             leftIcon={<MaterialCommunityIcon name='lock' size={24} color='white' />} />
 
-          {state.errorMessage ? <Text style={styles.errorMessage}>{state.errorMessage}</Text> : null}
+          {authContext.state.errorMessage ? <Text style={styles.errorMessage}>{authContext.state.errorMessage}</Text> : null}
 
           {
             isLoading

@@ -7,11 +7,12 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FiltersBar from '../components/nav/top/filters/FiltersBar';
 import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
+
 import { Context as FiltersContext } from '../context/FiltersContext';
 import { Context as VenuesContext } from '../context/VenuesContext';
+
 import VenueItem from '../components/venues/VenueItem';
 import MatchingFiltersItem from '../components/filters/MatchingFiltersItem';
-
 
 
 const VenuesScreen = ({ navigation }) => {

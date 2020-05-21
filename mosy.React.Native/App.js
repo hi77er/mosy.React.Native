@@ -4,9 +4,10 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 
 import { Provider as AuthProvider } from './src/context/AuthContext';
-import { Provider as FiltersProvider } from './src/context/FiltersContext';
-import { Provider as VenuesProvider } from './src/context/VenuesContext';
 import { Provider as DishesProvider } from './src/context/DishesContext';
+import { Provider as FiltersProvider } from './src/context/FiltersContext';
+import { Provider as UserProvider } from './src/context/UserContext';
+import { Provider as VenuesProvider } from './src/context/VenuesContext';
 
 import DishesScreen from './src/screens/DishesScreen';
 import VenuesScreen from './src/screens/VenuesScreen';
@@ -210,13 +211,15 @@ const App = () => {
     <AuthProvider>
       <DishesProvider>
         <FiltersProvider>
-          <VenuesProvider>
-            {
-              showSplash
-                ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
-                : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
-            }
-          </VenuesProvider>
+          <UserProvider>
+            <VenuesProvider>
+              {
+                showSplash
+                  ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
+                  : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
+              }
+            </VenuesProvider>
+          </UserProvider>
         </FiltersProvider>
       </DishesProvider>
     </AuthProvider>

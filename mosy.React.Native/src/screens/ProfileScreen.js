@@ -5,17 +5,22 @@ import { Button } from 'react-native-elements';
 import { Dropdown } from 'react-native-material-dropdown';
 
 import { Context as AuthContext } from '../context/AuthContext';
+import { Context as UserContext } from '../context/UserContext';
 import { authService } from '../services/authService';
 import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
 
 
-const ProfileScreen = () => {
-  const { state, signoutUser, loadUserImageContent } = useContext(AuthContext);
+const ProfileScreen = ({ navigation }) => {
+  const authContext = useContext(AuthContext);
+  const { signoutUser } = authContext;
+  const userContext = useContext(UserContext);
+  const { clearUser, loadUserImageContent } = userContext;
+
   const [isSignOutLoading, setIsSignOutLoading] = useState("");
   const [selectedOperationalVenue, setSelectedOperationalVenue] = useState(
-    state.user && state.user.fboUserRoles && state.user.fboUserRoles.length && state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
-      ? state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => x.fbo.name)[0]
+    userContext.state.user && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+      ? userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => x.fbo.name)[0]
       : 'Not selected'
   );
 
@@ -25,17 +30,21 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    const init = async () => {
-      if (state.user && state.user.profileImage && !state.user.profileImage.base64x300) {
-        loadUserImageContent(3);
-      }
-      const isAuthorized = authService.isAuthorized();
-      if (!isAuthorized) {
-        navigation.navigate("mainFlow");
-      }
-    };
-    init();
-  }, [state.user]);
+    if (!authContext.signoutSuccess
+      && userContext.state.user
+      && userContext.state.user.profileImage
+      && !userContext.state.user.profileImage.base64x300) {
+
+      loadUserImageContent(3);
+    }
+  }, [userContext.state.user]);
+
+  useEffect(() => {
+    if (authContext.state.signoutSuccess) {
+      clearUser();
+      navigation.navigate("mainFlow");
+    }
+  }, [authContext.state.signoutSuccess]);
 
   return (
     <SafeAreaView forceInset={{ top: "always" }} style={styles.container}>
@@ -44,38 +53,38 @@ const ProfileScreen = () => {
           <Image
             style={styles.profileImage}
             source={
-              state.user && state.user.profileImage && state.user.profileImage.contentType && state.user.profileImage.base64x300
-                ? { uri: `data:${state.user.profileImage.contentType};base64,${state.user.profileImage.base64x300}` }
+              userContext.state.user && userContext.state.user.profileImage && userContext.state.user.profileImage.contentType && userContext.state.user.profileImage.base64x300
+                ? { uri: `data:${userContext.state.user.profileImage.contentType};base64,${userContext.state.user.profileImage.base64x300}` }
                 : logo
             } />
 
           <Text style={styles.names}>
             {
-              state.user && [state.user.firstName || "", state.user.lastName || ""].join(" ").trim().length
-                ? [state.user.firstName || "", state.user.lastName || ""].join(" ").trim()
-                : state.user.username
+              userContext.state.user && [userContext.state.user.firstName || "", userContext.state.user.lastName || ""].join(" ").trim().length
+                ? [userContext.state.user.firstName || "", userContext.state.user.lastName || ""].join(" ").trim()
+                : userContext.state.user.username
             }
           </Text>
 
           {
-            state.user && state.user.roles && state.user.roles.length
+            userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length
               ? (
                 <Text style={styles.roles}>
-                  {`(${state.user.roles.map(x => x.displayName).join(', ')})`}
+                  {`(${userContext.state.user.roles.map(x => x.displayName).join(', ')})`}
                 </Text>
               )
               : null
           }
 
           {
-            state.user && state.user.roles && state.user.roles.length && state.user.roles.filter(x => x.name == 'TableAccountOperator').length
-              && state.user.fboUserRoles && state.user.fboUserRoles.length && state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+            userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
+              && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
               ? <View style={styles.languageHeaderActionButton}>
                 <Dropdown
                   label={`Operational Venue: ${selectedOperationalVenue}`}
                   baseColor="white"
                   value={selectedOperationalVenue}
-                  data={state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => ({ value: x.fbo.name }))}
+                  data={userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => ({ value: x.fbo.name }))}
                   containerStyle={styles.languageHeaderActionButtonTouch}
                   inputContainerStyle={{ alignItems: 'center' }}
                   labelTextStyle={{ width: '100%', marginTop: 5 }}

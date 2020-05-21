@@ -4,11 +4,17 @@ import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
 
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as UserContext } from '../context/UserContext';
 
 
 const SplashScreen = ({ onInitializationFinished }) => {
-  const { signin } = useContext(AuthContext);
-  const { loadFilters } = useContext(FiltersContext);
+  const authContext = useContext(AuthContext);
+  const filtersContext = useContext(FiltersContext);
+  const userContext = useContext(UserContext);
+
+  const { signin, signinClear } = authContext;
+  const { loadFilters } = filtersContext;
+  const { loadUser } = userContext;
 
   useEffect(() => {
     async function init() {
@@ -19,6 +25,13 @@ const SplashScreen = ({ onInitializationFinished }) => {
     }
     init();
   }, []);
+
+  useEffect(() => {
+    if (!userContext.state.user)
+      loadUser();
+
+    signinClear();
+  }, [authContext.state.signinSuccess]);
 
   return (
     <View style={styles.container}>
