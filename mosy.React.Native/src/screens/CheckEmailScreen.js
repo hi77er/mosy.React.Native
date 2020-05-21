@@ -1,14 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { StyleSheet, TouchableOpacity, Image, ImageBackground, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { openInbox } from 'react-native-email-link';
+import { Text } from 'react-native-elements';
 
-import Spacer from '../components/Spacer';
-import { Context as AuthContext } from '../context/AuthContext';
-import { navigate } from '../navigationRef';
-import { authService } from '../services/authService';
 import backgroundImage from '../../assets/img/login/login_background.jpg'
 import logo from '../../assets/img/logo_no_background.png';
 

@@ -44,7 +44,8 @@ const LoginScreen = ({ navigation }) => {
       && userContext.state.user.roles.length
       && userContext.state.user.roles.filter(role => role.name != "WebApiUser").length) {
 
-      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length)
+      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length
+        && userContext.state.selectedOperationalVenue)
         navigation.navigate("mainOperatorFlow");
       else
         navigation.navigate("mainCustomerFlow");
@@ -60,7 +61,6 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {console.log(userContext.state.user)}
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
         <View style={styles.loginForm}>
           <Image width={100} height={100} source={logo} style={styles.logo} />

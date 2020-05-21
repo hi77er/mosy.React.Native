@@ -14,7 +14,26 @@ const userReducer = (state, action) => {
       result = { ...state, user: null, };
       break;
     case 'loadUser':
-      result = { ...state, user: action.payload, };
+      result = {
+        ...state,
+        user: action.payload,
+        selectedOperationalVenue: action.payload
+          && action.payload.fboUserRoles
+          && action.payload.fboUserRoles.length
+          && action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+          ? action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator')[0].fbo
+          : null,
+        tableAccountsOperatorVenuesCount: action.payload
+          && action.payload.fboUserRoles
+          && action.payload.fboUserRoles.length
+          && action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+          ? action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+          : null,
+      };
+      break;
+    case 'setOperationalVenue':
+      const selectedVenue = state.user.fboUserRoles.filter(x => x.fbo.name == action.payload)[0].fbo;
+      result = { ...state, selectedOperationalVenue: selectedVenue };
       break;
     case 'loadImageContent':
       const { imageContent, size } = action.payload;
@@ -63,14 +82,24 @@ const loadUserImageContent = (dispatch) => {
   };
 };
 
+const setOperationalVenue = (dispatch) => {
+  return async (venue) => {
+
+    dispatch({ type: 'setOperationalVenue', payload: venue });
+  };
+};
+
 export const { Provider, Context } = createDataContext(
   userReducer,
   {
     clearUser,
     loadUser,
     loadUserImageContent,
+    setOperationalVenue,
   },
   {
     user: null,
+    selectedOperationalVenue: null,
+    tableAccountsOperatorVenuesCount: 0,
   },
 );

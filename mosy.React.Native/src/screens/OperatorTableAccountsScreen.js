@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Context as UserContext } from '../context/UserContext';
+import { Context as TableAccountsContext } from '../context/TableAccountsContext';
 
 import Spacer from '../components/Spacer';
 
 
 const OperatorTableAccountsScreen = ({ navigation }) => {
+  const userContext = useContext(UserContext);
+  const operatedVenue = userContext.state.selectedOperationalVenue;
+  const tableAccountsContext = useContext(TableAccountsContext);
+  const { loadTableAccounts } = tableAccountsContext;
+
+  useEffect(
+    () => {
+      loadTableAccounts(operatedVenue.id);
+    }
+    , []);
+
+
   return (
     <SafeAreaView forceInset={{ top: "always" }}>
+      {console.log(tableAccountsContext.state)}
       <Spacer>
         <Text h3>
           Table Accounts

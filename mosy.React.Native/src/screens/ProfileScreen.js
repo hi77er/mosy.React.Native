@@ -15,14 +15,9 @@ const ProfileScreen = ({ navigation }) => {
   const authContext = useContext(AuthContext);
   const { signoutUser } = authContext;
   const userContext = useContext(UserContext);
-  const { clearUser, loadUserImageContent } = userContext;
+  const { clearUser, loadUserImageContent, setOperationalVenue } = userContext;
 
   const [isSignOutLoading, setIsSignOutLoading] = useState("");
-  const [selectedOperationalVenue, setSelectedOperationalVenue] = useState(
-    userContext.state.user && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
-      ? userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => x.fbo.name)[0]
-      : 'Not selected'
-  );
 
   const handleSignOut = async () => {
     setIsSignOutLoading(true);
@@ -77,18 +72,37 @@ const ProfileScreen = ({ navigation }) => {
           }
 
           {
+            console.log(userContext.state.selectedOperationalVenue)
+
+          }
+
+          {
             userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
               && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
               ? <View style={styles.languageHeaderActionButton}>
                 <Dropdown
-                  label={`Operational Venue: ${selectedOperationalVenue}`}
+                  label={
+                    `Operational Venue: ${
+                    userContext.state.selectedOperationalVenue
+                      ? userContext.state.selectedOperationalVenue.name
+                      : "Not selected"
+                    }`
+                  }
                   baseColor="white"
-                  value={selectedOperationalVenue}
-                  data={userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').map(x => ({ value: x.fbo.name }))}
+                  value={
+                    userContext.state.selectedOperationalVenue
+                      ? userContext.state.selectedOperationalVenue
+                      : "Not selected"
+                  }
+                  data={
+                    userContext.state.user.fboUserRoles
+                      .filter(x => x.role.name == 'TableAccountOperator')
+                      .map(x => ({ value: x.fbo.name, venueId: x.fbo.id }))
+                  }
                   containerStyle={styles.languageHeaderActionButtonTouch}
                   inputContainerStyle={{ alignItems: 'center' }}
                   labelTextStyle={{ width: '100%', marginTop: 5 }}
-                  onChangeText={(v) => setSelectedOperationalVenue(v)} />
+                  onChangeText={(v) => setOperationalVenue(v)} />
               </View>
               : null
           }
