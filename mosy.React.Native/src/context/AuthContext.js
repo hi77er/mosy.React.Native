@@ -61,7 +61,7 @@ const authReducer = (state, action) => {
 
 const signin = (dispatch) => {
   return async ({ email, password }) => {
-    await handleSignIn(dispatch, { email, password, signoutSuccess: false });
+    await handleSignin(dispatch, { email, password, signoutSuccess: false });
   };
 };
 
@@ -103,28 +103,15 @@ const signinClear = (dispatch) => {
   };
 };
 
-const scheduleRefreshToken = (intervalMs) => {
-  // INFO: if the app is suspended the app won't fire until it gets resumed
-  // INFO: which in the current scenario is cool
-  // INFO: but might not be this cool if we need something to happen even if our app is suspended
-  setInterval(async () => {
-    const result = await authService.refreshToken();
-    if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
-      await authService.putAccessTokenSettings(result.accessToken);
-      await authService.putRefreshTokenSettings(result.refreshToken);
-    }
-  }, intervalMs);
-};
-
 const signoutUser = (dispatch) => {
   return async () => {
     await authService.eraseAccessTokenSettings();
     await authService.eraseRefreshTokenSettings();
-    await handleSignIn(dispatch, { email: MOSY_WEBAPI_USER, password: MOSY_WEBAPI_PASS, signoutSuccess: true });
+    await handleSignin(dispatch, { email: MOSY_WEBAPI_USER, password: MOSY_WEBAPI_PASS, signoutSuccess: true });
   }
 };
 
-const handleSignIn = async (dispatch, { email, password, signoutSuccess }) => {
+const handleSignin = async (dispatch, { email, password, signoutSuccess }) => {
   try {
     if (!email || !password)
       dispatch({ type: 'add_error', payload: "Email and pass are required!" });
@@ -144,11 +131,6 @@ const handleSignIn = async (dispatch, { email, password, signoutSuccess }) => {
       if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
         await authService.putAccessTokenSettings(result.accessToken);
         await authService.putRefreshTokenSettings(result.refreshToken);
-
-        const expiresInSec = await authService.pickAccessTokenExpiresSec();
-        const intervalMs = parseInt(expiresInSec * (5 / 6)) * 1000;
-
-        scheduleRefreshToken(intervalMs);
 
         dispatch({ type: 'signin', payload: { ...result, signoutSuccess } });
       }

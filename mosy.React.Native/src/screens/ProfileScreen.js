@@ -72,11 +72,6 @@ const ProfileScreen = ({ navigation }) => {
           }
 
           {
-            console.log(userContext.state.selectedOperationalVenue)
-
-          }
-
-          {
             userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
               && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
               ? <View style={styles.languageHeaderActionButton}>
@@ -91,13 +86,15 @@ const ProfileScreen = ({ navigation }) => {
                   baseColor="white"
                   value={
                     userContext.state.selectedOperationalVenue
-                      ? userContext.state.selectedOperationalVenue
+                      ? userContext.state.selectedOperationalVenue.name
                       : "Not selected"
                   }
                   data={
-                    userContext.state.user.fboUserRoles
-                      .filter(x => x.role.name == 'TableAccountOperator')
-                      .map(x => ({ value: x.fbo.name, venueId: x.fbo.id }))
+                    userContext.state.user && userContext.state.user.fboUserRoles.length
+                      ? userContext.state.user.fboUserRoles
+                        .filter(x => x.role.name == 'TableAccountOperator')
+                        .map(x => ({ value: x.fbo.name, venueId: x.fbo.id }))
+                      : []
                   }
                   containerStyle={styles.languageHeaderActionButtonTouch}
                   inputContainerStyle={{ alignItems: 'center' }}

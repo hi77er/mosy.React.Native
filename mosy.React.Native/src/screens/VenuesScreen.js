@@ -31,7 +31,7 @@ const VenuesScreen = ({ navigation }) => {
   const watchLocation = async () => {
     await requestPermissionsAsync();
 
-    await watchPositionAsync(
+    const positionWatchtower = await watchPositionAsync(
       {
         accuracy: Accuracy.BestForNavigation,
         timeInterval: 1000,
@@ -41,6 +41,8 @@ const VenuesScreen = ({ navigation }) => {
         setGeolocation(location.coords);
       },
     );
+
+    return positionWatchtower;
   };
 
   const handleSearchFilteredVenues = (useFilters) => {
@@ -82,9 +84,17 @@ const VenuesScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    watchLocation().catch((err) => console.log(err));
+    let positionWatchtower = null;
+    async function init() {
+      positionWatchtower = await watchLocation().catch((err) => console.log(err));
+      console.log('positionWatchtower: ', positionWatchtower);
+    }
+    init();
 
-
+    return () => {
+      if (positionWatchtower) console.log('removed: watchtower');
+      if (positionWatchtower) positionWatchtower.remove();
+    };
   }, []);
 
   useEffect(() => {

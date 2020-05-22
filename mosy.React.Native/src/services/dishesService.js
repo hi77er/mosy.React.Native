@@ -24,7 +24,8 @@ const getClosestDishes = async (
   searchedDistanceMeters = 10000,
   isDevModeActivated = false,
 ) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+  
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -57,7 +58,8 @@ const getClosestDishes = async (
 }
 
 const getImageContent = async (imageMetaId, size) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

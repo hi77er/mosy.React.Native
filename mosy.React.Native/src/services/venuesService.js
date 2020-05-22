@@ -23,8 +23,8 @@ const getClosestVenues = async (
   searchedDistanceMeters = 10000,
   isDevModeActivated = true
 ) => {
-  const accessTokenSettings = JSON.parse(await AsyncStorage.getItem("accessTokenSettings"));
-  const bearerAccessToken = `Bearer ${accessTokenSettings.access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -56,7 +56,8 @@ const getClosestVenues = async (
 }
 
 const loadVenue = async (id) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -71,7 +72,8 @@ const loadVenue = async (id) => {
 }
 
 const getVenue = async (id) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -86,7 +88,8 @@ const getVenue = async (id) => {
 }
 
 const getLocation = async (venueId) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -101,7 +104,8 @@ const getLocation = async (venueId) => {
 }
 
 const getContacts = async (venueId) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -116,7 +120,8 @@ const getContacts = async (venueId) => {
 }
 
 const getImageContent = async (imageMetaId, size) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -131,7 +136,8 @@ const getImageContent = async (imageMetaId, size) => {
 }
 
 const getMenu = async (venueId) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

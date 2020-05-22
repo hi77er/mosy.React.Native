@@ -8,7 +8,8 @@ const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 const loadTableAccounts = async (venueId) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`; // await authService.pickBearerAccessToken();
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+  
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

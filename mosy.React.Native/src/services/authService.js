@@ -4,6 +4,7 @@ import useResponse from '../hooks/useResponse';
 
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
+let accessTokenIsBeingRefreshed = false;
 
 const login = (username, password) => {
   const req = axios
@@ -18,6 +19,7 @@ const login = (username, password) => {
 }
 
 const refreshToken = async () => {
+  accessTokenIsBeingRefreshed = true;
   const bearerRefreshToken = await pickBearerRefreshToken();
   const req = axios
     .create({
@@ -33,27 +35,59 @@ const refreshToken = async () => {
 
 const isAuthorized = async () => {
   const accessTokenSettings = await pickAccessTokenSettings();
-  return accessTokenSettings && accessTokenSettings.access_Token;
+  return accessTokenSettings && accessTokenSettings.access_token;
 };
 
 const putAccessTokenSettings = async (accessTokenSettings) => {
-  return accessTokenSettings
-    ? await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings))
-    : null;
+  const expiresInSec = accessTokenSettings.expires_in;
+
+  const now = new Date();
+  const nowUtcTimestamp = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  );
+
+  const adjustedSeconds = parseInt(expiresInSec * (1 / 6)); // later change that to 2/3 of the time that it actually expires in
+  const expiresUtcTimeStamp = new Date(nowUtcTimestamp).setSeconds(adjustedSeconds);
+  accessTokenSettings = { ...accessTokenSettings, expires_datetime_utc: new Date(expiresUtcTimeStamp) };
+
+  return await AsyncStorage.setItem("accessTokenSettings", JSON.stringify(accessTokenSettings));
 };
 const putRefreshTokenSettings = async (refreshTokenSettings) => {
-  return refreshTokenSettings
-    ? await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings))
-    : null;
+  const expiresInSec = refreshTokenSettings.expires_in;
+
+  const now = new Date();
+  const nowUtcTimestamp = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  );
+
+  const adjustedSeconds = parseInt(expiresInSec * (1 / 6));
+  const expiresUtcTimeStamp = new Date(nowUtcTimestamp).setSeconds(adjustedSeconds);
+  refreshTokenSettings = { ...refreshTokenSettings, expires_datetime_utc: new Date(expiresUtcTimeStamp) };
+
+  return await AsyncStorage.setItem("refreshTokenSettings", JSON.stringify(refreshTokenSettings));
 };
 
 const pickAccessTokenSettings = async () => {
   const settings = await AsyncStorage.getItem("accessTokenSettings");
-  return settings ? JSON.parse(settings) : null;
+  const parsed = settings ? JSON.parse(settings) : null;
+  return parsed;
 };
 const pickRefreshTokenSettings = async () => {
   const settings = await AsyncStorage.getItem("refreshTokenSettings");
-  return settings ? JSON.parse(settings) : null;
+  const parsed = settings ? JSON.parse(settings) : null;
+  return parsed;
 };
 
 const eraseAccessTokenSettings = async () => await AsyncStorage.removeItem("accessTokenSettings");
@@ -61,12 +95,31 @@ const eraseRefreshTokenSettings = async () => await AsyncStorage.removeItem("ref
 
 const pickBearerAccessToken = async () => {
   const settings = await pickAccessTokenSettings();
-  return settings ? `Bearer ${settings.access_Token}` : null;
+  return settings ? `Bearer ${settings.access_token}` : null;
 };
 const pickBearerRefreshToken = async () => {
   const settings = await pickRefreshTokenSettings();
-  return settings ? `Bearer ${settings.access_Token}` : null;
+  return settings ? `Bearer ${settings.access_token}` : null;
 };
+const pickValidBearerAccessToken = async () => {
+  const accesTokenHasExpired = await hasAccessTokenExpired();
+  if (accesTokenHasExpired) {
+    // INFO: When api call queries request a token only the first should call for refreshToken.
+    // INFO: The rest will use the old token which indeed is still valid for at least some time
+    if (!accessTokenIsBeingRefreshed) {
+      const result = await refreshToken();
+      if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+        await putAccessTokenSettings(result.accessToken);
+        await putRefreshTokenSettings(result.refreshToken);
+
+        accessTokenIsBeingRefreshed = false;
+      }
+    }
+  }
+  const settings = await pickAccessTokenSettings();
+  return settings ? `Bearer ${settings.access_token}` : null;
+};
+
 const pickAccessTokenExpiresSec = async () => {
   const settings = await pickAccessTokenSettings();
   return settings ? settings.expires_in : null;
@@ -74,6 +127,39 @@ const pickAccessTokenExpiresSec = async () => {
 const pickRefreshTokenExpiresSec = async () => {
   const settings = await pickRefreshTokenSettings();
   return settings ? settings.expires_in : null;
+};
+
+const pickAccessTokenExpiresUtc = async () => {
+  const settings = await pickAccessTokenSettings();
+  return settings ? settings.expires_datetime_utc : null;
+};
+const pickRefreshTokenExpiresUtc = async () => {
+  const settings = await pickRefreshTokenSettings();
+  return settings ? settings.expires_datetime_utc : null;
+};
+
+const hasAccessTokenExpired = async () => {
+  const expiresUtc = await pickAccessTokenExpiresUtc();
+  return Date.parse(getNowUtc()) > Date.parse(expiresUtc);
+};
+const hasRefreshTokenExpired = async () => {
+  const expiresUtc = await pickRefreshTokenExpiresUtc();
+  return Date.parse(getNowUtc()) > Date.parse(expiresUtc);
+};
+
+const getNowUtc = () => {
+  const now = new Date();
+  const nowUtcTimestamp = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  );
+
+  return new Date(nowUtcTimestamp);
 };
 
 const signup = (email, password, confirmPassword) => {
@@ -95,7 +181,6 @@ const signup = (email, password, confirmPassword) => {
 }
 
 
-
 export const authService = {
   login,
   signup,
@@ -109,6 +194,11 @@ export const authService = {
   pickRefreshTokenSettings,
   pickBearerAccessToken,
   pickBearerRefreshToken,
+  pickValidBearerAccessToken,
   pickAccessTokenExpiresSec,
   pickRefreshTokenExpiresSec,
+  pickAccessTokenExpiresUtc,
+  pickRefreshTokenExpiresUtc,
+  hasAccessTokenExpired,
+  hasRefreshTokenExpired
 };
