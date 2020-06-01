@@ -47,7 +47,7 @@ const MenuItem = ({ item, selectedCulture, venueHasOrdersManagementSubscription 
 
   return (
     <View style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
-      {console.log(item.requestableCultures.filter(x => x.culture == selectedCulture)[0])}
+      
 
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
         <View style={{ flexDirection: "row", paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#4d0018' }}>
@@ -64,7 +64,7 @@ const MenuItem = ({ item, selectedCulture, venueHasOrdersManagementSubscription 
             <Text style={{ textAlign: "right", color: 'white', fontStyle: 'italic' }}>{item.priceDisplayText}</Text>
           </View>
           {
-            venueHasOrdersManagementSubscription && item.priceDisplayText
+            venueHasOrdersManagementSubscription && item.priceDisplayText && tableAccountCustomerContext.state.selectedTable
               ? <View style={{ flex: 3, flexDirection: "row" }}>
                 <TouchableOpacity style={{ marginEnd: 7 }} onPress={handleAddItem}>
                   <OcticonsIcon name="diff-added" color="#991a42" size={30} />

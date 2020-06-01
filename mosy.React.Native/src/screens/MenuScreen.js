@@ -1,20 +1,17 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Image, ImageBackground, Linking, ScrollView, Share, StyleSheet, View } from 'react-native';
-import { Card, Text, Button } from 'react-native-elements';
-import { PagerTabIndicator, IndicatorViewPager, PagerTitleIndicator, PagerDotIndicator } from 'react-native-best-viewpager';
+import { ImageBackground, Share, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-elements';
+import { IndicatorViewPager, PagerTitleIndicator } from 'react-native-best-viewpager';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
-import Modal from 'react-native-modal';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Context as TableAccountCustomerContext } from '../context/TableAccountCustomerContext';
 import { Context as VenuesContext } from '../context/VenuesContext';
 
-import { authService } from '../services/authService';
 import { venuesService } from '../services/venuesService';
+import { accountOpenerService } from '../services/websockets/accountOpenerService';
 import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 
 import OrderModal from './Modals/OrderModal';
@@ -22,7 +19,6 @@ import SelectTableModal from './Modals/SelectTableModal';
 
 import MenuItem from '../components/menu/MenuItem';
 import NewOrderMenuItem from '../components/menu/NewOrderMenuItem';
-import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
 import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
 
 
@@ -88,13 +84,17 @@ const MenuScreen = ({ navigation }) => {
     isTakeAwaySelected,
     isInPlaceSelected
   ) => {
-    if (isTableOrderSelected)
+    if (isTableOrderSelected || isForHomeSelected || isPreorderSelected)
       selectTableModalRef.current.toggleVisible();
   };
 
   const handleSelectTableModalResult = (selectedTable) => {
     setSelectedTable(selectedTable);
   };
+
+  const handleAccountsHubConnected = () => { accountOpenerService.invokeAccountsHubConnectedAsAccountOpener(); };
+
+  const handleOrdersHubConnected = () => { accountOpenerService.invokeOrdersHubConnectedAsAccountOpener(); };
 
 
   useEffect(() => {
@@ -119,8 +119,8 @@ const MenuScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (tableAccountCustomerContext.state.selectedTable) {
-      hubsConnectivityService.connectToAccountsHubAsAccountOpener();
-      hubsConnectivityService.connectToOrdersHubAsAccountOpener();
+      hubsConnectivityService.connectToAccountsHubAsAccountOpener(handleAccountsHubConnected);
+      hubsConnectivityService.connectToOrdersHubAsAccountOpener(handleOrdersHubConnected);
     }
   }, [tableAccountCustomerContext.state.selectedTable]);
 
@@ -259,11 +259,7 @@ const MenuScreen = ({ navigation }) => {
                 </View>
 
                 {
-                  venue.hasOrdersManagementSubscription
-                    && (
-                      tableAccountCustomerContext.state.selectedTable
-                      || (tableAccountCustomerContext.state.newlySelectedItems && tableAccountCustomerContext.state.newlySelectedItems.length)
-                    )
+                  venue.hasOrdersManagementSubscription && tableAccountCustomerContext.state.selectedTable
                     ? <NewOrderMenuItem />
                     : null
                 }

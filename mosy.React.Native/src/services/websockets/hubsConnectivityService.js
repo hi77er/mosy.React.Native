@@ -10,31 +10,43 @@ const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/orders";
 let allConnections = [];
 
 const getAllConnections = () => allConnections;
+const getAccountsHubConnection = () => allConnections.filter(conn => conn.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connectionState == 'Connected').length
+  ? allConnections.filter(conn => conn.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connectionState == 'Connected')[0]
+  : null;
+const getOrdersHubConnection = () => allConnections.filter(conn => conn.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connectionState == 'Connected').length
+  ? allConnections.filter(conn => conn.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connectionState == 'Connected')[0]
+  : null;
 const stopAllConnections = () => allConnections.forEach((conn) => { conn.stop(); });
 
-const connectToAccountsHubAsVenueHost = () => connectToHub(
+const connectToAccountsHubAsVenueHost = (onConnected) => connectToHub(
   ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsVenueHost(connection); }
+  (connection) => { accountsHubConnectedAsVenueHost(connection); },
+  onConnected
 );
-const connectToOrdersHubAsVenueHost = () => connectToHub(
+const connectToOrdersHubAsVenueHost = (onConnected) => connectToHub(
   ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsVenueHost(connection); }
+  (connection) => { ordersHubConnectedAsVenueHost(connection); },
+  onConnected
 );
-const connectToAccountsHubAsAccountOpener = () => connectToHub(
+const connectToAccountsHubAsAccountOpener = (onConnected) => connectToHub(
   ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsAccountOpener(connection); }
+  (connection) => { accountsHubConnectedAsAccountOpener(connection); },
+  onConnected
 );
-const connectToOrdersHubAsAccountOpener = () => connectToHub(
+const connectToOrdersHubAsAccountOpener = (onConnected) => connectToHub(
   ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsAccountOpener(connection); }
+  (connection) => { ordersHubConnectedAsAccountOpener(connection); },
+  onConnected
 );
-const connectToAccountsHubAsAccountOperator = () => connectToHub(
+const connectToAccountsHubAsAccountOperator = (onConnected) => connectToHub(
   ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsAccountOperator(connection); }
+  (connection) => { accountsHubConnectedAsAccountOperator(connection); },
+  onConnected
 );
-const connectToOrdersHubAsAccountOperator = () => connectToHub(
+const connectToOrdersHubAsAccountOperator = (onConnected) => connectToHub(
   ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsAccountOperator(connection); }
+  (connection) => { ordersHubConnectedAsAccountOperator(connection); },
+  onConnected
 );
 
 const accountsHubConnectedAsVenueHost = (accountsHubConnection) => {
@@ -75,7 +87,7 @@ const ordersHubConnectedAsAccountOperator = (ordersHubConnection) => {
   // this.ordersHubConnection.send("ConnectAsAccountOperator", venueId);
 };
 
-const connectToHub = (hubConnectionUrl, handleProcessSubscriptions) => {
+const connectToHub = (hubConnectionUrl, handleProcessSubscriptions, onConnected) => {
   let connection = allConnections.filter(conn => conn.baseUrl == hubConnectionUrl && conn.connectionState == 'Connected').length
     ? allConnections.filter(conn => conn.baseUrl == hubConnectionUrl && conn.connectionState == 'Connected')[0]
     : null;
@@ -105,7 +117,7 @@ const connectToHub = (hubConnectionUrl, handleProcessSubscriptions) => {
     newConnection
       .onclose(async () => {
         // console.log(`Hub connection closed! (${newConnection.connectionId} - ${newConnection.connectionState} - ${newConnection.baseUrl})`);
-        allConnections = allConnections.filter(x => x.id === newConnection.id);
+        allConnections = allConnections.filter(x => x.id !== newConnection.id);
       });
 
     newConnection
@@ -113,6 +125,7 @@ const connectToHub = (hubConnectionUrl, handleProcessSubscriptions) => {
       .then((result) => {
         // console.log(`Connected to Hub! (${newConnection.connectionId} - ${newConnection.connectionState} - ${newConnection.baseUrl})`);
         allConnections = [...allConnections, newConnection];
+        if (onConnected) onConnected();
       })
       .catch(e => console.log(e));
 
@@ -127,6 +140,8 @@ const connectToHub = (hubConnectionUrl, handleProcessSubscriptions) => {
 export const hubsConnectivityService = {
   stopAllConnections,
   getAllConnections,
+  getOrdersHubConnection,
+  getAccountsHubConnection,
   connectToAccountsHubAsVenueHost,
   connectToAccountsHubAsAccountOpener,
   connectToAccountsHubAsAccountOperator,

@@ -1,15 +1,37 @@
 import { AsyncStorage } from 'react-native';
 import { authService } from '../authService';
+import { hubsConnectivityService } from '../websockets/hubsConnectivityService';
 
-const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/orders";
-const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/accounts";
+const invokeAccountsHubConnectedAsAccountOpener = (accountId) => {
+  console.log("invokeAccountsHubConnectedAsAccountOpener");
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
+  try {
+    accountsHubConnection.invoke("ConnectAsAccountOpener", accountId);
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
 
-const login = () => {
+const invokeOrdersHubConnectedAsAccountOpener = (accountId) => {
+  console.log("invokeOrdersHubConnectedAsAccountOpener");
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
+  try {
+    ordersHubConnection.invoke("ConnectAsAccountOpener", accountId);
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
+
+const invokeCreateTableAccountRequest = () => {
 
   return null;
 }
 
 
+
+
 export const accountOpenerService = {
-  login,
+  invokeAccountsHubConnectedAsAccountOpener,
+  invokeOrdersHubConnectedAsAccountOpener,
+  invokeCreateTableAccountRequest,
 };
