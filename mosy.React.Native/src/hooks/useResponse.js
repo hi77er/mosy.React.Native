@@ -1,5 +1,8 @@
 const handleResponse = (response) => {
   const { data, status } = response;
+  // INFO: IT ENTERS THIS METHOD ONLY WHEN STATUS IS 200. 
+  // INFO: OTHER STATUSES SHOULD BE HANDLED IN CATCH METHOD
+  // INFO: BUT IF CATCH IS HANDLED IN THIS FILE IT WILL OVERRIDE ALL ITS HANDLING OUTSIDE OF THIS FILE! (WHERE SERVICE METHOD USAGES ARE)
   if (status !== 200) {
 
     if (status === 401) {

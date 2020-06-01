@@ -1,12 +1,14 @@
 import { AsyncStorage } from 'react-native';
 import axios from 'axios';
+
+import { authService } from './authService';
 import useResponse from '../hooks/useResponse';
 
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
 
 const getUser = async () => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`;
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -20,7 +22,8 @@ const getUser = async () => {
 }
 
 const getImageContent = async (size) => {
-  const bearerAccessToken = `Bearer ${JSON.parse(await AsyncStorage.getItem("accessTokenSettings")).access_token}`;
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,

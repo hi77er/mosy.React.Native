@@ -9,7 +9,7 @@ import { Context as TableAccountOperatorContext } from '../context/TableAccountO
 import Spacer from '../components/Spacer';
 
 
-const OperatorTableOrdersScreen = ({ navigation }) => {
+const ClientTableOrdersScreen = ({ navigation }) => {
   const tableAccount = navigation.state.params.tableAccount;
   const userContext = useContext(UserContext);
   const tableAccountOperatorContext = useContext(TableAccountOperatorContext);
@@ -62,9 +62,7 @@ const OperatorTableOrdersScreen = ({ navigation }) => {
                           alignItems: 'stretch',
                         }}>
                         <TouchableOpacity onPress={() => navigation.navigate("OperatorTableOrders")}>
-                          <View
-                            style={{ height: '100%', padding: 2 }}>
-
+                          <View style={{ height: '100%', padding: 2 }}>
                             <FlatList
                               keyExtractor={(item, index) => index.toString()}
                               data={order.orderRequestables}
@@ -106,4 +104,4 @@ const OperatorTableOrdersScreen = ({ navigation }) => {
   );
 };
 
-export default OperatorTableOrdersScreen;
+export default ClientTableOrdersScreen;

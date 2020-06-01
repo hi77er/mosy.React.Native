@@ -132,6 +132,7 @@ const filtersReducer = (state, action) => {
 const loadFilters = (dispatch) => {
   return async () => {
     const result = await filterService.getFilters();
+
     dispatch({ type: 'loadFilters', payload: result });
   };
 };

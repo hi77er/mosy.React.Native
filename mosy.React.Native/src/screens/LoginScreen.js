@@ -13,6 +13,8 @@ import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
 
 const LoginScreen = ({ navigation }) => {
+  const goBack = navigation.state.params ? navigation.state.params.goBack : undefined;
+
   const authContext = useContext(AuthContext);
   const { signin, signinClear } = useContext(AuthContext);
 
@@ -49,6 +51,9 @@ const LoginScreen = ({ navigation }) => {
         navigation.navigate("mainOperatorFlow");
       else
         navigation.navigate("mainCustomerFlow");
+
+      // if (goBack && (typeof goBack) == 'string') navigation.navigate(goBack);
+      // else if (goBack && (typeof goBack) == 'boolean') navigation.goBack();
     }
 
     signinClear();
@@ -127,6 +132,7 @@ const LoginScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

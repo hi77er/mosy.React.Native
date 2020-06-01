@@ -7,9 +7,9 @@ import useResponse from '../hooks/useResponse';
 
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
-const getFilters = async () => {
+const loadUntakenTables = async (venueId) => {
   const bearerAccessToken = await authService.pickValidBearerAccessToken();
-  
+
   const req = axios
     .create({
       baseURL: MOSY_WEBAPI_PUBLIC_URL,
@@ -18,11 +18,12 @@ const getFilters = async () => {
         "Authorization": bearerAccessToken,
       },
     })
-    .get("/api/filters/all");
+    .post("/api/fbo/tables/free", { venueId });
   return useResponse(req);
-}
+};
 
 
-export const filterService = {
-  getFilters,
+
+export const venueTablesService = {
+  loadUntakenTables,
 };

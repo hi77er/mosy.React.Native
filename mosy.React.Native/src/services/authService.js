@@ -1,9 +1,10 @@
 import { AsyncStorage } from 'react-native';
 import axios from 'axios';
+
 import useResponse from '../hooks/useResponse';
 
-const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
+const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 let accessTokenIsBeingRefreshed = false;
 
 const login = (username, password) => {
@@ -41,16 +42,7 @@ const isAuthorized = async () => {
 const putAccessTokenSettings = async (accessTokenSettings) => {
   const expiresInSec = accessTokenSettings.expires_in;
 
-  const now = new Date();
-  const nowUtcTimestamp = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    now.getUTCHours(),
-    now.getUTCMinutes(),
-    now.getUTCSeconds(),
-    now.getUTCMilliseconds()
-  );
+  const nowUtcTimestamp = getUtcTimestamp();
 
   const adjustedSeconds = parseInt(expiresInSec * (1 / 6)); // later change that to 2/3 of the time that it actually expires in
   const expiresUtcTimeStamp = new Date(nowUtcTimestamp).setSeconds(adjustedSeconds);
@@ -61,16 +53,7 @@ const putAccessTokenSettings = async (accessTokenSettings) => {
 const putRefreshTokenSettings = async (refreshTokenSettings) => {
   const expiresInSec = refreshTokenSettings.expires_in;
 
-  const now = new Date();
-  const nowUtcTimestamp = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    now.getUTCHours(),
-    now.getUTCMinutes(),
-    now.getUTCSeconds(),
-    now.getUTCMilliseconds()
-  );
+  const nowUtcTimestamp = getUtcTimestamp();
 
   const adjustedSeconds = parseInt(expiresInSec * (1 / 6));
   const expiresUtcTimeStamp = new Date(nowUtcTimestamp).setSeconds(adjustedSeconds);
@@ -103,6 +86,7 @@ const pickBearerRefreshToken = async () => {
 };
 const pickValidBearerAccessToken = async () => {
   const accesTokenHasExpired = await hasAccessTokenExpired();
+
   if (accesTokenHasExpired) {
     // INFO: When api call queries request a token only the first should call for refreshToken.
     // INFO: The rest will use the old token which indeed is still valid for at least some time
@@ -116,8 +100,30 @@ const pickValidBearerAccessToken = async () => {
       }
     }
   }
+
   const settings = await pickAccessTokenSettings();
   return settings ? `Bearer ${settings.access_token}` : null;
+};
+
+const pickValidAccessToken = async () => {
+  const accesTokenHasExpired = await hasAccessTokenExpired();
+
+  if (accesTokenHasExpired) {
+    // INFO: When api call queries request a token only the first should call for refreshToken.
+    // INFO: The rest will use the old token which indeed is still valid for at least some time
+    if (!accessTokenIsBeingRefreshed) {
+      const result = await refreshToken();
+      if (result && result.accessToken && result.accessToken.access_token && result.refreshToken && result.refreshToken.access_token) {
+        await putAccessTokenSettings(result.accessToken);
+        await putRefreshTokenSettings(result.refreshToken);
+
+        accessTokenIsBeingRefreshed = false;
+      }
+    }
+  }
+
+  const settings = await pickAccessTokenSettings();
+  return settings ? settings.access_token : null;
 };
 
 const pickAccessTokenExpiresSec = async () => {
@@ -149,7 +155,14 @@ const hasRefreshTokenExpired = async () => {
 
 const getNowUtc = () => {
   const now = new Date();
-  const nowUtcTimestamp = Date.UTC(
+  const nowUtcTimestamp = getUtcTimestamp();
+
+  return new Date(nowUtcTimestamp);
+};
+
+const getUtcTimestamp = () => {
+  const now = new Date();
+  return Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),
     now.getUTCDate(),
@@ -158,8 +171,6 @@ const getNowUtc = () => {
     now.getUTCSeconds(),
     now.getUTCMilliseconds()
   );
-
-  return new Date(nowUtcTimestamp);
 };
 
 const signup = (email, password, confirmPassword) => {
@@ -194,6 +205,7 @@ export const authService = {
   pickRefreshTokenSettings,
   pickBearerAccessToken,
   pickBearerRefreshToken,
+  pickValidAccessToken,
   pickValidBearerAccessToken,
   pickAccessTokenExpiresSec,
   pickRefreshTokenExpiresSec,

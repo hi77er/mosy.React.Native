@@ -6,23 +6,25 @@ import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { Provider as AuthProvider } from './src/context/AuthContext';
 import { Provider as DishesProvider } from './src/context/DishesContext';
 import { Provider as FiltersProvider } from './src/context/FiltersContext';
-import { Provider as TableAccountsProvider } from './src/context/TableAccountsContext';
+import { Provider as TableAccountOperatorProvider } from './src/context/TableAccountOperatorContext';
+import { Provider as TableAccountCustomerProvider } from './src/context/TableAccountCustomerContext';
 import { Provider as UserProvider } from './src/context/UserContext';
 import { Provider as VenuesProvider } from './src/context/VenuesContext';
 
-import DishesScreen from './src/screens/DishesScreen';
-import VenuesScreen from './src/screens/VenuesScreen';
-import DishDetailsScreen from './src/screens/DishDetailsScreen';
-import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
-import MenuScreen from './src/screens/MenuScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
-import LoginScreen from './src/screens/LoginScreen';
-import SignUpScreen from './src/screens/SignUpScreen';
 import CheckEmailScreen from './src/screens/CheckEmailScreen';
+import ClientTableOrdersScreen from './src/screens/ClientTableOrdersScreen';
+import DishesScreen from './src/screens/DishesScreen';
+import DishDetailsScreen from './src/screens/DishDetailsScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import MenuScreen from './src/screens/MenuScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import SplashScreen from './src/screens/SplashScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
+import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
+import VenuesScreen from './src/screens/VenuesScreen';
 
 
 
@@ -45,6 +47,12 @@ const venuesFlow = createStackNavigator(
     },
     Menu: {
       screen: MenuScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    ClientTableOrders: {
+      screen: ClientTableOrdersScreen,
       navigationOptions: {
         headerShown: false,
       },
@@ -141,12 +149,12 @@ const switchNavigator = createSwitchNavigator(
   {
     mainFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         Login: LoginScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
@@ -160,12 +168,12 @@ const switchNavigator = createSwitchNavigator(
     ),
     mainCustomerFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         Profile: ProfileScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
@@ -179,13 +187,13 @@ const switchNavigator = createSwitchNavigator(
     ),
     mainOperatorFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         operatorFlow,
         Profile: ProfileScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
@@ -212,17 +220,19 @@ const App = () => {
     <AuthProvider>
       <DishesProvider>
         <FiltersProvider>
-          <TableAccountsProvider>
-            <UserProvider>
-              <VenuesProvider>
-                {
-                  showSplash
-                    ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
-                    : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
-                }
-              </VenuesProvider>
-            </UserProvider>
-          </TableAccountsProvider>
+          <TableAccountCustomerProvider>
+            <TableAccountOperatorProvider>
+              <UserProvider>
+                <VenuesProvider>
+                  {
+                    showSplash
+                      ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
+                      : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
+                  }
+                </VenuesProvider>
+              </UserProvider>
+            </TableAccountOperatorProvider>
+          </TableAccountCustomerProvider>
         </FiltersProvider>
       </DishesProvider>
     </AuthProvider>

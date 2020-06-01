@@ -2,11 +2,12 @@ import React, { useContext, useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, Text } from 'react-native';
 import { Button } from 'react-native-elements';
-import { Dropdown } from 'react-native-material-dropdown';
+import RNPickerSelect from 'react-native-picker-select';
 
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as UserContext } from '../context/UserContext';
 import { authService } from '../services/authService';
+import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
 
@@ -19,8 +20,24 @@ const ProfileScreen = ({ navigation }) => {
 
   const [isSignOutLoading, setIsSignOutLoading] = useState("");
 
+  const handleChangeSelectedOperationalVenue = (selectedVenueId) => {
+
+    const preselected = userContext.state.selectedOperationalVenue != null
+      ? userContext.state.selectedOperationalVenue
+      : userContext.state.user.fboUserRoles[0];
+
+    let venue = userContext.state.user
+      && userContext.state.user.fboUserRoles.length
+      && userContext.state.user.fboUserRoles.filter(x => x.fbo.id == selectedVenueId).length
+      ? userContext.state.user.fboUserRoles.filter(x => x.fbo.id == selectedVenueId)[0].fbo
+      : preselected;
+
+    setOperationalVenue(venue);
+  };
+
   const handleSignOut = async () => {
     setIsSignOutLoading(true);
+    hubsConnectivityService.stopAllConnections();
     await signoutUser();
   };
 
@@ -40,6 +57,10 @@ const ProfileScreen = ({ navigation }) => {
       navigation.navigate("mainFlow");
     }
   }, [authContext.state.signoutSuccess]);
+
+  useEffect(() => {
+
+  }, []);
 
   return (
     <SafeAreaView forceInset={{ top: "always" }} style={styles.container}>
@@ -71,47 +92,37 @@ const ProfileScreen = ({ navigation }) => {
               : null
           }
 
-          {
-            userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
-              && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
-              ? <View style={styles.languageHeaderActionButton}>
-                <Dropdown
-                  label={
-                    `Operational Venue: ${
-                    userContext.state.selectedOperationalVenue
-                      ? userContext.state.selectedOperationalVenue.name
-                      : "Not selected"
-                    }`
-                  }
-                  baseColor="white"
-                  value={
-                    userContext.state.selectedOperationalVenue
-                      ? userContext.state.selectedOperationalVenue.name
-                      : "Not selected"
-                  }
-                  data={
-                    userContext.state.user && userContext.state.user.fboUserRoles.length
-                      ? userContext.state.user.fboUserRoles
-                        .filter(x => x.role.name == 'TableAccountOperator')
-                        .map(x => ({ value: x.fbo.name, venueId: x.fbo.id }))
-                      : []
-                  }
-                  containerStyle={styles.languageHeaderActionButtonTouch}
-                  inputContainerStyle={{ alignItems: 'center' }}
-                  labelTextStyle={{ width: '100%', marginTop: 5 }}
-                  onChangeText={(v) => setOperationalVenue(v)} />
-              </View>
-              : null
-          }
-
           <View style={styles.bottomActionsContainer}>
+            {
+              userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
+                && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+                ? <View style={styles.operationalVenueSelectContainer}>
+                  <RNPickerSelect
+                    items={
+                      userContext.state.user && userContext.state.user.fboUserRoles.length
+                        ? userContext.state.user.fboUserRoles
+                          .filter(x => x.role.name == 'TableAccountOperator')
+                          .map(x => ({ label: `Operated Venue: ${x.fbo.name}`, key: x.fbo.id, value: x.fbo.id }))
+                        : []
+                    }
+                    value={
+                      userContext.state.selectedOperationalVenue
+                        ? userContext.state.selectedOperationalVenue.id
+                        : "Not selected"
+                    }
+                    onValueChange={handleChangeSelectedOperationalVenue}
+                    useNativeAndroidPickerStyle={false}
+                    style={pickerSelectStyles} />
+                </View>
+                : null
+            }
+
             {
               isSignOutLoading
                 ? <Button
                   loading
                   title="Sign out"
                   loadingProps={{ color: '#90002D' }}
-                  onPress={handleSignOut}
                   titleStyle={styles.logoutButtonTitle}
                   buttonStyle={styles.logoutButtonContainer} />
                 : <Button
@@ -129,6 +140,25 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    color: 'white',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    textAlign: 'center',
+    justifyContent: 'flex-end',
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: 'white',
+    textAlign: 'center',
+    justifyContent: 'flex-end',
+  },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", },
@@ -138,10 +168,9 @@ const styles = StyleSheet.create({
   names: { alignSelf: 'center', textAlign: 'center', marginTop: 20, fontSize: 20, color: "white", fontWeight: "bold", },
   roles: { alignSelf: 'center', textAlign: 'center', marginLeft: 30, marginRight: 30, fontSize: 12, color: "white", fontStyle: "italic", },
   logoutForm: { marginLeft: 10, marginRight: 10, flex: 1, },
-  logoutButtonContainer: { marginTop: 10, marginLeft: 10, marginRight: 10, backgroundColor: 'white', borderRadius: 20, },
+  logoutButtonContainer: { marginTop: 10, marginHorizontal: 10, backgroundColor: 'white', borderRadius: 20, },
   logoutButtonTitle: { color: '#90002D', },
-  languageHeaderActionButton: { alignItems: "center", justifyContent: "center" },
-  languageHeaderActionButtonTouch: { marginTop: 135, borderWidth: 2, borderColor: "white", width: 320, height: 45, borderRadius: 25, justifyContent: "center", alignItems: "center" },
+  operationalVenueSelectContainer: { borderWidth: 2, borderRadius: 25, borderColor: 'white', height: 45, marginHorizontal: 10, marginTop: 10 },
 });
 
 export default ProfileScreen;

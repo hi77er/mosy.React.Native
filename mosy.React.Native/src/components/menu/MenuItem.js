@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { Image, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Text, Card } from 'react-native-elements';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+import OcticonsIcon from 'react-native-vector-icons/Octicons';
+
 import { dishesService } from '../../services/dishesService';
+import { Context as TableAccountCustomerContext } from '../../context/TableAccountCustomerContext';
 
 
-const MenuItem = ({ item, selectedCulture }) => {
+const MenuItem = ({ item, selectedCulture, venueHasOrdersManagementSubscription }) => {
+  const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
+  const { addNewOrderItem, removeNewOrderItem } = tableAccountCustomerContext;
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageContent, setImageContent] = useState(
     item.requestableImageMeta
@@ -17,6 +22,14 @@ const MenuItem = ({ item, selectedCulture }) => {
       ? `data:${item.requestableImageMeta.contentType};base64,${item.requestableImageMeta.base64x200}`
       : null
   );
+
+  const handleAddItem = () => {
+    addNewOrderItem(item);
+  };
+
+  const handleRemoveItem = () => {
+    removeNewOrderItem(item.id);
+  };
 
   useEffect(
     () => {
@@ -33,26 +46,40 @@ const MenuItem = ({ item, selectedCulture }) => {
     }, []);
 
   return (
-    <View style={{ padding: 5 }}>
+    <View style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
+      {console.log(item.requestableCultures.filter(x => x.culture == selectedCulture)[0])}
+
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-        <View style={{ flexDirection: "row", padding: 5, backgroundColor: '#f5d5df' }}>
-          <View style={{ flex: 3 }}>
-            <Text style={{ color: "#90002D" }}>
+        <View style={{ flexDirection: "row", paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#4d0018' }}>
+          <View style={{ flex: 10, justifyContent: "center", minHeight: 30 }}>
+            <Text style={{ color: "white" }}>
               {
-                selectedCulture && item.requestableCultures.filter(x => x.culture == selectedCulture).length
+                item.requestableCultures.filter(x => x.culture == selectedCulture).length
                   ? item.requestableCultures.filter(x => x.culture == selectedCulture)[0].requestableName
                   : item.requestableCultures[0].requestableName
               }
             </Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ textAlign: "right", color: '#90002D', fontStyle: 'italic' }}>{item.priceDisplayText}</Text>
+          <View style={{ flex: 4, flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginEnd: 5 }}>
+            <Text style={{ textAlign: "right", color: 'white', fontStyle: 'italic' }}>{item.priceDisplayText}</Text>
           </View>
+          {
+            venueHasOrdersManagementSubscription && item.priceDisplayText
+              ? <View style={{ flex: 3, flexDirection: "row" }}>
+                <TouchableOpacity style={{ marginEnd: 7 }} onPress={handleAddItem}>
+                  <OcticonsIcon name="diff-added" color="#991a42" size={30} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleRemoveItem}>
+                  <OcticonsIcon name="diff-removed" color="#991a42" size={30} />
+                </TouchableOpacity>
+              </View>
+              : null
+          }
         </View>
       </TouchableOpacity>
       {
         isExpanded
-          ? <View style={{ padding: 5, flexDirection: "row" }}>
+          ? <View style={{ padding: 10, flexDirection: "row", backgroundColor: '#4d0018' }}>
             <View>
               {
                 imageContent
@@ -63,13 +90,32 @@ const MenuItem = ({ item, selectedCulture }) => {
               }
             </View>
             <View style={{ flex: 1, padding: 5 }}>
-              <Text style={{ fontStyle: 'italic', color: 'lightgray' }}>
-                {
-                  item.requestableCultures[0].ingredients && item.requestableCultures[0].ingredients.length
-                    ? item.requestableCultures[0].ingredients.map(i => i.name).join(', ')
-                    : null
-                }
-              </Text>
+              {
+                item.quantityDisplayText
+                  ? <Text style={{ color: 'lightgray', marginBottom: 5 }}>{item.quantityDisplayText} </Text>
+                  : null
+              }
+              {
+                item.requestableCultures.filter(x => x.culture == selectedCulture).length
+                  && item.requestableCultures.filter(x => x.culture == selectedCulture)[0].ingredients
+                  && item.requestableCultures.filter(x => x.culture == selectedCulture)[0].ingredients.length
+                  ? (
+                    <Text style={{ fontStyle: 'italic', color: 'lightgray', marginBottom: 5 }}>
+                      {item.requestableCultures.filter(x => x.culture == selectedCulture)[0].ingredients.map(i => i.name).join(', ')}
+                    </Text>
+                  )
+                  : null
+              }
+              {
+                item.requestableCultures.filter(x => x.culture == selectedCulture).length
+                  && item.requestableCultures.filter(x => x.culture == selectedCulture)[0].requestableDescription
+                  ? (
+                    <Text style={{ color: 'lightgray', marginBottom: 5 }}>
+                      {item.requestableCultures.filter(x => x.culture == selectedCulture)[0].requestableDescription}
+                    </Text>
+                  )
+                  : null
+              }
             </View>
           </View>
           : null
@@ -81,12 +127,13 @@ const MenuItem = ({ item, selectedCulture }) => {
 
 const styles = StyleSheet.create({
   itemImage: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
+    marginEnd: 5,
   },
   itemImageContainer: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     marginRight: 5,
     alignItems: "center",
     justifyContent: "center",

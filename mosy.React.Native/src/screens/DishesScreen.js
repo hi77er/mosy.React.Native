@@ -86,12 +86,10 @@ const DishesScreen = ({ navigation }) => {
     let positionWatchtower = null;
     async function init() {
       positionWatchtower = await watchLocation().catch((err) => console.log(err));
-      console.log('positionWatchtower: ', positionWatchtower);
     }
     init();
 
     return () => {
-      if (positionWatchtower) console.log('removed: watchtower');
       if (positionWatchtower) positionWatchtower.remove();
     };
   }, []);

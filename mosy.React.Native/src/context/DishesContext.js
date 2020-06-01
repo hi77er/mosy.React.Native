@@ -184,7 +184,7 @@ const loadDishes = (dispatch) => {
           dispatch({ type: 'loadDishes', payload: { foundDishes, resetResults, maxResultsCount } });
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err.response));
   };
 };
 

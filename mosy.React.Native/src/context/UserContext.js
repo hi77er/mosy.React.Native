@@ -32,7 +32,7 @@ const userReducer = (state, action) => {
       };
       break;
     case 'setOperationalVenue':
-      const selectedVenue = state.user.fboUserRoles.filter(x => x.fbo.name == action.payload)[0].fbo;
+      const selectedVenue = state.user.fboUserRoles.filter(x => x.fbo.id == action.payload.id)[0].fbo;
       result = { ...state, selectedOperationalVenue: selectedVenue };
       break;
     case 'loadImageContent':
