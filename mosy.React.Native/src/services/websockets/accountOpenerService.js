@@ -3,7 +3,6 @@ import { authService } from '../authService';
 import { hubsConnectivityService } from '../websockets/hubsConnectivityService';
 
 const invokeAccountsHubConnectedAsAccountOpener = (accountId) => {
-  console.log("invokeAccountsHubConnectedAsAccountOpener");
   const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
     accountsHubConnection.invoke("ConnectAsAccountOpener", accountId);
@@ -13,7 +12,6 @@ const invokeAccountsHubConnectedAsAccountOpener = (accountId) => {
 }
 
 const invokeOrdersHubConnectedAsAccountOpener = (accountId) => {
-  console.log("invokeOrdersHubConnectedAsAccountOpener");
   const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
     ordersHubConnection.invoke("ConnectAsAccountOpener", accountId);
@@ -22,9 +20,15 @@ const invokeOrdersHubConnectedAsAccountOpener = (accountId) => {
   }
 }
 
-const invokeCreateTableAccountRequest = () => {
-
-  return null;
+const invokeCreateTableAccountRequest = (bindingModel) => {
+  // bindingModel: {openerUsername: "", assignedOperatorUsername: "", fboTableId: "", requestableIds: ["",""] }
+  console.log("invokeCreateTableAccountRequest");
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
+  try {
+    accountsHubConnection.invoke("CreateTableAccountRequest", bindingModel);
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
 }
 
 

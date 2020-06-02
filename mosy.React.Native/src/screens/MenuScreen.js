@@ -189,7 +189,7 @@ const MenuScreen = ({ navigation }) => {
                       <RNPickerSelect
                         items={
                           menuCultures && menuCultures.length
-                            ? menuCultures.map((c) => ({ label: c.substring(0, 2), key: c, value: c }))
+                            ? menuCultures.map((c) => ({ label: c.substring(0, 2).toUpperCase(), key: c, value: c }))
                             : []
                         }
                         value={selectedCulture}
@@ -301,20 +301,22 @@ const MenuScreen = ({ navigation }) => {
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
+    fontSize: 10,
     paddingHorizontal: 10,
+    paddingVertical: 12,
     color: 'white',
     textAlign: 'center',
     justifyContent: 'flex-end',
+    fontWeight: "bold",
   },
   inputAndroid: {
-    fontSize: 16,
+    fontSize: 10,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 12,
     color: 'white',
     textAlign: 'center',
     justifyContent: 'flex-end',
+    fontWeight: "bold",
   },
 });
 
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
   orderActionButton: { alignItems: "center", justifyContent: "flex-end" },
   headerActionButton: { marginRight: 10, alignItems: "center", justifyContent: "flex-end" },
   headerActionButtonTouch: { borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
-  headerActionButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 12 },
+  headerActionButtonLabel: { textAlign: "center", fontWeight: "bold", color: "white", fontSize: 10 },
   orderHeaderActionButtonTouch: { backgroundColor: '#60a860' },
   checkHeaderActionButtonTouch: { backgroundColor: '#aaaae3' },
   languageHeaderActionButton: {},
