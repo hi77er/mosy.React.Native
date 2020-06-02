@@ -2,15 +2,30 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Text, Card } from 'react-native-elements';
 
-import { dishesService } from '../../services/dishesService';
+import { Context as UserContext } from '../../context/UserContext';
 import { Context as TableAccountCustomerContext } from '../../context/TableAccountCustomerContext';
+import { accountOpenerService } from '../../services/websockets/accountOpenerService';
+
 
 
 const NewOrderMenuItem = ({ selectedCulture }) => {
+  const userContext = useContext(UserContext);
   const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
   // const { addNewOrderItem, removeNewOrderItem } = tableAccountCustomerContext;
 
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleNewOrder = () => {
+    const bindingModel = {
+      openerUsername: userContext.state.user.username,
+      assignedOperatorUsername: tableAccountCustomerContext.state.assignedOperator,
+      fboTableId: tableAccountCustomerContext.state.selectedTable.id,
+      requestableIds: tableAccountCustomerContext.state.newlySelectedItems && tableAccountCustomerContext.state.newlySelectedItems.length
+        ? tableAccountCustomerContext.state.newlySelectedItems.map((x) => x.id)
+        : []
+    };
+    accountOpenerService.invokeCreateTableAccountRequest(bindingModel);
+  };
 
   useEffect(
     () => {
@@ -23,9 +38,30 @@ const NewOrderMenuItem = ({ selectedCulture }) => {
 
   return (
     <View style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
+      {
+        console.log(
+          tableAccountCustomerContext.state.newlySelectedItems
+            .reduce(
+              (resultGroups, menuItem) => {
+                if (!resultGroups.filter(x => x.key == menuItem.id).length)
+                  resultGroups = [...resultGroups, { key: menuItem.id, value: { ...menuItem, count: 0 } }];
+
+                resultGroups = resultGroups.map(g => {
+                  if (g.key == menuItem.id)
+                    g.value = { ...g.value, count: g.value.count++ };
+
+                  return g;
+                });
+
+                return resultGroups;
+              },
+              []
+            )
+        ).map(x => { x.key, x.value.count })
+      }
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-        <View style={{ minHeight: 40, alignItems: 'center', flexDirection: "row", paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#4d0018' }}>
-          <Text style={{ color: "#991a42" }}>
+        <View style={{ width: "100%", minHeight: 40, alignItems: 'center', flexDirection: "row", paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#4d0018' }}>
+          <Text style={{ flex: 5, color: "#991a42" }}>
             Your current order (
               <Text
               style={
@@ -39,6 +75,18 @@ const NewOrderMenuItem = ({ selectedCulture }) => {
             </Text>
             )
             </Text>
+          {
+            //tableAccountCustomerContext.state.tableAccount
+            //&& 
+            tableAccountCustomerContext.state.newlySelectedItems
+              && tableAccountCustomerContext.state.newlySelectedItems.length
+              ? <TouchableOpacity style={{ alignSelf: "flex-end" }} onPress={handleNewOrder}>
+                <View style={{ width: 50, height: 30, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "white", borderRadius: 6, backgroundColor: '#60a860' }}>
+                  <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>ORDER</Text>
+                </View>
+              </TouchableOpacity>
+              : null
+          }
         </View>
       </TouchableOpacity>
 
