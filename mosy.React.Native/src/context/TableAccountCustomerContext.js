@@ -16,9 +16,6 @@ const tableAccountCustomerReducer = (state, action) => {
     case 'setAssignedOperator':
       result = { ...state, assignedOperator: action.payload, };
       break;
-    case 'placeNewOrder':
-      result = { ...state, };
-      break;
     case 'addNewOrderItem':
       result = { ...state, newlySelectedItems: [...state.newlySelectedItems, action.payload] };
       break;
@@ -28,6 +25,45 @@ const tableAccountCustomerReducer = (state, action) => {
         newlySelectedItems: state.newlySelectedItems.filter(x => x.id == action.payload).length
           ? state.newlySelectedItems.filter(x => x.id != action.payload)
           : state.newlySelectedItems
+      };
+      break;
+    case 'setTableAccount':
+      result = { ...state, tableAccount: action.payload, };
+      break;
+    case 'setOrderItem':
+      result = {
+        ...state,
+        tableAccount: {
+          ...state.tableAccount,
+          orders: (state.tableAccount.orders || state.tableAccount.Orders).map(
+            (order) => {
+              if (order.id == action.payload.OrderId || order.Id == action.payload.OrderId) {
+                order = {
+                  ...order,
+                  orderRequestables: (order.orderRequestables || order.OrderRequestables).map(or => {
+                    if (or.id == action.payload.Id || or.Id == action.payload.Id) {
+                      or = {
+                        ...or,
+                        status: action.payload.Status,
+                      };
+                    }
+                    return or;
+                  }),
+                };
+              }
+              return order;
+            }
+          )
+        }
+      };
+      break;
+    case 'loadOrders':
+      result = {
+        ...state,
+        tableAccount: {
+          ...state.tableAccount,
+          orders: action.payload,
+        },
       };
       break;
   }
@@ -47,12 +83,6 @@ const setAssignedOperator = (dispatch) => {
   };
 };
 
-const placeNewOrder = (dispatch) => {
-  return async (operator) => {
-    dispatch({ type: 'placeNewOrder' });
-  };
-};
-
 const addNewOrderItem = (dispatch) => {
   return async (item) => {
     dispatch({ type: 'addNewOrderItem', payload: item });
@@ -66,14 +96,38 @@ const removeNewOrderItem = (dispatch) => {
 };
 
 
+const setTableAccount = (dispatch) => {
+  return async (tableAccount) => {
+    dispatch({ type: 'setTableAccount', payload: tableAccount });
+  };
+};
+
+const setOrderItem = (dispatch) => {
+  return async (orderItemResult) => {
+    dispatch({ type: 'setOrderItem', payload: orderItemResult });
+  };
+};
+
+const loadOrders = (dispatch) => {
+  return async (tableAccountId) => {
+    const result = await tableAccountsService.loadOrders(tableAccountId);
+    console.log(tableAccountId);
+    console.log(result);
+    dispatch({ type: 'loadOrders', payload: result });
+  };
+};
+
+
 export const { Provider, Context } = createDataContext(
   tableAccountCustomerReducer,
   {
     setSelectedTable,
-    setAssignedOperator,
-    placeNewOrder,
+    setTableAccount,
     addNewOrderItem,
     removeNewOrderItem,
+    setAssignedOperator,
+    setOrderItem,
+    loadOrders,
   },
   {
     selectedTable: null,

@@ -19,14 +19,56 @@ const tableAccountOperatorReducer = (state, action) => {
     case 'loadUnocupiedTables':
       result = { ...state, unoccupiedTables: action.payload, };
       break;
+    case 'setOperatedTableAccount':
+      result = {
+        ...state,
+        operatedTableAccounts: state
+          .operatedTableAccounts
+          .map((ta) => {
+            if (ta.id == action.payload.id || ta.id == action.payload.Id)
+              return {
+                ...ta,
+                status: action.payload.status || action.payload.Status,
+                assignedOperatorUsername: action.payload.assignedOperatorUsername || action.payload.AssignedOperatorUsername
+              };
+            return ta;
+          }),
+      };
+      break;
+    case 'setOrderItem':
+      result = {
+        ...state,
+        tableAccountOrders: [
+          ...state.tableAccountOrders.map(
+            (order) => {
+              if (order.id == action.payload.OrderId) {
+                order = {
+                  ...order,
+                  orderRequestables: order.orderRequestables.map(or => {
+                    if (or.id == action.payload.Id) {
+                      or = {
+                        ...or,
+                        status: action.payload.Status,
+                      };
+                    }
+                    return or;
+                  }),
+                };
+              }
+              return order;
+            }
+          )
+        ]
+      };
+      break;
   }
 
   return result;
 };
 
 const loadTableAccounts = (dispatch) => {
-  return async (venueId) => {
-    const result = await tableAccountsService.loadTableAccounts(venueId);
+  return async (venueId, tableRegionIds) => {
+    const result = await tableAccountsService.loadTableAccounts(venueId, tableRegionIds);
     dispatch({ type: 'loadTableAccounts', payload: result });
   };
 };
@@ -45,6 +87,18 @@ const loadUnocupiedTables = (dispatch) => {
   };
 };
 
+const setOperatedTableAccount = (dispatch) => {
+  return async (tableAccount) => {
+    dispatch({ type: 'setOperatedTableAccount', payload: tableAccount });
+  };
+};
+
+const setOrderItem = (dispatch) => {
+  return async (orderItemResult) => {
+    dispatch({ type: 'setOrderItem', payload: orderItemResult });
+  };
+};
+
 
 export const { Provider, Context } = createDataContext(
   tableAccountOperatorReducer,
@@ -52,6 +106,8 @@ export const { Provider, Context } = createDataContext(
     loadTableAccounts,
     loadOrders,
     loadUnocupiedTables,
+    setOperatedTableAccount,
+    setOrderItem,
   },
   {
     operatedTableAccounts: null,

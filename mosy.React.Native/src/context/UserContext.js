@@ -18,21 +18,21 @@ const userReducer = (state, action) => {
         ...state,
         user: action.payload,
         selectedOperationalVenue: action.payload
-          && action.payload.fboUserRoles
-          && action.payload.fboUserRoles.length
-          && action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
-          ? action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator')[0].fbo
+          && action.payload.tableRegionUsers
+          && action.payload.tableRegionUsers.length
+          ? action.payload.tableRegionUsers.map(x => x.tableRegion.fbo)[0]
           : null,
         tableAccountsOperatorVenuesCount: action.payload
-          && action.payload.fboUserRoles
-          && action.payload.fboUserRoles.length
-          && action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
-          ? action.payload.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+          && action.payload.tableRegionUsers
+          && action.payload.tableRegionUsers.length
+          ? [...new Set(action.payload.tableRegionUsers.map(x => x.tableRegion.fbo.id))].length
           : null,
       };
       break;
     case 'setOperationalVenue':
-      const selectedVenue = state.user.fboUserRoles.filter(x => x.fbo.id == action.payload.id)[0].fbo;
+      const selectedVenue = state.user.tableRegionUsers && state.user.tableRegionUsers.length
+        ? state.user.tableRegionUsers.map(x => x.tableRegion.fbo).filter(x => x.id == action.payload.id)[0]
+        : null;
       result = { ...state, selectedOperationalVenue: selectedVenue };
       break;
     case 'loadImageContent':

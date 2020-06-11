@@ -24,12 +24,16 @@ const ProfileScreen = ({ navigation }) => {
 
     const preselected = userContext.state.selectedOperationalVenue != null
       ? userContext.state.selectedOperationalVenue
-      : userContext.state.user.fboUserRoles[0];
+      : (
+        userContext.state.user.tableRegionUsers && userContext.state.user.tableRegionUsers.length
+          ? userContext.state.user.tableRegionUsers[0].tableRegion.fbo
+          : null
+      );
 
     let venue = userContext.state.user
-      && userContext.state.user.fboUserRoles.length
-      && userContext.state.user.fboUserRoles.filter(x => x.fbo.id == selectedVenueId).length
-      ? userContext.state.user.fboUserRoles.filter(x => x.fbo.id == selectedVenueId)[0].fbo
+      && userContext.state.user.tableRegionUsers.length
+      && userContext.state.user.tableRegionUsers.filter(x => x.tableRegion.fbo.id == selectedVenueId).length
+      ? userContext.state.user.tableRegionUsers.filter(x => x.tableRegion.fbo.id == selectedVenueId)[0].tableRegion.fbo
       : preselected;
 
     setOperationalVenue(venue);
@@ -39,6 +43,21 @@ const ProfileScreen = ({ navigation }) => {
     setIsSignOutLoading(true);
     hubsConnectivityService.stopAllConnections();
     await signoutUser();
+  };
+
+  const getVenuesToSelect = () => {
+    const venueIds = userContext.state.user && userContext.state.user.tableRegionUsers && userContext.state.user.tableRegionUsers.length
+      ? userContext.state.user.tableRegionUsers.map(x => x.tableRegion.fbo.id)
+      : [];
+
+
+    const distinctVenueIds = [...new Set(venueIds)];
+
+    return distinctVenueIds.map((venueId) => {
+      const venue = userContext.state.user.tableRegionUsers.filter(x => x.tableRegion.fbo.id == venueId).map(x => x.tableRegion.fbo)[0];
+
+      return ({ label: `Operated Venue: ${venue.name}`, key: venue.id, value: venue.id });
+    });
   };
 
   useEffect(() => {
@@ -95,16 +114,10 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.bottomActionsContainer}>
             {
               userContext.state.user && userContext.state.user.roles && userContext.state.user.roles.length && userContext.state.user.roles.filter(x => x.name == 'TableAccountOperator').length
-                && userContext.state.user.fboUserRoles && userContext.state.user.fboUserRoles.length && userContext.state.user.fboUserRoles.filter(x => x.role.name == 'TableAccountOperator').length
+                && userContext.state.user.tableRegionUsers && userContext.state.user.tableRegionUsers.length
                 ? <View style={styles.operationalVenueSelectContainer}>
                   <RNPickerSelect
-                    items={
-                      userContext.state.user && userContext.state.user.fboUserRoles.length
-                        ? userContext.state.user.fboUserRoles
-                          .filter(x => x.role.name == 'TableAccountOperator')
-                          .map(x => ({ label: `Operated Venue: ${x.fbo.name}`, key: x.fbo.id, value: x.fbo.id }))
-                        : []
-                    }
+                    items={getVenuesToSelect()}
                     value={
                       userContext.state.selectedOperationalVenue
                         ? userContext.state.selectedOperationalVenue.id

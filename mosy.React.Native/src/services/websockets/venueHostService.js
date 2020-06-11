@@ -1,15 +1,54 @@
 import { AsyncStorage } from 'react-native';
-import { authService } from '../authService';
+import { hubsConnectivityService } from './hubsConnectivityService';
 
-const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/orders";
-const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/accounts";
+const connectingAsVenueHost = "venuehost";
 
-const login = () => {
-
-  return null;
+const invokeAccountsHubConnectedAsVenueHost = (venueId) => {
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsVenueHost);
+  try {
+    accountsHubConnection.invoke("ConnectAsVenueHost", venueId);
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
 }
 
+const invokeOrdersHubConnectedAsVenueHost = (venueId) => {
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsVenueHost);
+  try {
+    ordersHubConnection.invoke("ConnectAsVenueHost", venueId);
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
+
+const invokeUpdateTableAccountStatus = (bindingModel) => {
+  // bindingModel: {tableAccountId: "", newStatus: 0, updaterUsername: "" }
+  console.log("invokeUpdateTableAccountStatus");
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsVenueHost);
+  try {
+    accountsHubConnection
+      .invoke("UpdateTableAccountStatus", bindingModel)
+      .catch((err) => console.log(err));
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
+
+const invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged = (tableAccountId) => {
+  console.log("invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId);
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsVenueHost);
+  try {
+    ordersHubConnection
+      .invoke("UpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId)
+      .catch((err) => console.log(err));
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
 
 export const venueHostService = {
-  login,
+  invokeAccountsHubConnectedAsVenueHost,
+  invokeOrdersHubConnectedAsVenueHost,
+  invokeUpdateTableAccountStatus,
+  invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged,
 };

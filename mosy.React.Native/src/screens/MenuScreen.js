@@ -22,6 +22,8 @@ import NewOrderMenuItem from '../components/menu/NewOrderMenuItem';
 import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
 
 
+const connectingAsAccountOpener = "accountopener";
+
 const MenuScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const geolocation = navigation.state.params.geolocation;
@@ -29,7 +31,7 @@ const MenuScreen = ({ navigation }) => {
   const venuesContext = useContext(VenuesContext);
   const { loadLocation, loadContacts, loadIndoorImageContent } = venuesContext;
   const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
-  const { setSelectedTable, setAssignedOperator, placeNewOrder } = tableAccountCustomerContext;
+  const { setSelectedTable, setAssignedOperator, setOrderItem, setTableAccount } = tableAccountCustomerContext;
 
   const venue = venuesContext.state.unbundledClosestVenues
     && venuesContext.state.unbundledClosestVenues.length
@@ -92,9 +94,41 @@ const MenuScreen = ({ navigation }) => {
     setSelectedTable(selectedTable);
   };
 
-  const handleAccountsHubConnected = () => { accountOpenerService.invokeAccountsHubConnectedAsAccountOpener(); };
+  // ACCOUNTS HUB
+  const handleAccountsHubPong = (result) => { console.log('PongClient from Accounts Hub'); };
+  const handleAccountStatusChanged = (result) => {
+    setTableAccount(result.TableAccount);
 
-  const handleOrdersHubConnected = () => { accountOpenerService.invokeOrdersHubConnectedAsAccountOpener(); };
+    if (result.NeedsItemsStatusUpdate) {
+      accountOpenerService.invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged(result.TableAccount.Id);
+    }
+
+    navigation.navigate("ClientTableOrders", { tableAccount });
+    // TODO: Vibrate device for Account Status Update.
+  };
+  const handleAccountsHubConnected = () => {
+    const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsAccountOpener);
+    accountsHubConnection.on('PongClient', handleAccountsHubPong);
+    accountsHubConnection.on('AccountStatusChanged', handleAccountStatusChanged);
+
+    accountOpenerService.invokeAccountsHubConnectedAsAccountOpener();
+  };
+
+  // ORDERS HUB
+  const handleOrdersHubPong = (result) => { console.log('PongClient from Orders Hub'); };
+  const handleOrdersHubConnected = () => {
+    const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOpener);
+    ordersHubConnection.on('PongClient', handleOrdersHubPong);
+
+    accountOpenerService.invokeOrdersHubConnectedAsAccountOpener();
+  };
+
+  const handleOrderCheckPressed = () => {
+    if (!tableAccountCustomerContext.state.tableAccount)
+      orderModalRef.current.toggleVisible();
+    else
+      navigation.navigate("ClientTableOrders", { tableAccount: tableAccountCustomerContext.state.tableAccount });
+  };
 
 
   useEffect(() => {
@@ -119,8 +153,8 @@ const MenuScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (tableAccountCustomerContext.state.selectedTable) {
-      hubsConnectivityService.connectToAccountsHubAsAccountOpener(handleAccountsHubConnected);
-      hubsConnectivityService.connectToOrdersHubAsAccountOpener(handleOrdersHubConnected);
+      hubsConnectivityService.connectToAccountsHub(handleAccountsHubConnected, connectingAsAccountOpener);
+      hubsConnectivityService.connectToOrdersHub(handleOrdersHubConnected, connectingAsAccountOpener);
     }
   }, [tableAccountCustomerContext.state.selectedTable]);
 
@@ -156,9 +190,7 @@ const MenuScreen = ({ navigation }) => {
     <View style={{ flex: 1, backgroundColor: '#90002D' }}>
       {/* {
         console.log(
-          hubsConnectivityService.getAllConnections() && hubsConnectivityService.getAllConnections().length
-            ? hubsConnectivityService.getAllConnections().map(conn => ` (${conn.connectionId} - ${conn.connectionState} - ${conn.baseUrl})`)
-            : 'No connections'
+          tableAccountCustomerContext.state.tableAccount
         )
       } */}
       <View style={{ height: '30%' }}>
@@ -220,7 +252,7 @@ const MenuScreen = ({ navigation }) => {
                             ? styles.orderHeaderActionButtonTouch
                             : styles.checkHeaderActionButtonTouch
                         ]}
-                        onPress={() => orderModalRef.current.toggleVisible()}>
+                        onPress={handleOrderCheckPressed}>
                         {
                           !tableAccountCustomerContext.state.tableAccount
                             ? <Text style={styles.headerActionButtonLabel}>ORDER</Text>

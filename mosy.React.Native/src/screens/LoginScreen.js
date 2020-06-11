@@ -46,8 +46,7 @@ const LoginScreen = ({ navigation }) => {
       && userContext.state.user.roles.length
       && userContext.state.user.roles.filter(role => role.name != "WebApiUser").length) {
 
-      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length
-        && userContext.state.selectedOperationalVenue)
+      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length && userContext.state.selectedOperationalVenue)
         navigation.navigate("mainOperatorFlow");
       else
         navigation.navigate("mainCustomerFlow");

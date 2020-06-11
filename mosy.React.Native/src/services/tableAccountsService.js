@@ -7,7 +7,7 @@ import { authService } from './authService';
 
 const MOSY_WEBAPI_PUBLIC_URL = "https://wsmosy.azurewebsites.net/";
 
-const loadTableAccounts = async (venueId) => {
+const loadTableAccounts = async (venueId, tableRegionIds) => {
   const bearerAccessToken = await authService.pickValidBearerAccessToken();
 
   const req = axios
@@ -18,7 +18,7 @@ const loadTableAccounts = async (venueId) => {
         "Authorization": bearerAccessToken,
       },
     })
-    .post("/api/tablesaccounts/forvenue", { fboId: venueId });
+    .post("/api/tablesaccounts/forvenue", { fboId: venueId, tableRegionIds });
   return useResponse(req);
 }
 

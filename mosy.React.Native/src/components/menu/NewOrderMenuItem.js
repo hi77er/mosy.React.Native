@@ -38,7 +38,7 @@ const NewOrderMenuItem = ({ selectedCulture }) => {
 
   return (
     <View style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
-      {
+      {/* {
         console.log(
           tableAccountCustomerContext.state.newlySelectedItems
             .reduce(
@@ -58,7 +58,7 @@ const NewOrderMenuItem = ({ selectedCulture }) => {
               []
             )
         ).map(x => { x.key, x.value.count })
-      }
+      } */}
       <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
         <View style={{ width: "100%", minHeight: 40, alignItems: 'center', flexDirection: "row", paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#4d0018' }}>
           <Text style={{ flex: 5, color: "#991a42" }}>

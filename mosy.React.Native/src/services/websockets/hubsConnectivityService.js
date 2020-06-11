@@ -1,6 +1,5 @@
 import { AsyncStorage } from 'react-native';
 import { HubConnectionBuilder, LogLevel, TransportType } from '@microsoft/signalr';
-
 import { authService } from '../authService';
 
 
@@ -10,86 +9,57 @@ const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/orders";
 let allConnections = [];
 
 const getAllConnections = () => allConnections;
-const getAccountsHubConnection = () => allConnections.filter(conn => conn.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connectionState == 'Connected').length
-  ? allConnections.filter(conn => conn.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connectionState == 'Connected')[0]
+const getAccountsHubConnection = (connectedAs) => allConnections
+  .filter(conn =>
+    conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL
+    && conn.connection.connectionState == 'Connected'
+    && conn.connectedAs.valueOf() == connectedAs.valueOf()
+  ).length
+  ? allConnections
+    .filter(conn =>
+      conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL
+      && conn.connection.connectionState == 'Connected'
+      && conn.connectedAs.valueOf() == connectedAs.valueOf()
+    )[0].connection
   : null;
-const getOrdersHubConnection = () => allConnections.filter(conn => conn.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connectionState == 'Connected').length
-  ? allConnections.filter(conn => conn.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connectionState == 'Connected')[0]
+const getOrdersHubConnection = (connectedAs) => allConnections
+  .filter(conn =>
+    conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL
+    && conn.connection.connectionState == 'Connected'
+    && conn.connectedAs.valueOf() == connectedAs.valueOf()
+  ).length
+  ? allConnections.filter(conn =>
+    conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL
+    && conn.connection.connectionState == 'Connected'
+    && conn.connectedAs.valueOf() == connectedAs.valueOf()
+  )[0].connection
   : null;
-const stopAllConnections = () => allConnections.forEach((conn) => { conn.stop(); });
+const stopAllConnections = () => allConnections.forEach((conn) => { conn.connection.stop(); });
 
-const connectToAccountsHubAsVenueHost = (onConnected) => connectToHub(
+const connectToAccountsHub = (onConnected, connectedAs) => connectToHub(
   ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsVenueHost(connection); },
-  onConnected
+  onConnected,
+  connectedAs
 );
-const connectToOrdersHubAsVenueHost = (onConnected) => connectToHub(
+const connectToOrdersHub = (onConnected, connectedAs) => connectToHub(
   ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsVenueHost(connection); },
-  onConnected
-);
-const connectToAccountsHubAsAccountOpener = (onConnected) => connectToHub(
-  ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsAccountOpener(connection); },
-  onConnected
-);
-const connectToOrdersHubAsAccountOpener = (onConnected) => connectToHub(
-  ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsAccountOpener(connection); },
-  onConnected
-);
-const connectToAccountsHubAsAccountOperator = (onConnected) => connectToHub(
-  ACCOUNTS_HUB_PUBLIC_URL,
-  (connection) => { accountsHubConnectedAsAccountOperator(connection); },
-  onConnected
-);
-const connectToOrdersHubAsAccountOperator = (onConnected) => connectToHub(
-  ORDERS_HUB_PUBLIC_URL,
-  (connection) => { ordersHubConnectedAsAccountOperator(connection); },
-  onConnected
+  onConnected,
+  connectedAs
 );
 
-const accountsHubConnectedAsVenueHost = (accountsHubConnection) => {
-  accountsHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-  accountsHubConnection.on('AccountStatusChanged', (data) => { console.log('AccountStatusChanged'); });
-
-  // this.accountsHubConnection.send("ConnectAsVenueHost", venueId);
-};
-const ordersHubConnectedAsVenueHost = (ordersHubConnection) => {
-  ordersHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-  ordersHubConnection.on('AccountHasItemStatusChanged', (data) => { console.log('AccountHasItemStatusChanged'); });
-
-  // this.ordersHubConnection.send("ConnectAsVenueHost", venueId);
-};
-
-const accountsHubConnectedAsAccountOpener = (accountsHubConnection) => {
-  accountsHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-  accountsHubConnection.on('AccountStatusChanged', (data) => { console.log('AccountStatusChanged'); });
-
-  // this.accountsHubConnection.send("ConnectAsAccountOpener", accountId);
-};
-const ordersHubConnectedAsAccountOpener = (ordersHubConnection) => {
-  ordersHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-  ordersHubConnection.on('OrderItemStatusChanged', (data) => { console.log('OrderItemStatusChanged'); });
-
-  // this.ordersHubConnection.send("ConnectAsAccountOpener", accountId);
-};
-
-const accountsHubConnectedAsAccountOperator = (accountsHubConnection) => {
-  accountsHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-
-  // this.accountsHubConnection.send("ConnectAsAccountOperator", venueId);
-};
-const ordersHubConnectedAsAccountOperator = (ordersHubConnection) => {
-  ordersHubConnection.on('PongClient', (data) => { console.log('PongClient'); });
-  ordersHubConnection.on('OrderItemStatusChanged', (data) => { console.log('OrderItemStatusChanged'); });
-
-  // this.ordersHubConnection.send("ConnectAsAccountOperator", venueId);
-};
-
-const connectToHub = (hubConnectionUrl, handleProcessSubscriptions, onConnected) => {
-  let connection = allConnections.filter(conn => conn.baseUrl == hubConnectionUrl && conn.connectionState == 'Connected').length
-    ? allConnections.filter(conn => conn.baseUrl == hubConnectionUrl && conn.connectionState == 'Connected')[0]
+const connectToHub = (hubConnectionUrl, onConnected, connectedAs) => {
+  let connection = allConnections
+    .filter(conn =>
+      conn.connection.baseUrl == hubConnectionUrl
+      && conn.connection.connectionState == 'Connected'
+      && conn.connectedAs.valueOf() == connectedAs.valueOf()
+    ).length
+    ? allConnections
+      .filter(conn =>
+        conn.connection.baseUrl == hubConnectionUrl
+        && conn.connection.connectionState == 'Connected'
+        && conn.connectedAs.valueOf() == connectedAs.valueOf()
+      )[0].connection
     : null;
 
   if (!connection) {
@@ -124,12 +94,12 @@ const connectToHub = (hubConnectionUrl, handleProcessSubscriptions, onConnected)
       .start()
       .then((result) => {
         // console.log(`Connected to Hub! (${newConnection.connectionId} - ${newConnection.connectionState} - ${newConnection.baseUrl})`);
-        allConnections = [...allConnections, newConnection];
-        if (onConnected) onConnected();
+        allConnections = [...allConnections, { connection: newConnection, connectedAs }];
+
+        if (onConnected) onConnected(); // here are also handled subscriptions to server-sended messages
       })
       .catch(e => console.log(e));
 
-    if (handleProcessSubscriptions) handleProcessSubscriptions(newConnection);
     connection = newConnection;
   }
 
@@ -142,10 +112,6 @@ export const hubsConnectivityService = {
   getAllConnections,
   getOrdersHubConnection,
   getAccountsHubConnection,
-  connectToAccountsHubAsVenueHost,
-  connectToAccountsHubAsAccountOpener,
-  connectToAccountsHubAsAccountOperator,
-  connectToOrdersHubAsVenueHost,
-  connectToOrdersHubAsAccountOpener,
-  connectToOrdersHubAsAccountOperator,
+  connectToAccountsHub,
+  connectToOrdersHub,
 };

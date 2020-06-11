@@ -5,15 +5,19 @@ import { Button, Text } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Context as UserContext } from '../context/UserContext';
 import { Context as TableAccountOperatorContext } from '../context/TableAccountOperatorContext';
+import { accountOperatorService } from '../services/websockets/accountOperatorService';
+import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 
 import Spacer from '../components/Spacer';
 
+const connectingAsAccountOperator = "accountoperator";
 
 const OperatorTableOrdersScreen = ({ navigation }) => {
   const tableAccount = navigation.state.params.tableAccount;
   const userContext = useContext(UserContext);
+  const operatedVenue = userContext.state.selectedOperationalVenue;
   const tableAccountOperatorContext = useContext(TableAccountOperatorContext);
-  const { loadOrders } = tableAccountOperatorContext;
+  const { loadOrders, setOrderItem } = tableAccountOperatorContext;
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   const handleLoadOrders = async () => {
@@ -22,9 +26,27 @@ const OperatorTableOrdersScreen = ({ navigation }) => {
     setOrdersLoading(false);
   };
 
+
+  // ORDERS HUB
+  const handleOrdersHubPong = (result) => { console.log('PongClient from Orders Hub'); };
+  const handleOrderItemStatusChanged = (result) => {
+    console.log('Operator - OrderItemStatusChanged');
+    console.log(result);
+    setOrderItem(result);
+  };
+  const handleOrdersHubConnected = () => {
+    const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOperator);
+    ordersHubConnection.on('PongClient', handleOrdersHubPong);
+    ordersHubConnection.on('OrderItemStatusChanged', handleOrderItemStatusChanged);
+
+    accountOperatorService.invokeOrdersHubConnectedAsAccountOperator(operatedVenue.id);
+  };
+
   useEffect(() => {
     async function init() {
       await handleLoadOrders();
+
+      hubsConnectivityService.connectToOrdersHub(handleOrdersHubConnected, connectingAsAccountOperator);
     }
     init();
   }, []);
@@ -32,7 +54,7 @@ const OperatorTableOrdersScreen = ({ navigation }) => {
   return (
     <SafeAreaView forceInset={{ top: "always" }}>
       <Spacer>
-        <Text h4>Orders</Text>
+        <Text h4>Table Orders</Text>
         <Text h5>{tableAccount.id.substring(0, 8)}</Text>
       </Spacer>
       {
@@ -79,8 +101,9 @@ const OperatorTableOrdersScreen = ({ navigation }) => {
                                           orderItem.status == 3 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Received</Text> : (
                                             orderItem.status == 4 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'yellow' }}>Being prepared</Text> : (
                                               orderItem.status == 5 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'green' }}>Ready to be taken</Text> : (
-                                                orderItem.status == 6 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'darkgreen' }}>Delivered</Text>
-                                                  : <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Unknown</Text>)))))
+                                                orderItem.status == 6 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'green' }}>Being delivered</Text> : (
+                                                  orderItem.status == 7 ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'darkgreen' }}>Delivered</Text> : (
+                                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Unknown</Text>)))))))
                                     }
                                   </View>
                                 );
