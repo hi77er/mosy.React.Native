@@ -28,7 +28,7 @@
     },
     "android": {
       "package": "com.mosy.kalin.mosy",
-      "versionCode": 28,
+      "versionCode": 29,
       "icon": "./assets/icon.png"
     }
   }
