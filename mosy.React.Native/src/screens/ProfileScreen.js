@@ -50,7 +50,6 @@ const ProfileScreen = ({ navigation }) => {
       ? userContext.state.user.tableRegionUsers.map(x => x.tableRegion.fbo.id)
       : [];
 
-
     const distinctVenueIds = [...new Set(venueIds)];
 
     return distinctVenueIds.map((venueId) => {

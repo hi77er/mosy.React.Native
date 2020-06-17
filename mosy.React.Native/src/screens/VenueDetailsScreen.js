@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { StyleSheet, ImageBackground, Linking, ScrollView, Share, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { StyleSheet, ImageBackground, Linking, ScrollView, Share, TouchableOpacity, View } from 'react-native';
 import { Text, Card } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
-import ImagesPreviewModal from '../components/modal/ImagesPreviewModal';
+import ImagePreviewModal from './modals/ImagePreviewModal';
 import { Context as VenuesContext } from '../context/VenuesContext';
 import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
 import MapView, { Marker } from 'react-native-maps';
@@ -15,7 +14,7 @@ import MapView, { Marker } from 'react-native-maps';
 const VenueDetailsScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const geolocation = navigation.state.params.geolocation;
-  const imagesPreviewModalRef = useRef(null);
+  const imagePreviewModalRef = useRef(null);
   const { state, loadLocation, loadContacts, loadIndoorImageContent } = useContext(VenuesContext);
   const venue =
     state.unbundledClosestVenues && state.unbundledClosestVenues.length && state.unbundledClosestVenues.filter((item) => item.id == venueId).length
@@ -52,9 +51,9 @@ const VenueDetailsScreen = ({ navigation }) => {
     }
   };
 
-  const handleShowOriginalImage = () => {
+  const handleToggleShowOriginalImage = () => {
     if (venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300)
-      imagesPreviewModalRef.current.show();
+      imagePreviewModalRef.current.toggleVisible(venue.indoorImageMeta);
   };
 
   const handleWebContactClick = (url) => {
@@ -85,60 +84,63 @@ const VenueDetailsScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#90002d' }}>
-      <View style={{ height: '45%' }}>
-        <ImageBackground
-          source={
-            venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
-              ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
-              : venueIndoorBackground
-          }
-          style={styles.imageBackgroundBorder}
-          imageStyle={styles.imageBackgroundContent}>
-          <LinearGradient
-            colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
-            style={styles.coverGradient}>
-            <View style={styles.headerContainer}>
-              <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
-                <TouchableOpacity
-                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                  onPress={handleShareClick}>
-                  <MaterialIcon name="share" size={24} color="white" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.actionButtonsContainer}>
-                {
-                  venue && venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
-                    ? (
+    <View style={styles.container}>
+
+      <TouchableOpacity style={styles.headerTouchContainer} onPress={handleToggleShowOriginalImage}>
+        <View style={styles.headerContainer}>
+          <ImageBackground
+            source={
+              venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+                ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
+                : venueIndoorBackground
+            }
+            style={styles.imageBackgroundBorder}
+            imageStyle={styles.imageBackgroundContent}>
+            <LinearGradient
+              colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
+              style={styles.coverGradient}>
+              <View style={styles.gradientContainer}>
+                <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
+                  <TouchableOpacity
+                    style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                    onPress={handleShareClick}>
+                    <MaterialIcon name="share" size={24} color="white" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.actionButtonsContainer}>
+                  {
+                    venue && venue.fboContacts && venue.fboContacts.phone && venue.fboContacts.phoneCountryCode
+                      ? (
+                        <TouchableOpacity
+                          style={styles.ringIcon}
+                          onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
+                          <MaterialIcon name="call" size={24} color="white" />
+                        </TouchableOpacity>
+                      )
+                      : null
+                  }
+                  {
+                    !geolocation || (
                       <TouchableOpacity
-                        style={styles.ringIcon}
-                        onPress={() => handlePhoneContactClick(`${venue.fboContacts.phoneCountryCode}${venue.fboContacts.phone}`)}>
-                        <MaterialIcon name="call" size={24} color="white" />
+                        style={styles.directionsIcon}
+                        onPress={handleGoToLocationClick}>
+                        <MaterialIcon name="directions" size={24} color="white" />
                       </TouchableOpacity>
                     )
-                    : null
-                }
-                {
-                  !geolocation || (
+                  }
+                  {
                     <TouchableOpacity
-                      style={styles.directionsIcon}
-                      onPress={handleGoToLocationClick}>
-                      <MaterialIcon name="directions" size={24} color="white" />
+                      style={styles.menuIcon}
+                      onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
+                      <Text style={styles.menuButtonLabel}>MENU</Text>
                     </TouchableOpacity>
-                  )
-                }
-                {
-                  <TouchableOpacity
-                    style={styles.menuIcon}
-                    onPress={() => navigation.navigate("Menu", { venueId, geolocation })}>
-                    <Text style={styles.menuButtonLabel}>MENU</Text>
-                  </TouchableOpacity>
-                }
+                  }
+                </View>
               </View>
-            </View>
-          </LinearGradient>
-        </ImageBackground>
-      </View>
+            </LinearGradient>
+          </ImageBackground>
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.titleContainer}>
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: "center" }}>
@@ -264,28 +266,25 @@ const VenueDetailsScreen = ({ navigation }) => {
         }
       </ScrollView>
 
-      <ImagesPreviewModal
-        ref={imagesPreviewModalRef}
-        images={[
-          {
-            url: '',
-            props: {
-              source: venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
-                ? `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}`
-                : venueIndoorBackground
-            }
-          }
-        ]} />
+      {
+        venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+          ? <ImagePreviewModal ref={imagePreviewModalRef} imageMeta={venue.indoorImageMeta} />
+          : null
+      }
+
     </View>
   );
 };
 
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#90002D' },
+  headerTouchContainer: { height: '45%' },
+  headerContainer: { flex: 1 },
   imageBackgroundBorder: { flex: 1, justifyContent: "flex-end" },
   imageBackgroundContent: { height: "100%", resizeMode: "stretch" },
   coverGradient: { flex: 1 },
-  headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
+  gradientContainer: { flex: 1, height: '100%', marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
   titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },

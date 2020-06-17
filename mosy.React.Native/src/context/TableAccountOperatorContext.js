@@ -22,17 +22,23 @@ const tableAccountOperatorReducer = (state, action) => {
     case 'setOperatedTableAccount':
       result = {
         ...state,
-        operatedTableAccounts: state
-          .operatedTableAccounts
-          .map((ta) => {
-            if (ta.id == action.payload.id || ta.id == action.payload.Id)
-              return {
-                ...ta,
-                status: action.payload.status || action.payload.Status,
-                assignedOperatorUsername: action.payload.assignedOperatorUsername || action.payload.AssignedOperatorUsername
-              };
-            return ta;
-          }),
+        operatedTableAccounts:
+          state.operatedTableAccounts.filter(ta => ta.id == action.payload.id).length
+            ? state
+              .operatedTableAccounts
+              .map((ta) => {
+                if (ta.id == action.payload.id)
+                  return {
+                    ...ta,
+                    status: action.payload.status,
+                    assignedOperatorUsername: action.payload.assignedOperatorUsername
+                  };
+                return ta;
+              })
+            : [
+              action.payload,
+              ...state.operatedTableAccounts,
+            ],
       };
       break;
     case 'setOrderItem':
@@ -41,14 +47,14 @@ const tableAccountOperatorReducer = (state, action) => {
         tableAccountOrders: [
           ...state.tableAccountOrders.map(
             (order) => {
-              if (order.id == action.payload.OrderId) {
+              if (order.id == action.payload.orderId) {
                 order = {
                   ...order,
                   orderRequestables: order.orderRequestables.map(or => {
-                    if (or.id == action.payload.Id) {
+                    if (or.id == action.payload.id) {
                       or = {
                         ...or,
-                        status: action.payload.Status,
+                        status: action.payload.status,
                       };
                     }
                     return or;

@@ -8,57 +8,29 @@ const ORDERS_HUB_PUBLIC_URL = "https://wsmosy.azurewebsites.net/hubs/orders";
 
 let allConnections = [];
 
+const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const getAllConnections = () => allConnections;
-const getAccountsHubConnection = (connectedAs) => allConnections
-  .filter(conn =>
-    conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL
-    && conn.connection.connectionState == 'Connected'
-    && conn.connectedAs.valueOf() == connectedAs.valueOf()
-  ).length
+const getAccountsHubConnection = () => allConnections
+  .filter(conn => conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connection.connectionState == 'Connected').length
   ? allConnections
-    .filter(conn =>
-      conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL
-      && conn.connection.connectionState == 'Connected'
-      && conn.connectedAs.valueOf() == connectedAs.valueOf()
-    )[0].connection
+    .filter(conn => conn.connection.baseUrl == ACCOUNTS_HUB_PUBLIC_URL && conn.connection.connectionState == 'Connected')[0].connection
   : null;
-const getOrdersHubConnection = (connectedAs) => allConnections
-  .filter(conn =>
-    conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL
-    && conn.connection.connectionState == 'Connected'
-    && conn.connectedAs.valueOf() == connectedAs.valueOf()
-  ).length
-  ? allConnections.filter(conn =>
-    conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL
-    && conn.connection.connectionState == 'Connected'
-    && conn.connectedAs.valueOf() == connectedAs.valueOf()
-  )[0].connection
+const getOrdersHubConnection = () => allConnections.filter(conn => conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connection.connectionState == 'Connected').length
+  ? allConnections.filter(conn => conn.connection.baseUrl == ORDERS_HUB_PUBLIC_URL && conn.connection.connectionState == 'Connected')[0].connection
   : null;
 const stopAllConnections = () => allConnections.forEach((conn) => { conn.connection.stop(); });
 
-const connectToAccountsHub = (onConnected, connectedAs) => connectToHub(
-  ACCOUNTS_HUB_PUBLIC_URL,
-  onConnected,
-  connectedAs
-);
-const connectToOrdersHub = (onConnected, connectedAs) => connectToHub(
-  ORDERS_HUB_PUBLIC_URL,
-  onConnected,
-  connectedAs
-);
+const connectToAccountsHub = (onConnected) => connectToHub(ACCOUNTS_HUB_PUBLIC_URL, onConnected);
+const connectToOrdersHub = (onConnected) => connectToHub(ORDERS_HUB_PUBLIC_URL, onConnected);
 
-const connectToHub = (hubConnectionUrl, onConnected, connectedAs) => {
+const connectToHub = async (hubConnectionUrl, onConnected) => {
   let connection = allConnections
-    .filter(conn =>
-      conn.connection.baseUrl == hubConnectionUrl
-      && conn.connection.connectionState == 'Connected'
-      && conn.connectedAs.valueOf() == connectedAs.valueOf()
-    ).length
+    .filter(conn => conn.connection.baseUrl == hubConnectionUrl && conn.connection.connectionState == 'Connected').length
     ? allConnections
       .filter(conn =>
         conn.connection.baseUrl == hubConnectionUrl
         && conn.connection.connectionState == 'Connected'
-        && conn.connectedAs.valueOf() == connectedAs.valueOf()
       )[0].connection
     : null;
 
@@ -67,21 +39,15 @@ const connectToHub = (hubConnectionUrl, onConnected, connectedAs) => {
     // FROM DOCS: respectively before trying each reconnect attempt, stopping after four failed attempts.
     // FROM DOCS: 
     // FROM DOCS: .configureLogging(LogLevel.Debug)
-    // FROM DOCS: .withAutomaticReconnect({
-    // FROM DOCS:   nextRetryDelayInMilliseconds: retryContext => {
-    // FROM DOCS:     if (retryContext.elapsedMilliseconds < 60000) {
-    // FROM DOCS:       // If we've been reconnecting for less than 60 seconds so far,
-    // FROM DOCS:       // wait between 0 and 10 seconds before the next reconnect attempt.
-    // FROM DOCS:       return Math.random() * 10000;
-    // FROM DOCS:     } else {
-    // FROM DOCS:       // If we've been reconnecting for more than 60 seconds so far, stop reconnecting.
-    // FROM DOCS:       return null;
-    // FROM DOCS:     }
-    // FROM DOCS:   }
-    // FROM DOCS: })
     const newConnection = new HubConnectionBuilder()
       .withUrl(hubConnectionUrl, { accessTokenFactory: () => authService.pickValidAccessToken() })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: retryContext => {
+          const retryInMs = Math.random() * 10000;
+          console.log(`WebSockets connection interrupted. Retrying in ${(retryInMs / 1000)} seconds.`);
+          return retryInMs;
+        }
+      })
       .build();
 
     newConnection
@@ -90,15 +56,21 @@ const connectToHub = (hubConnectionUrl, onConnected, connectedAs) => {
         allConnections = allConnections.filter(x => x.id !== newConnection.id);
       });
 
-    newConnection
-      .start()
-      .then((result) => {
-        // console.log(`Connected to Hub! (${newConnection.connectionId} - ${newConnection.connectionState} - ${newConnection.baseUrl})`);
-        allConnections = [...allConnections, { connection: newConnection, connectedAs }];
+    while (newConnection.state !== 'Connected') {
+      try {
+        const result = await newConnection.start();
 
+        allConnections = [...allConnections, { connection: newConnection }];
         if (onConnected) onConnected(); // here are also handled subscriptions to server-sended messages
-      })
-      .catch(e => console.log(e));
+
+        break;
+      }
+      catch (ex) {
+        const retryInMs = Math.random() * 10000;
+        console.log(`Initial WebSockets connection failed. Reason: ${ex.message}. Retrying in ${(retryInMs / 1000)} seconds.`);
+        await timeout(retryInMs);
+      }
+    }
 
     connection = newConnection;
   }

@@ -1,37 +1,43 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { ImageBackground, Share, StyleSheet, View } from 'react-native';
+import { ImageBackground, Share, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-elements';
 import { IndicatorViewPager, PagerTitleIndicator } from 'react-native-best-viewpager';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Context as TableAccountCustomerContext } from '../context/TableAccountCustomerContext';
 import { Context as VenuesContext } from '../context/VenuesContext';
+import { Context as UserContext } from '../context/UserContext';
 
 import { venuesService } from '../services/venuesService';
 import { accountOpenerService } from '../services/websockets/accountOpenerService';
 import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 
-import OrderModal from './Modals/OrderModal';
-import SelectTableModal from './Modals/SelectTableModal';
+import OrderModal from './modals/OrderModal';
+import SelectTableModal from './modals/SelectTableModal';
+import ImagePreviewModal from './modals/ImagePreviewModal';
 
 import MenuItem from '../components/menu/MenuItem';
 import NewOrderMenuItem from '../components/menu/NewOrderMenuItem';
 import venueIndoorBackground from "../../assets/img/venues/indoor-background-paprika.jpg";
+import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 
-
-const connectingAsAccountOpener = "accountopener";
 
 const MenuScreen = ({ navigation }) => {
   const venueId = navigation.state.params.venueId;
   const geolocation = navigation.state.params.geolocation;
+  const imagePreviewModalRef = useRef(null);
 
+  const userContext = useContext(UserContext);
   const venuesContext = useContext(VenuesContext);
   const { loadLocation, loadContacts, loadIndoorImageContent } = venuesContext;
   const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
-  const { setSelectedTable, setAssignedOperator, setOrderItem, setTableAccount } = tableAccountCustomerContext;
+  const { setSelectedTable, setAssignedOperator, setOrderItem, setTableAccount, loadAccount } = tableAccountCustomerContext;
+
+  const username = userContext.state.user ? userContext.state.user.username : "";
 
   const venue = venuesContext.state.unbundledClosestVenues
     && venuesContext.state.unbundledClosestVenues.length
@@ -52,6 +58,11 @@ const MenuScreen = ({ navigation }) => {
   const [menuCultures, setMenuCultures] = useState([]);
   const [defaultMenuCulture, setDefaultMenuCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : null);
   const [selectedCulture, setSelectedCulture] = useState(menuCultures && menuCultures.length ? menuCultures[0] : "");
+
+  const handleToggleShowOriginalImage = () => {
+    if (venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300)
+      imagePreviewModalRef.current.toggleVisible(venue.indoorImageMeta);
+  };
 
   const handleShare = async () => {
     try {
@@ -95,33 +106,29 @@ const MenuScreen = ({ navigation }) => {
   };
 
   // ACCOUNTS HUB
-  const handleAccountsHubPong = (result) => { console.log('PongClient from Accounts Hub'); };
   const handleAccountStatusChanged = (result) => {
-    setTableAccount(result.TableAccount);
+    setTableAccount(result.tableAccount);
 
-    if (result.NeedsItemsStatusUpdate) {
-      accountOpenerService.invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged(result.TableAccount.Id);
-    }
+    if (result.needsItemsStatusUpdate)
+      accountOpenerService.invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged(result.tableAccount.id);
 
     navigation.navigate("ClientTableOrders", { tableAccount });
     // TODO: Vibrate device for Account Status Update.
   };
-  const handleAccountsHubConnected = () => {
-    const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsAccountOpener);
-    accountsHubConnection.on('PongClient', handleAccountsHubPong);
-    accountsHubConnection.on('AccountStatusChanged', handleAccountStatusChanged);
-
-    accountOpenerService.invokeAccountsHubConnectedAsAccountOpener();
+  const handleAccountsHubSubscriptions = () => {
+    const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
+    if (accountsHubConnection) {
+      accountsHubConnection.on('AccountStatusChanged', handleAccountStatusChanged);
+      accountOpenerService.invokeAccountsHubConnectedAsAccountOpener();
+    }
   };
 
   // ORDERS HUB
-  const handleOrdersHubPong = (result) => { console.log('PongClient from Orders Hub'); };
-  const handleOrdersHubConnected = () => {
-    const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOpener);
-    ordersHubConnection.on('PongClient', handleOrdersHubPong);
+  // const handleOrdersHubSubscriptions = () => {
+  //   const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
 
-    accountOpenerService.invokeOrdersHubConnectedAsAccountOpener();
-  };
+  //   accountOpenerService.invokeOrdersHubConnectedAsAccountOpener();
+  // };
 
   const handleOrderCheckPressed = () => {
     if (!tableAccountCustomerContext.state.tableAccount)
@@ -152,11 +159,10 @@ const MenuScreen = ({ navigation }) => {
   }, [venue]);
 
   useEffect(() => {
-    if (tableAccountCustomerContext.state.selectedTable) {
-      hubsConnectivityService.connectToAccountsHub(handleAccountsHubConnected, connectingAsAccountOpener);
-      hubsConnectivityService.connectToOrdersHub(handleOrdersHubConnected, connectingAsAccountOpener);
-    }
-  }, [tableAccountCustomerContext.state.selectedTable]);
+
+
+    handleAccountsHubSubscriptions();
+  }, [tableAccountCustomerContext.state.newlySelectedTable]);
 
   useEffect(() => {
     async function initVenueIndoorImage() {
@@ -184,89 +190,90 @@ const MenuScreen = ({ navigation }) => {
 
     initVenueIndoorImage();
     initMenu();
+
+    if (userService.isUserAuthorized(userContext.state.user))
+      loadAccount(venueId, username);
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#90002D' }}>
-      {/* {
-        console.log(
-          tableAccountCustomerContext.state.tableAccount
-        )
-      } */}
-      <View style={{ height: '30%' }}>
-        <ImageBackground
-          source={
-            venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
-              ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
-              : venueIndoorBackground
-          }
-          style={styles.imageBackgroundBorder}
-          imageStyle={styles.imageBackgroundContent}>
-          <LinearGradient
-            colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
-            style={styles.coverGradient}>
-            <View style={styles.headerContainer}>
-              <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
-                <TouchableOpacity
-                  style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
-                  onPress={handleShare}>
-                  <MaterialIcon name="share" size={24} color="white" />
-                </TouchableOpacity>
-              </View>
+    <View style={styles.container}>
 
-              <View style={styles.actionButtonsContainer}>
-                {
-                  menuCultures && menuCultures.length > 1
-                    ? <View style={{ ...styles.languageHeaderActionButtonContainer, width: 90 }}>
-                      <RNPickerSelect
-                        items={
-                          menuCultures && menuCultures.length
-                            ? menuCultures.map((c) => ({ label: c.substring(0, 2).toUpperCase(), key: c, value: c }))
-                            : []
-                        }
-                        value={selectedCulture}
-                        onValueChange={(c) => setSelectedCulture(c ? c : selectedCulture)}
-                        useNativeAndroidPickerStyle={false}
-                        style={pickerSelectStyles} />
-                    </View>
-                    : null
-                }
+      <TouchableOpacity style={styles.headerTouchContainer} onPress={handleToggleShowOriginalImage}>
+        <View style={styles.headerContainer}>
+          <ImageBackground
+            source={
+              venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+                ? { uri: `data:${venue.indoorImageMeta.contentType};base64,${venue.indoorImageMeta.base64x300}` }
+                : venueIndoorBackground
+            }
+            style={styles.imageBackgroundBorder}
+            imageStyle={styles.imageBackgroundContent}>
+            <LinearGradient
+              colors={['transparent', 'transparent', 'rgba(144,0,46,1)']}
+              style={styles.coverGradient}>
+              <View style={styles.gradientContainer}>
+                <View style={{ flex: 2, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-start" }}>
+                  <TouchableOpacity
+                    style={{ borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" }}
+                    onPress={handleShare}>
+                    <MaterialIcon name="share" size={24} color="white" />
+                  </TouchableOpacity>
+                </View>
 
-                {
-                  <View style={styles.headerActionButton}>
-                    <TouchableOpacity
-                      style={styles.headerActionButtonTouch}
-                      onPress={() => navigation.navigate("VenueDetails", { venueId, geolocation })}>
-                      <Text style={styles.headerActionButtonLabel}>VENUE INFO</Text>
-                    </TouchableOpacity>
-                  </View>
-                }
+                <View style={styles.actionButtonsContainer}>
+                  {
+                    menuCultures && menuCultures.length > 1
+                      ? <View style={{ ...styles.languageHeaderActionButtonContainer, width: 90 }}>
+                        <RNPickerSelect
+                          items={
+                            menuCultures && menuCultures.length
+                              ? menuCultures.map((c) => ({ label: c.substring(0, 2).toUpperCase(), key: c, value: c }))
+                              : []
+                          }
+                          value={selectedCulture}
+                          onValueChange={(c) => setSelectedCulture(c ? c : selectedCulture)}
+                          useNativeAndroidPickerStyle={false}
+                          style={pickerSelectStyles} />
+                      </View>
+                      : null
+                  }
 
-                {
-                  venue.hasOrdersManagementSubscription
-                    ? <View style={styles.orderActionButton}>
+                  {
+                    <View style={styles.headerActionButton}>
                       <TouchableOpacity
-                        style={[
-                          styles.headerActionButtonTouch,
-                          !tableAccountCustomerContext.state.tableAccount
-                            ? styles.orderHeaderActionButtonTouch
-                            : styles.checkHeaderActionButtonTouch
-                        ]}
-                        onPress={handleOrderCheckPressed}>
-                        {
-                          !tableAccountCustomerContext.state.tableAccount
-                            ? <Text style={styles.headerActionButtonLabel}>ORDER</Text>
-                            : <Text style={styles.headerActionButtonLabel}>CHECK</Text>
-                        }
+                        style={styles.headerActionButtonTouch}
+                        onPress={() => navigation.navigate("VenueDetails", { venueId, geolocation })}>
+                        <Text style={styles.headerActionButtonLabel}>VENUE INFO</Text>
                       </TouchableOpacity>
                     </View>
-                    : null
-                }
+                  }
+
+                  {
+                    venue.hasOrdersManagementSubscription
+                      ? <View style={styles.orderActionButton}>
+                        <TouchableOpacity
+                          style={[
+                            styles.headerActionButtonTouch,
+                            !tableAccountCustomerContext.state.tableAccount
+                              ? styles.orderHeaderActionButtonTouch
+                              : styles.checkHeaderActionButtonTouch
+                          ]}
+                          onPress={handleOrderCheckPressed}>
+                          {
+                            !tableAccountCustomerContext.state.tableAccount
+                              ? <Text style={styles.headerActionButtonLabel}>ORDER</Text>
+                              : <Text style={styles.headerActionButtonLabel}>CHECK</Text>
+                          }
+                        </TouchableOpacity>
+                      </View>
+                      : null
+                  }
+                </View>
               </View>
-            </View>
-          </LinearGradient>
-        </ImageBackground>
-      </View>
+            </LinearGradient>
+          </ImageBackground>
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.titleContainer}>
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: "center" }}>
@@ -291,7 +298,8 @@ const MenuScreen = ({ navigation }) => {
                 </View>
 
                 {
-                  venue.hasOrdersManagementSubscription && tableAccountCustomerContext.state.selectedTable
+                  venue.hasOrdersManagementSubscription
+                    && (tableAccountCustomerContext.state.newlySelectedTable || tableAccountCustomerContext.state.tableAccount)
                     ? <NewOrderMenuItem />
                     : null
                 }
@@ -327,37 +335,30 @@ const MenuScreen = ({ navigation }) => {
           )
           : null
       }
+
+      {
+        venue && venue.indoorImageMeta && venue.indoorImageMeta.contentType && venue.indoorImageMeta.base64x300
+          ? <ImagePreviewModal ref={imagePreviewModalRef} imageMeta={venue.indoorImageMeta} />
+          : null
+      }
     </View>
   );
 };
 
 const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    color: 'white',
-    textAlign: 'center',
-    justifyContent: 'flex-end',
-    fontWeight: "bold",
-  },
-  inputAndroid: {
-    fontSize: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    color: 'white',
-    textAlign: 'center',
-    justifyContent: 'flex-end',
-    fontWeight: "bold",
-  },
+  inputIOS: { fontSize: 10, paddingHorizontal: 10, paddingVertical: 12, color: 'white', textAlign: 'center', justifyContent: 'flex-end', fontWeight: "bold", },
+  inputAndroid: { fontSize: 10, paddingHorizontal: 10, paddingVertical: 12, color: 'white', textAlign: 'center', justifyContent: 'flex-end', fontWeight: "bold", },
 });
 
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#90002D' },
+  headerTouchContainer: { height: '30%' },
+  headerContainer: { flex: 1 },
   imageBackgroundBorder: { flex: 1, justifyContent: "flex-end" },
   imageBackgroundContent: { height: "100%", resizeMode: "cover" },
   coverGradient: { flex: 1 },
-  headerContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
+  gradientContainer: { flex: 1, marginLeft: 20, marginBottom: 10, marginRight: 20, alignItems: "flex-end", flexDirection: "row" },
   titleContainer: { marginLeft: 20, marginRight: 20, marginTop: 5, alignItems: "center" },
   actionButtonsContainer: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end" },
   ringIcon: { marginRight: 8, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, justifyContent: "center", alignItems: "center" },
@@ -369,14 +370,7 @@ const styles = StyleSheet.create({
   orderHeaderActionButtonTouch: { backgroundColor: '#60a860' },
   checkHeaderActionButtonTouch: { backgroundColor: '#aaaae3' },
   languageHeaderActionButton: {},
-  languageHeaderActionButtonContainer: {
-    marginRight: 10,
-    borderWidth: 2,
-    borderColor: "white",
-    width: 50,
-    height: 50,
-    borderRadius: 7,
-  },
+  languageHeaderActionButtonContainer: { marginRight: 10, borderWidth: 2, borderColor: "white", width: 50, height: 50, borderRadius: 7, },
   languageHeaderActionButtonLabel: { fontSize: 14, color: '#90002D' },
   languageHeaderActionButtonItems: { alignItems: 'center', height: 10 },
   languageButton: { backgroundColor: 'transparent', color: 'white' },

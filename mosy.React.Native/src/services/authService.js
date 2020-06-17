@@ -191,7 +191,6 @@ const signup = (email, password, confirmPassword) => {
   return useResponse(req);
 }
 
-
 export const authService = {
   login,
   signup,
@@ -212,5 +211,5 @@ export const authService = {
   pickAccessTokenExpiresUtc,
   pickRefreshTokenExpiresUtc,
   hasAccessTokenExpired,
-  hasRefreshTokenExpired
+  hasRefreshTokenExpired,
 };

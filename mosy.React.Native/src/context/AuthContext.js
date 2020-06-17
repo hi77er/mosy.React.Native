@@ -119,6 +119,7 @@ const handleSignin = async (dispatch, { email, password, signoutSuccess }) => {
       const result = await authService
         .login(email, password)
         .catch((err) => {
+          console.log('Errrrr')
           let message = "Something went wrong!";
           if (err && err.response && err.response.data && err.response.data.errorMessage)
             message = err.response.data.errorMessage;

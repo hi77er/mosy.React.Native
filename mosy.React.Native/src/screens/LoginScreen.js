@@ -5,10 +5,14 @@ import { Button, Input, Text, withTheme } from 'react-native-elements';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Spacer from '../components/Spacer';
+import { navigate } from '../navigationRef';
+
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as UserContext } from '../context/UserContext';
-import { navigate } from '../navigationRef';
+
 import { authService } from '../services/authService';
+import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
+
 import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
 
@@ -45,6 +49,11 @@ const LoginScreen = ({ navigation }) => {
       && userContext.state.user.roles
       && userContext.state.user.roles.length
       && userContext.state.user.roles.filter(role => role.name != "WebApiUser").length) {
+
+
+      hubsConnectivityService.connectToAccountsHub();
+      hubsConnectivityService.connectToOrdersHub();
+
 
       if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length && userContext.state.selectedOperationalVenue)
         navigation.navigate("mainOperatorFlow");

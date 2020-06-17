@@ -37,7 +37,48 @@ const getImageContent = async (size) => {
 }
 
 
+const isUserAuthorized = (userWithRoles) => {
+  return userWithRoles
+    && userWithRoles.roles
+    && userWithRoles.roles.length
+    && (
+      userWithRoles.roles.filter(x => x.name == 'Ninja').length
+      || userWithRoles.roles.filter(x => x.name == 'Mnager').length
+      || userWithRoles.roles.filter(x => x.name == 'TableAccountOperator').length
+      || userWithRoles.roles.filter(x => x.name == 'MonitorOperator').length
+      || userWithRoles.roles.filter(x => x.name == 'Deliverer').length
+      || userWithRoles.roles.filter(x => x.name == 'DeliveryAdministrator').length
+      || userWithRoles.roles.filter(x => x.name == 'Consumer').length
+    );
+};
+
+const isWebApiAuthorized = (userWithRoles) => {
+  return userWithRoles
+    && userWithRoles.roles
+    && userWithRoles.roles.length
+    && userWithRoles.roles.filter(x => x.name == 'WebApiUser').length;
+};
+
+const isUserOrWebApiAuthorized = (userWithRoles) => {
+  return userWithRoles
+    && userWithRoles.roles
+    && userWithRoles.roles.length
+    && (
+      userWithRoles.roles.filter(x => x.name == 'Ninja').length
+      || userWithRoles.roles.filter(x => x.name == 'Mnager').length
+      || userWithRoles.roles.filter(x => x.name == 'TableAccountOperator').length
+      || userWithRoles.roles.filter(x => x.name == 'MonitorOperator').length
+      || userWithRoles.roles.filter(x => x.name == 'Deliverer').length
+      || userWithRoles.roles.filter(x => x.name == 'DeliveryAdministrator').length
+      || userWithRoles.roles.filter(x => x.name == 'Consumer').length
+      || userWithRoles.roles.filter(x => x.name == 'WebApiUser').length
+    );
+};
+
 export const userService = {
   getUser,
   getImageContent,
+  isWebApiAuthorized,
+  isUserAuthorized,
+  isUserOrWebApiAuthorized,
 };

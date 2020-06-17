@@ -1,10 +1,9 @@
 import { AsyncStorage } from 'react-native';
 import { hubsConnectivityService } from './hubsConnectivityService';
 
-const connectingAsAccountOperator = "accountoperator";
 
 const invokeAccountsHubConnectedAsAccountOperator = (venueId) => {
-  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsAccountOperator);
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
     accountsHubConnection.invoke("ConnectAsAccountOperator", venueId);
   } catch (err) {
@@ -13,7 +12,7 @@ const invokeAccountsHubConnectedAsAccountOperator = (venueId) => {
 }
 
 const invokeOrdersHubConnectedAsAccountOperator = (venueId) => {
-  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOperator);
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
     ordersHubConnection.invoke("ConnectAsAccountOperator", venueId);
   } catch (err) {
@@ -24,7 +23,7 @@ const invokeOrdersHubConnectedAsAccountOperator = (venueId) => {
 const invokeUpdateTableAccountStatus = (bindingModel) => {
   // bindingModel: {tableAccountId: "", newStatus: 0, updaterUsername: "" }
   console.log("invokeUpdateTableAccountStatus");
-  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsAccountOperator);
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
     accountsHubConnection
       .invoke("UpdateTableAccountStatus", bindingModel)
@@ -36,7 +35,7 @@ const invokeUpdateTableAccountStatus = (bindingModel) => {
 
 const invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged = (tableAccountId) => {
   console.log("invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId);
-  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOperator);
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
     ordersHubConnection
       .invoke("UpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId)

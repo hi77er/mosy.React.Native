@@ -8,10 +8,8 @@ import { Context as TableAccountCustomerContext } from '../context/TableAccountC
 import { accountOpenerService } from '../services/websockets/accountOpenerService';
 import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 
-
 import Spacer from '../components/Spacer';
 
-const connectingAsAccountOpener = "accountopener";
 
 const ClientTableOrdersScreen = ({ navigation }) => {
   const tableAccount = navigation.state.params.tableAccount;
@@ -19,11 +17,25 @@ const ClientTableOrdersScreen = ({ navigation }) => {
   const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
   const { loadOrders, setOrderItem } = tableAccountCustomerContext;
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [askingToPay, setAskingToPay] = useState(false);
+  const [requiringAttention, setRequiringAttention] = useState(false);
 
   const handleLoadOrders = async () => {
     setOrdersLoading(true);
-    await loadOrders(tableAccount.id || tableAccount.Id).catch(e => console.log(e.response));
+    await loadOrders(tableAccount.id).catch(e => console.log(e.response));
     setOrdersLoading(false);
+  };
+
+  const handleAskToPay = async () => {
+    setAskingToPay(true);
+    // await loadOrders(tableAccount.id).catch(e => console.log(e.response));
+    setAskingToPay(false);
+  };
+
+  const handleRequireAttention = async () => {
+    setRequiringAttention(true);
+    // await loadOrders(tableAccount.id).catch(e => console.log(e.response));
+    setRequiringAttention(false);
   };
 
   // ORDERS HUB
@@ -31,23 +43,87 @@ const ClientTableOrdersScreen = ({ navigation }) => {
     console.log('Opener - OrderItemStatusChanged');
     setOrderItem(result);
   };
+  const handleOrdersHubSubscriptions = (result) => {
+    const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
+    ordersHubConnection.on('OrderItemStatusChanged', handleOrderItemStatusChanged);
+
+    accountOpenerService.invokeOrdersHubConnectedAsAccountOpener();
+  };
 
   useEffect(() => {
     async function init() {
-      const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsAccountOpener);
-      ordersHubConnection.on('OrderItemStatusChanged', handleOrderItemStatusChanged);
-
       await handleLoadOrders();
+
+      handleOrdersHubSubscriptions();
     }
     init();
   }, []);
 
   return (
     <SafeAreaView forceInset={{ top: "always" }}>
-      <Spacer>
-        <Text h4>Orders</Text>
-        <Text h5>{(tableAccount.id || tableAccount.Id).substring(0, 8)}</Text>
-      </Spacer>
+      <View style={{ margin: 15 }}>
+        <Text h4>Table Orders</Text>
+        <Text h5>{(tableAccount.id).substring(0, 8)}</Text>
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          marginHorizontal: 8,
+          marginVertical: 4,
+          padding: 5,
+          backgroundColor: 'lightgray',
+          borderRadius: 20,
+        }}>
+        {
+          tableAccount.status == 5
+            ? (
+              <View style={{ width: '100%', margin: 10 }}>
+                <Text style={{ textAlign: 'center' }}>
+                  You have asked for attention!
+                </Text>
+              </View>
+            )
+            : (
+              tableAccount.status == 6
+                ? (
+                  <View style={{ width: '100%', margin: 10 }}>
+                    <Text style={{ textAlign: 'center' }}>
+                      You have asked to pay!
+                    </Text>
+                  </View>
+                )
+                : (
+                  <React.Fragment>
+                    <View style={{ flex: 1, margin: 5 }}>
+                      <TouchableOpacity
+                        style={{ borderRadius: 20, backgroundColor: 'gray', padding: 10 }}
+                        onPress={() => handleRequireAttention()}
+                        disabled={false}>
+                        {
+                          requiringAttention
+                            ? <ActivityIndicator size="small" color="white" animating={true} />
+                            : <Text style={{ color: 'white', fontSize: 18, textAlign: 'center' }}>Call attention</Text>
+                        }
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{ flex: 1, margin: 5 }}>
+                      <TouchableOpacity
+                        style={{ borderRadius: 20, backgroundColor: 'gray', padding: 10 }}
+                        onPress={() => handleAskToPay()}
+                        disabled={false}>
+                        {
+                          askingToPay
+                            ? <ActivityIndicator size="small" color="white" animating={true} />
+                            : <Text style={{ color: 'white', fontSize: 18, textAlign: 'center' }}>Ask to pay</Text>
+                        }
+                      </TouchableOpacity>
+                    </View>
+                  </React.Fragment>
+                )
+            )
+        }
+
+      </View>
       {
         ordersLoading
           ? (
@@ -57,15 +133,13 @@ const ClientTableOrdersScreen = ({ navigation }) => {
           )
           : (
             tableAccountCustomerContext.state.tableAccount
-              && (
-                (tableAccountCustomerContext.state.tableAccount.orders && tableAccountCustomerContext.state.tableAccount.orders.length) ||
-                (tableAccountCustomerContext.state.tableAccount.Orders && tableAccountCustomerContext.state.tableAccount.Orders.length)
-              )
+              && tableAccountCustomerContext.state.tableAccount.orders
+              && tableAccountCustomerContext.state.tableAccount.orders.length
               ? (
                 <FlatList
                   numColumns={1}
                   keyExtractor={(item, index) => index.toString()}
-                  data={tableAccountCustomerContext.state.tableAccount.orders || tableAccountCustomerContext.state.tableAccount.Orders}
+                  data={tableAccountCustomerContext.state.tableAccount.orders}
                   renderItem={(orderProps) => {
                     const order = orderProps.item;
                     return (
@@ -73,37 +147,32 @@ const ClientTableOrdersScreen = ({ navigation }) => {
                         style={{
                           flex: 1,
                           flexDirection: 'column',
-                          margin: 3,
-                          backgroundColor: 'lightgray',
+                          borderRadius: 20,
+                          marginHorizontal: 8,
+                          marginVertical: 4,
+                          backgroundColor: '#90002d',
                           justifyContent: 'center',
                           alignItems: 'stretch',
                         }}>
-                        <TouchableOpacity onPress={() => navigation.navigate("OperatorTableOrders")}>
-                          <View style={{ height: '100%', padding: 2 }}>
+                        <TouchableOpacity onPress={() => { }}>
+                          <View style={{ height: '100%', padding: 16 }}>
                             <FlatList
                               keyExtractor={(item, index) => index.toString()}
-                              data={order.orderRequestables || order.OrderRequestables}
+                              data={order.orderRequestables}
                               renderItem={(orderItemProps) => {
                                 const orderItem = orderItemProps.item;
                                 return (
-                                  <View style={{ margin: 8 }}>
-                                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-                                      {
-                                        (orderItem.requestable || orderItem.Requestable).name || (orderItem.requestable || orderItem.Requestable).Name
-                                      }
-                                    </Text>
+                                  <View style={{ marginVertical: 2, flexDirection: 'row' }}>
+                                    <Text style={{ flex: 1, fontSize: 16, color: 'white', fontWeight: 'bold' }}>{orderItem.requestable.name}</Text>
                                     {
-                                      console.log(orderItem.Status)
-                                    }
-                                    {
-                                      (orderItem.status == 1 || orderItem.Status == 1) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>New</Text> : (
-                                        (orderItem.status == 2 || orderItem.Status == 2) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Awaiting account approval</Text> : (
-                                          (orderItem.status == 3 || orderItem.Status == 3) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Received</Text> : (
-                                            (orderItem.status == 4 || orderItem.Status == 4) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'yellow' }}>Being prepared</Text> : (
-                                              (orderItem.status == 5 || orderItem.Status == 5) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'green' }}>Ready to be taken</Text> : (
-                                                (orderItem.status == 6 || orderItem.Status == 6) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'green' }}>Being delivered</Text> : (
-                                                  (orderItem.status == 7 || orderItem.Status == 7) ? <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'darkgreen' }}>Delivered</Text> : (
-                                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'gray' }}>Unknown</Text>)))))))
+                                      orderItem.status == 1 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: `#FFFFFF11` }}>New</Text> : (
+                                        orderItem.status == 2 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: '#FFFFFF33' }}>Awaiting account approval</Text> : (
+                                          orderItem.status == 3 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: '#FFFFFF55' }}>Ordered</Text> : (
+                                            orderItem.status == 4 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: '#FFFFFF77' }}>Being prepared</Text> : (
+                                              orderItem.status == 5 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: '#FFFFFF99' }}>Ready to be taken</Text> : (
+                                                orderItem.status == 6 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: '#FFFFFFBB' }}>Being delivered</Text> : (
+                                                  orderItem.status == 7 ? <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: 'white' }}>Delivered</Text> : (
+                                                    <Text style={{ flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: 'lightgray' }}>Unknown</Text>)))))))
                                     }
                                   </View>
                                 );
@@ -125,7 +194,7 @@ const ClientTableOrdersScreen = ({ navigation }) => {
               )
           )
       }
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 

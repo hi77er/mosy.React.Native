@@ -22,6 +22,21 @@ const loadTableAccounts = async (venueId, tableRegionIds) => {
   return useResponse(req);
 }
 
+const loadAccount = async (venueId, openerUsername) => {
+  const bearerAccessToken = await authService.pickValidBearerAccessToken();
+
+  const req = axios
+    .create({
+      baseURL: MOSY_WEBAPI_PUBLIC_URL,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": bearerAccessToken,
+      },
+    })
+    .post("/api/tablesaccounts/foruser", { venueId, openerUsername });
+  return useResponse(req);
+}
+
 const loadOrders = async (tableAccountId) => {
   const bearerAccessToken = await authService.pickValidBearerAccessToken();
 
@@ -41,5 +56,6 @@ const loadOrders = async (tableAccountId) => {
 
 export const tableAccountsService = {
   loadTableAccounts,
+  loadAccount,
   loadOrders,
 };

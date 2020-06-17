@@ -11,7 +11,7 @@ const tableAccountCustomerReducer = (state, action) => {
 
   switch (action.type) {
     case 'setSelectedTable':
-      result = { ...state, selectedTable: action.payload, };
+      result = { ...state, newlySelectedTable: action.payload, };
       break;
     case 'setAssignedOperator':
       result = { ...state, assignedOperator: action.payload, };
@@ -20,10 +20,25 @@ const tableAccountCustomerReducer = (state, action) => {
       result = { ...state, newlySelectedItems: [...state.newlySelectedItems, action.payload] };
       break;
     case 'removeNewOrderItem':
+      let matchingIndexes = [];
+
+      if (state.newlySelectedItems
+        && state.newlySelectedItems.length
+        && state.newlySelectedItems.filter(item => item.id == action.payload).length) {
+
+        state
+          .newlySelectedItems
+          .forEach((item, index) => {
+            if (item.id == action.payload)
+              matchingIndexes = [...matchingIndexes, index];
+            return item;
+          });
+      }
+
       result = {
         ...state,
-        newlySelectedItems: state.newlySelectedItems.filter(x => x.id == action.payload).length
-          ? state.newlySelectedItems.filter(x => x.id != action.payload)
+        newlySelectedItems: matchingIndexes.length
+          ? state.newlySelectedItems.slice(0, matchingIndexes[0]).concat(state.newlySelectedItems.slice(matchingIndexes[0] + 1, state.newlySelectedItems.length))
           : state.newlySelectedItems
       };
       break;
@@ -35,16 +50,16 @@ const tableAccountCustomerReducer = (state, action) => {
         ...state,
         tableAccount: {
           ...state.tableAccount,
-          orders: (state.tableAccount.orders || state.tableAccount.Orders).map(
+          orders: state.tableAccount.orders.map(
             (order) => {
-              if (order.id == action.payload.OrderId || order.Id == action.payload.OrderId) {
+              if (order.id == action.payload.orderId) {
                 order = {
                   ...order,
-                  orderRequestables: (order.orderRequestables || order.OrderRequestables).map(or => {
-                    if (or.id == action.payload.Id || or.Id == action.payload.Id) {
+                  orderRequestables: order.orderRequestables.map(or => {
+                    if (or.id == action.payload.id) {
                       or = {
                         ...or,
-                        status: action.payload.Status,
+                        status: action.payload.status,
                       };
                     }
                     return or;
@@ -65,6 +80,9 @@ const tableAccountCustomerReducer = (state, action) => {
           orders: action.payload,
         },
       };
+      break;
+    case 'loadAccount':
+      result = { ...state, tableAccount: action.payload, };
       break;
   }
 
@@ -111,9 +129,14 @@ const setOrderItem = (dispatch) => {
 const loadOrders = (dispatch) => {
   return async (tableAccountId) => {
     const result = await tableAccountsService.loadOrders(tableAccountId);
-    console.log(tableAccountId);
-    console.log(result);
     dispatch({ type: 'loadOrders', payload: result });
+  };
+};
+
+const loadAccount = (dispatch) => {
+  return async (venueId, openerUsername) => {
+    const result = await tableAccountsService.loadAccount(venueId, openerUsername);
+    dispatch({ type: 'loadAccount', payload: result });
   };
 };
 
@@ -128,10 +151,10 @@ export const { Provider, Context } = createDataContext(
     setAssignedOperator,
     setOrderItem,
     loadOrders,
+    loadAccount,
   },
   {
-    selectedTable: null,
-    assignedOperator: null,
+    newlySelectedTable: null,
     newlySelectedItems: [],
     tableAccount: null,
   },

@@ -1,10 +1,9 @@
 import { AsyncStorage } from 'react-native';
 import { hubsConnectivityService } from './hubsConnectivityService';
 
-const connectingAsVenueHost = "venuehost";
 
 const invokeAccountsHubConnectedAsVenueHost = (venueId) => {
-  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsVenueHost);
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
     accountsHubConnection.invoke("ConnectAsVenueHost", venueId);
   } catch (err) {
@@ -13,7 +12,7 @@ const invokeAccountsHubConnectedAsVenueHost = (venueId) => {
 }
 
 const invokeOrdersHubConnectedAsVenueHost = (venueId) => {
-  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsVenueHost);
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
     ordersHubConnection.invoke("ConnectAsVenueHost", venueId);
   } catch (err) {
@@ -24,7 +23,7 @@ const invokeOrdersHubConnectedAsVenueHost = (venueId) => {
 const invokeUpdateTableAccountStatus = (bindingModel) => {
   // bindingModel: {tableAccountId: "", newStatus: 0, updaterUsername: "" }
   console.log("invokeUpdateTableAccountStatus");
-  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection(connectingAsVenueHost);
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
     accountsHubConnection
       .invoke("UpdateTableAccountStatus", bindingModel)
@@ -36,7 +35,7 @@ const invokeUpdateTableAccountStatus = (bindingModel) => {
 
 const invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged = (tableAccountId) => {
   console.log("invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId);
-  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection(connectingAsVenueHost);
+  const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
     ordersHubConnection
       .invoke("UpdateOrderRequestablesStatusAfterAccountStatusChanged", tableAccountId)
