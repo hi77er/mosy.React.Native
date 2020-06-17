@@ -9,7 +9,7 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 
 const TabBarButton = ({ onPress, routeName, focused, accessibilityLabel }) => {
   const iconsMap = {
-    venuesFlow: <EntypoIcon name="location" size={20} color="white" />,
+    venuesFlow: <EntypoIcon name="location" size={20} color="white" />, // <FontistoIcon name="shopping-store" size={20} color="white" />, 
     dishesFlow: <MaterialCommunityIcon name="food" size={26} color="white" />,
     operatorFlow: <FeatherIcon name="activity" size={20} color="white" />,
     Login: <MaterialIcon name="lock-open" size={20} color="white" />,

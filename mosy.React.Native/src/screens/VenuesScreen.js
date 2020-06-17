@@ -1,151 +1,232 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, StyleSheet, Button, View } from 'react-native';
-import { Text, SearchBar, Card } from 'react-native-elements';
+import { ActivityIndicator, FlatList, StyleSheet, View, Alert, RefreshControl } from 'react-native';
+import { SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Spacer from '../components/Spacer';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
-import VenueFiltersModal from '../components/modal/VenueFiltersModal';
-import ActionButton from 'react-native-action-button';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FiltersBar from '../components/nav/top/filters/FiltersBar';
+import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
 
+import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as VenuesContext } from '../context/VenuesContext';
+
+import VenueItem from '../components/venues/VenueItem';
+import MatchingFiltersItem from '../components/filters/MatchingFiltersItem';
 
 
 const VenuesScreen = ({ navigation }) => {
-  const [searchQuery, setSearchQuery] = useState();
+  const filtersContext = useContext(FiltersContext);
+  const { resetSelectedFilters, resetFiltersChanged, setVenuesSearchQuery } = filtersContext;
+  const filtersState = filtersContext.state;
+  const venuesContext = useContext(VenuesContext);
+  const { clearVenues, loadVenues, startRefreshingClosestVenues } = venuesContext;
+  const venuesState = venuesContext.state;
 
-  const venueFiltersModalRef = useRef(null);
 
-  const handleShowFilters = () => {
-    venueFiltersModalRef.current.show();
+  const [showFilters, setShowFilters] = useState(false);
+  const [geolocation, setGeolocation] = useState(null);
+
+
+  const watchLocation = async () => {
+    await requestPermissionsAsync();
+
+    const positionWatchtower = await watchPositionAsync(
+      {
+        accuracy: Accuracy.BestForNavigation,
+        timeInterval: 1000,
+        distanceInterval: 10,
+      },
+      (location) => {
+        setGeolocation(location.coords);
+      },
+    );
+
+    return positionWatchtower;
   };
 
-  const venues = [
-    { id: "1", name: "Venue number 1" },
-    { id: "2", name: "Venue number 2" },
-    { id: "3", name: "Venue number 3" },
-    { id: "4", name: "Venue number 4" },
-    { id: "5", name: "Venue number 5" },
-    { id: "6", name: "Venue number 6" },
-    { id: "7", name: "Venue number 7" },
-    { id: "8", name: "Venue number 8" },
-    { id: "9", name: "Venue number 9" },
-    { id: "10", name: "Venue number 10" },
-    { id: "11", name: "Venue number 11" },
-    { id: "12", name: "Venue number 12" },
-  ];
+  const handleSearchFilteredVenues = (useFilters) => {
+    if (geolocation) {
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+      const { latitude, longitude } = geolocation;
 
+      clearVenues();
+      loadVenues(12, [], latitude, longitude, useFilters ? selectedFilters : [], searchQuery, showClosedVenues, true);
+      resetFiltersChanged();
+
+      if (showFilters) setShowFilters(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (geolocation) {
+      startRefreshingClosestVenues();
+
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      clearVenues();
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, true);
+    }
+  }
+
+  const handleLoadMore = () => {
+    if (venuesState.hasMoreClosestVenueResults)
+      if (geolocation) {
+        const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+        const { unbundledClosestVenues } = venuesState;
+        const { latitude, longitude } = geolocation;
+
+        loadVenues(8, unbundledClosestVenues, latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+      }
+      else
+        console.log("No more Elem!");
+  };
+
+  useEffect(() => {
+    let positionWatchtower = null;
+    async function init() {
+      positionWatchtower = await watchLocation().catch((err) => console.log(err));
+    }
+    init();
+
+    return () => {
+      if (positionWatchtower) positionWatchtower.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if ((!venuesState.unbundledClosestVenues || !venuesState.unbundledClosestVenues.length) && geolocation) {
+      const { selectedFilters, searchQuery, showClosedVenues } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadVenues(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedVenues, false);
+    }
+  }, [geolocation]);
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
-      <SearchBar
-        placeholder="Search venues ..."
-        placeholderTextColor="white"
-        selectionColor="white"
-        searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
-        containerStyle={styles.searchContainer}
-        inputContainerStyle={styles.searchInputContainer}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        inputStyle={styles.searchInput}
-        clearIcon={
-          () => <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <MaterialIcon name="clear" size={24} color="white" />
-          </TouchableOpacity>
+      <View style={{ flexDirection: "row" }}>
+        <SearchBar
+          placeholder="Search venues ..."
+          placeholderTextColor="white"
+          selectionColor="white"
+          searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
+          containerStyle={styles.searchContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          value={filtersState.venuesSearchQuery}
+          onChangeText={setVenuesSearchQuery}
+          inputStyle={styles.searchInput}
+          clearIcon={
+            () => <TouchableOpacity onPress={() => setVenuesSearchQuery("")}>
+              <MaterialIcon name="clear" size={24} color="white" />
+            </TouchableOpacity>
+          } />
+        {
+          filtersState.filtersChanged
+            ? <TouchableOpacity onPress={() => handleSearchFilteredVenues(true)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+            </TouchableOpacity>
+            : null
         }
-      />
+        {
+          !showFilters
+            ? <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+        {
+          showFilters && filtersState.areDefaultVenueFilters
+            ? <TouchableOpacity
+              onPress={() => Alert.alert(
+                "Reset filters?",
+                "",
+                [
+                  { text: 'Cancel', onPress: () => { } },
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(1); handleSearchFilteredVenues(false); } }
+                ]
+              )}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+      </View>
+      {showFilters ? <FiltersBar filteredType={1} /> : null}
     </SafeAreaView>
 
-    <FlatList data={venues} renderItem={({ item }) => {
-      return <Card
-        key={item.id}
-        containerStyle={{
-          paddingLeft: 7,
-          paddingBottom: 7,
-          paddingTop: 7,
-          paddingRight: 0,
-          marginTop: 0,
-          marginLeft: 0,
-          marginRight: 0,
-          marginBottom: 7,
-        }}>
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          <View style={{ flex: 5 }}>
-            <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-            <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.name}</Text>
+    {
+      venuesState.bundledClosestVenues && venuesState.bundledClosestVenues.length
+        ? (
+          <FlatList
+            data={venuesState.bundledClosestVenues}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => {
+              if (item.renderType == 1)
+                return <MatchingFiltersItem
+                  matchingFiltersIds={item.renderItem.matchingFiltersIds}
+                  mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
+              else {
+                return <VenueItem
+                  item={item.renderItem}
+                  geolocation={geolocation}
+                  navigation={navigation} />;
+              }
+            }}
+            onEndReached={handleLoadMore}
+            onEndThreshold={0}
+            refreshControl={<RefreshControl refreshing={venuesState.isRefreshingClosestVenues} onRefresh={handleRefresh} />} />
+        )
+        : (
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="white" />
           </View>
-          <View style={{ flex: 1 }}>
-            {/* open/close/new/recom */}
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" }}>CLOSED</Text>
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" }}>RECOM</Text>
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" }}>NEW</Text>
-          </View>
-        </View>
-        <View style={{ flex: 1, flexDirection: "row", marginRight: 7 }}>
-          <Image
-            style={{ width: 130, height: 130, marginRight: 5 }}
-            source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-          <View style={{ flex: 1, flexDirection: "row" }}>
-            <View style={{ flex: 3, alignItems: "center", justifyContent: "flex-end" }}>
-              <MaterialCommunityIcons name="map-marker-distance" size={28} color="#666" />
-              <Text style={{ fontWeight: "bold", color: "#666" }}>999km</Text>
-            </View>
-            <View style={{ flex: 3, alignItems: "center", justifyContent: "flex-end" }}>
-              <FontAwesome5Icon name="walking" size={28} color="#666" />
-              <Text style={{ fontWeight: "bold", color: "#666" }}>38min</Text>
-            </View>
-            <View style={{ flex: 4, alignItems: "center", justifyContent: "flex-end" }}>
-              <TouchableOpacity style={{ borderWidth: 2, borderColor: "#90002d", width: 80, height: 80, borderRadius: 7, justifyContent: "center", alignItems: "center" }} onPress={() => navigation.navigate("Menu")}>
-                <Text style={{ textAlign: "center", fontWeight: "bold", color: "#90002d" }}>MENU</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ flex: 4, alignItems: "center", justifyContent: "flex-end" }}>
-              <TouchableOpacity style={{ borderWidth: 2, borderColor: "#90002d", width: 80, height: 80, borderRadius: 7, justifyContent: "center", alignItems: "center" }} onPress={() => navigation.navigate("VenueDetails")}>
-                <Text style={{ textAlign: "center", fontWeight: "bold", color: "#90002d" }}>VENUE INFO</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Card>
-    }}>
+        )
+    }
 
-    </FlatList>
-
-    <ActionButton
-      renderIcon={() => <IoniconsIcon name="ios-color-filter" size={22} color="white" />}
-      buttonColor="orange"
-      onPress={handleShowFilters}
-      style={styles.filtersButton}
-    />
-    <VenueFiltersModal ref={venueFiltersModalRef} />
-
-  </View>;
+  </View >;
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#90002D" },
   searchContainer: {
+    flex: 1,
     borderBottomColor: "transparent",
     borderTopColor: "transparent",
     backgroundColor: "#90002d",
   },
-  searchInputContainer: {
-    backgroundColor: "#630017",
-    borderRadius: 8,
+  searchInputContainer: { backgroundColor: "#630017", borderRadius: 8, },
+  searchInput: { color: "white", },
+  topNavIconButton: { marginLeft: 5, marginTop: 12, marginRight: 15, },
+  cardContainerStyle: {
+    paddingLeft: 7,
+    paddingBottom: 7,
+    paddingTop: 7,
+    paddingRight: 0,
+    marginTop: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    marginBottom: 7,
   },
-  searchInput: {
-    color: "white",
-    opacity: 0.85,
-  },
-  filtersButton: {
-    position: "absolute",
-    bottom: -10,
-    right: -10,
-  }
+  cardHeaderContainer: { flex: 1, flexDirection: "row" },
+  cardTitleContainer: { flex: 5 },
+  cardLabelsContainer: { flex: 1 },
+  cardH1: { color: "#666", fontSize: 16, fontWeight: "bold" },
+  cardH2: { color: "darkgray", fontSize: 13, fontWeight: "bold" },
+  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "green" },
+  cardLabelLightGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
+  cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
+  cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
+  cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
+  cardBodyContainer: { flex: 1, flexDirection: "row", marginRight: 7 },
+  cardImage: { width: 100, height: 100, marginRight: 5 },
+  cardDashboardContainer: { flex: 1, flexDirection: "row" },
+  cardDashboardInfo: { flex: 3, alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardInfoLabel: { fontWeight: "bold", color: "#666" },
+  cardDashboardButton: { flex: 4, alignItems: "center", justifyContent: "flex-end" },
+  cardDashboardButtonTouch: { borderWidth: 2, borderColor: "#90002d", width: 62, height: 62, borderRadius: 7, justifyContent: "center", alignItems: "center" },
+  cardDashboardButtonLabel: { textAlign: "center", fontWeight: "bold", color: "#90002d" },
 });
-
 
 
 export default VenuesScreen;

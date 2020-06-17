@@ -1,133 +1,187 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SafeAreaView } from 'react-navigation';
-import { FlatList, Image, View, StyleSheet } from 'react-native';
-import { Button, Card, Text, SearchBar } from 'react-native-elements';
+import { ActivityIndicator, FlatList, Image, View, StyleSheet, Alert, RefreshControl } from 'react-native';
+import { SearchBar } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import DishFiltersModal from '../components/modal/DishFiltersModal';
-import ActionButton from 'react-native-action-button';
-// MaterialCommunityIcons - map-maker-distance
-// FontAwesome - walking || MaterialCommunityIons - time-sand
-// Ionicons - md-pricetag
+import { requestPermissionsAsync, watchPositionAsync, Accuracy } from 'expo-location';
+import FiltersBar from '../components/nav/top/filters/FiltersBar';
+import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as DishesContext } from '../context/DishesContext';
+import DishItem from '../components/dishes/DishItem';
+import MatchingFiltersItem from '../components/filters/MatchingFiltersItem';
 
-import Spacer from '../components/Spacer';
 
 const DishesScreen = ({ navigation }) => {
-  const [searchQuery, setSearchQuery] = useState();
+  const filtersContext = useContext(FiltersContext);
+  const { resetSelectedFilters, resetFiltersChanged, setDishesSearchQuery } = filtersContext;
+  const filtersState = filtersContext.state;
+  const dishesContext = useContext(DishesContext);
+  const { clearDishes, loadDishes, startRefreshingClosestDishes } = dishesContext;
+  const dishesState = dishesContext.state;
 
-  const dishFiltersModalRef = useRef(null);
 
-  const dishes = [
-    { id: "1", name: "Dish 1" },
-    { id: "2", name: "Dish 2" },
-    { id: "3", name: "Dish 3" },
-    { id: "4", name: "Dish 4" },
-    { id: "5", name: "Dish 5" },
-    { id: "6", name: "Dish 6" },
-    { id: "7", name: "Dish 7" },
-    { id: "8", name: "Dish 8" },
-    { id: "9", name: "Dish 9" },
-    { id: "10", name: "Dish 10" },
-    { id: "11", name: "Dish 11" },
-    { id: "12", name: "Dish 12" },
-  ];
+  const [geolocation, setGeolocation] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const handleShowFilters = () => {
-    dishFiltersModalRef.current.show();
+  const watchLocation = async () => {
+    await requestPermissionsAsync();
+
+    const positionWatchtower = await watchPositionAsync(
+      {
+        accuracy: Accuracy.BestForNavigation,
+        timeInterval: 1000,
+        distanceInterval: 10,
+      },
+      (location) => {
+        setGeolocation(location.coords);
+      },
+    );
+
+    return positionWatchtower;
   };
+
+
+  const handleSearchFilteredDishes = (useFilters) => {
+    if (geolocation) {
+      const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      clearDishes();
+      loadDishes(12, [], latitude, longitude, useFilters ? selectedFilters : [], searchQuery, showClosedDishes, showNotRecommendedDishes, true);
+      resetFiltersChanged();
+
+      if (showFilters) setShowFilters(false);
+    }
+  };
+
+
+  const handleRefresh = () => {
+    if (geolocation) {
+      startRefreshingClosestDishes();
+
+      const { selectedFilters, searchQuery, showClosedDishes, showRec, showNotRecommendedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      clearDishes();
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, true);
+    }
+  }
+
+  const handleLoadMore = () => {
+    if (dishesState.hasMoreClosestDishResults)
+      if (geolocation) {
+        const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
+        const { unbundledClosestDishes } = dishesState;
+        const { latitude, longitude } = geolocation;
+
+        loadDishes(8, unbundledClosestDishes, latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
+      }
+      else
+        console.log("No more Elem!");
+  };
+
+  useEffect(() => {
+    let positionWatchtower = null;
+    async function init() {
+      positionWatchtower = await watchLocation().catch((err) => console.log(err));
+    }
+    init();
+
+    return () => {
+      if (positionWatchtower) positionWatchtower.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if ((!dishesState.unbundledClosestDishes || !dishesState.unbundledClosestDishes.length) && geolocation) {
+      const { selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes } = filtersState;
+      const { latitude, longitude } = geolocation;
+
+      loadDishes(12, [], latitude, longitude, selectedFilters, searchQuery, showClosedDishes, showNotRecommendedDishes, false);
+    }
+  }, [geolocation]);
+
 
   return <View style={styles.container}>
     <SafeAreaView forceInset={{ top: "always" }} style={{ backgroundColor: "#90002d" }}>
-      <SearchBar
-        placeholder="Search dishes ..."
-        placeholderTextColor="white"
-        selectionColor="white"
-        searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
-        containerStyle={styles.searchContainer}
-        inputContainerStyle={styles.searchInputContainer}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        inputStyle={styles.searchInput}
-        clearIcon={
-          () => <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <MaterialIcon name="clear" size={24} color="white" />
-          </TouchableOpacity>
+      <View style={{ flexDirection: "row" }}>
+        <SearchBar
+          placeholder="Search dishes ..."
+          placeholderTextColor="white"
+          selectionColor="white"
+          searchIcon={() => <MaterialIcon name="search" size={24} color="white" />}
+          containerStyle={styles.searchContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          value={filtersState.dishesSearchQuery}
+          onChangeText={setDishesSearchQuery}
+          inputStyle={styles.searchInput}
+          clearIcon={
+            () => <TouchableOpacity onPress={() => { setDishesSearchQuery(""); }}>
+              <MaterialIcon name="clear" size={24} color="white" />
+            </TouchableOpacity>
+          }
+        />
+        {
+          filtersState.filtersChanged
+            ? <TouchableOpacity onPress={() => handleSearchFilteredDishes(true)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="check" size={29} color="white" />
+            </TouchableOpacity>
+            : null
         }
-      />
+        {
+          !showFilters
+            ? <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="tune" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+        {
+          showFilters && filtersState.areDefaultDishFilters
+            ? <TouchableOpacity
+              onPress={() => Alert.alert(
+                "Reset filters?",
+                "",
+                [
+                  { text: 'Cancel', onPress: () => { } },
+                  { text: 'Set default', onPress: () => { resetSelectedFilters(2); handleSearchFilteredDishes(false); } }
+                ]
+              )}>
+              <MaterialCommunityIcon style={styles.topNavIconButton} name="playlist-remove" size={29} color="white" />
+            </TouchableOpacity>
+            : null
+        }
+      </View>
+      {showFilters ? <FiltersBar filteredType={2} /> : null}
     </SafeAreaView>
+    {
+      dishesState.bundledClosestDishes && dishesState.bundledClosestDishes.length
+        ? <FlatList
+          data={dishesState.bundledClosestDishes}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => {
+            if (item.renderType == 1)
+              return <MatchingFiltersItem matchingFiltersIds={item.renderItem.matchingFiltersIds} mismatchingFiltersIds={item.renderItem.mismatchingFiltersIds} />;
+            else {
+              return <DishItem item={item.renderItem} navigation={navigation} />;
+            }
+          }}
+          onEndReached={handleLoadMore}
+          onEndThreshold={0}
+          refreshControl={<RefreshControl refreshing={dishesState.isRefreshingClosestDishes} onRefresh={handleRefresh} />} />
+        : <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color="white" />
+        </View>
+    }
 
-    <FlatList data={dishes} renderItem={({ item }) => {
-      return <TouchableOpacity onPress={() => navigation.navigate("DishDetails")}>
-        <Card
-          key={item.id}
-          containerStyle={{
-            paddingLeft: 7,
-            paddingBottom: 7,
-            paddingTop: 7,
-            paddingRight: 0,
-            marginTop: 0,
-            marginLeft: 0,
-            marginRight: 0,
-            marginBottom: 7,
-          }}>
-          <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", alignItems: "stretch" }}>
-            <Image
-              style={{ width: 130, height: 130, marginRight: 5 }}
-              source={{ uri: "https://media.gettyimages.com/photos/different-types-of-food-on-rustic-wooden-table-picture-id861188910?s=612x612" }} />
-            <View style={{ flex: 1 }}>
-              <View style={{ flex: 1, flexDirection: "row" }}>
-                <View style={{ flex: 3 }}>
-                  <Text style={{ color: "#666", fontSize: 16, fontWeight: "bold" }}>{item.name}</Text>
-                  <Text style={{ color: "darkgray", fontSize: 13, fontWeight: "bold" }}>{item.name}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  {/* open/close/new/recom */}
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" }}>CLOSED</Text>
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" }}>RECOM</Text>
-                  <Text style={{ fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" }}>NEW</Text>
-                </View>
-              </View>
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", alignContent: "center", marginRight: 7 }}>
-                {/* distance/time/price */}
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  {/* distance */}
-                  <MaterialCommunityIcons name="map-marker-distance" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999m</Text>
-                </View>
-                <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }} >
-                  {/* arriving in */}
-                  <FontAwesome5Icon name="walking" size={28} color="#666" />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>38min</Text>
-                </View>
-                <View style={{ flex: 3, justifyContent: "center", alignItems: "center" }}>
-                  {/* price */}
-                  <IoniconsIcon name="md-pricetag" size={28} color="#666" style={{ transform: [{ scaleX: -1 }] }} />
-                  <Text style={{ color: "#666", fontWeight: "bold", fontSize: 18 }}>999,99лв.</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </Card>
-      </TouchableOpacity>
-    }} />
-
-
-    < ActionButton
-      renderIcon={() => <IoniconsIcon name="ios-color-filter" size={22} color="white" />}
-      buttonColor="orange"
-      onPress={handleShowFilters}
-      style={styles.filtersButton}
-    />
-    <DishFiltersModal ref={dishFiltersModalRef} />
-  </View >;
+  </View>;
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#90002D" },
   searchContainer: {
+    flex: 1,
     borderBottomColor: "transparent",
     borderTopColor: "transparent",
     backgroundColor: "#90002d",
@@ -136,6 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#630017",
     borderRadius: 8,
   },
+  topNavIconButton: { marginLeft: 5, marginTop: 12, marginRight: 15, },
   searchInput: {
     color: "white",
     opacity: 0.85,
@@ -144,7 +199,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -10,
     right: -10,
-  }
+  },
+  cardLabelGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "green" },
+  cardLabelLightGreen: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#7fb800" },
+  cardLabelBlue: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "dodgerblue" },
+  cardLabelYellow: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "#ffb400" },
+  cardLabelRed: { fontSize: 10, color: "white", fontWeight: "bold", textAlign: "center", backgroundColor: "red" },
 });
 
 export default DishesScreen;

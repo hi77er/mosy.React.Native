@@ -1,29 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 
+import { Provider as AuthProvider } from './src/context/AuthContext';
+import { Provider as DishesProvider } from './src/context/DishesContext';
+import { Provider as FiltersProvider } from './src/context/FiltersContext';
+import { Provider as TableAccountOperatorProvider } from './src/context/TableAccountOperatorContext';
+import { Provider as TableAccountCustomerProvider } from './src/context/TableAccountCustomerContext';
+import { Provider as UserProvider } from './src/context/UserContext';
+import { Provider as VenuesProvider } from './src/context/VenuesContext';
+
+import CheckEmailScreen from './src/screens/CheckEmailScreen';
+import ClientTableOrdersScreen from './src/screens/ClientTableOrdersScreen';
 import DishesScreen from './src/screens/DishesScreen';
-import VenuesScreen from './src/screens/VenuesScreen';
 import DishDetailsScreen from './src/screens/DishDetailsScreen';
-import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
-import MenuScreen from './src/screens/MenuScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import SignUpScreen from './src/screens/SignUpScreen';
+import MenuScreen from './src/screens/MenuScreen';
 import OperatorTableAccountsScreen from './src/screens/OperatorTableAccountsScreen';
 import OperatorTableOrdersScreen from './src/screens/OperatorTableOrdersScreen';
-import OperatorVenuesScreen from './src/screens/OperatorVenuesScreen';
-import { Provider as AuthProvider } from './src/context/AuthContext';
+import ProfileScreen from './src/screens/ProfileScreen';
+import SplashScreen from './src/screens/SplashScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
+import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
+import VenuesScreen from './src/screens/VenuesScreen';
+
 
 
 import { setNavigator } from './src/navigationRef';
 
-const loginFlow = createStackNavigator({
-  Login: LoginScreen,
-  SignUp: SignUpScreen,
-});
 
 const venuesFlow = createStackNavigator(
   {
@@ -33,8 +39,42 @@ const venuesFlow = createStackNavigator(
         headerShown: false,
       },
     },
-    VenueDetails: VenueDetailsScreen,
-    Menu: MenuScreen,
+    VenueDetails: {
+      screen: VenueDetailsScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Menu: {
+      screen: MenuScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    ClientTableOrders: {
+      screen: ClientTableOrdersScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Login: {
+      screen: LoginScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    SignUp: {
+      screen: SignUpScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    CheckEmail: {
+      screen: CheckEmailScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
@@ -51,7 +91,30 @@ const dishesFlow = createStackNavigator(
         headerShown: false,
       },
     },
-    DishDetails: DishDetailsScreen,
+    DishDetails: {
+      screen: DishDetailsScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Login: {
+      screen: LoginScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    SignUp: {
+      screen: SignUpScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    CheckEmail: {
+      screen: CheckEmailScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
@@ -62,14 +125,18 @@ const dishesFlow = createStackNavigator(
 
 const operatorFlow = createStackNavigator(
   {
-    OperatorVenues: {
-      screen: OperatorVenuesScreen,
+    OperatorTableAccounts: {
+      screen: OperatorTableAccountsScreen,
       navigationOptions: {
         headerShown: false,
       },
     },
-    OperatorTableAccounts: OperatorTableAccountsScreen,
-    OperatorTableOrders: OperatorTableOrdersScreen,
+    OperatorTableOrders: {
+      screen: OperatorTableOrdersScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     navigationOptions: {
@@ -80,58 +147,60 @@ const operatorFlow = createStackNavigator(
 
 const switchNavigator = createSwitchNavigator(
   {
-    loginFlow,
     mainFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         Login: LoginScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }
     ),
-    mainAuthorizedFlow: createBottomTabNavigator(
+    mainCustomerFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         Profile: ProfileScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }
     ),
     mainOperatorFlow: createBottomTabNavigator(
       {
-        venuesFlow,
         dishesFlow,
+        venuesFlow,
         operatorFlow,
         Profile: ProfileScreen,
       },
       {
-        initialRouteName: "venuesFlow",
+        initialRouteName: "dishesFlow",
         defaultNavigationOptions: ({ navigation }) => ({
           tabBarButtonComponent: (props) => <TabBarButton routeName={navigation.state.routeName} {...props} />
         }),
         tabBarOptions: {
           style: {
             backgroundColor: "#90002d",
+            borderTopColor: "transparent",
           },
         },
       }
@@ -139,15 +208,35 @@ const switchNavigator = createSwitchNavigator(
   },
   {
     initialRouteName: 'mainFlow',
-  }
+  },
 );
 
-const App = createAppContainer(switchNavigator);
+const AppContainer = createAppContainer(switchNavigator);
 
-export default () => {
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <AuthProvider>
-      <App ref={(navigator) => { setNavigator(navigator) }} />
+      <DishesProvider>
+        <FiltersProvider>
+          <TableAccountCustomerProvider>
+            <TableAccountOperatorProvider>
+              <UserProvider>
+                <VenuesProvider>
+                  {
+                    showSplash
+                      ? <SplashScreen onInitializationFinished={() => { setShowSplash(false) }} />
+                      : <AppContainer ref={(navigator) => { setNavigator(navigator) }} />
+                  }
+                </VenuesProvider>
+              </UserProvider>
+            </TableAccountOperatorProvider>
+          </TableAccountCustomerProvider>
+        </FiltersProvider>
+      </DishesProvider>
     </AuthProvider>
   )
 };
+
+export default App;

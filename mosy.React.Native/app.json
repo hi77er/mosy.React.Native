@@ -25,6 +25,11 @@
     ],
     "ios": {
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.mosy.kalin.mosy",
+      "versionCode": 28,
+      "icon": "./assets/icon.png"
     }
   }
 }
