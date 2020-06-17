@@ -22,7 +22,7 @@ const getClosestVenues = async (
   showNotWorkingVenues = true,
   localDateTimeOffset = "2020-02-19T10:33:55.585Z",
   searchedDistanceMeters = 10000,
-  isDevModeActivated = true
+  isDevModeActivated = false, // set to true if you want to see test venues and their menus
 ) => {
   const bearerAccessToken = await authService.pickValidBearerAccessToken();
 
