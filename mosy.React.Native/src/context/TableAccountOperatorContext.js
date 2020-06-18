@@ -6,10 +6,18 @@ import createDataContext from './createDataContext';
 import { tableAccountsService } from '../services/tableAccountsService';
 import { venueTablesService } from '../services/venueTablesService';
 
+const defaultContextState = {
+  operatedTableAccounts: null,
+  tableAccountOrders: null,
+};
+
 const tableAccountOperatorReducer = (state, action) => {
   let result = state;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'loadTableAccounts':
       result = { ...state, operatedTableAccounts: action.payload, };
       break;
@@ -72,6 +80,12 @@ const tableAccountOperatorReducer = (state, action) => {
   return result;
 };
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
+
 const loadTableAccounts = (dispatch) => {
   return async (venueId, tableRegionIds) => {
     const result = await tableAccountsService.loadTableAccounts(venueId, tableRegionIds);
@@ -109,14 +123,12 @@ const setOrderItem = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   tableAccountOperatorReducer,
   {
+    resetToDefault,
     loadTableAccounts,
     loadOrders,
     loadUnocupiedTables,
     setOperatedTableAccount,
     setOrderItem,
   },
-  {
-    operatedTableAccounts: null,
-    tableAccountOrders: null,
-  },
+  defaultContextState,
 );

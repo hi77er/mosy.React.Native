@@ -107,6 +107,7 @@ const MenuScreen = ({ navigation }) => {
 
   // ACCOUNTS HUB
   const handleAccountStatusChanged = (result) => {
+    console.log('AccountStatusChanged')
     setTableAccount(result.tableAccount);
 
     if (result.needsItemsStatusUpdate)
@@ -134,7 +135,7 @@ const MenuScreen = ({ navigation }) => {
     if (!tableAccountCustomerContext.state.tableAccount)
       orderModalRef.current.toggleVisible();
     else
-      navigation.navigate("ClientTableOrders", { tableAccount: tableAccountCustomerContext.state.tableAccount });
+      navigation.navigate("ClientTableOrders");
   };
 
 

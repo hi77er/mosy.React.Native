@@ -5,10 +5,21 @@ import { navigate } from '../navigationRef';
 import createDataContext from './createDataContext';
 import { authService } from '../services/authService';
 
+const defaultContextState = {
+  errorMessage: "",
+  accessToken: null,
+  refreshToken: null,
+  signinSuccess: false,
+  signupSuccess: false,
+};
+
 const authReducer = (state, action) => {
   let result = state;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'add_error':
       result = {
         ...state,
@@ -57,6 +68,12 @@ const authReducer = (state, action) => {
   }
 
   return result;
+};
+
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
 };
 
 const signin = (dispatch) => {
@@ -145,17 +162,12 @@ const handleSignin = async (dispatch, { email, password, signoutSuccess }) => {
 export const { Provider, Context } = createDataContext(
   authReducer,
   {
+    resetToDefault,
     signin,
     signoutUser,
     signup,
     signupClear,
     signinClear,
   },
-  {
-    errorMessage: "",
-    accessToken: null,
-    refreshToken: null,
-    signinSuccess: false,
-    signupSuccess: false,
-  },
+  defaultContextState,
 );

@@ -1,7 +1,12 @@
 import createDataContext from './createDataContext';
 import { venuesService } from '../services/venuesService';
 
-
+const defaultContextState = {
+  bundledClosestVenues: [],
+  unbundledClosestVenues: [],
+  isRefreshingClosestVenues: false,
+  hasMoreClosestVenueResults: true,
+};
 let currentState = null;
 
 const venuesReducer = (state, action) => {
@@ -9,6 +14,9 @@ const venuesReducer = (state, action) => {
   let unbundledClosestVenues = state.unbundledClosestVenues;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'clearVenues':
       currentState = { ...state, unbundledClosestVenues: [], bundledClosestVenues: [] };
       break;
@@ -214,6 +222,12 @@ const venuesReducer = (state, action) => {
   return currentState;
 }
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
+
 const clearVenues = (dispatch) => {
   return async () => {
     dispatch({ type: 'clearVenues' });
@@ -284,6 +298,7 @@ const loadIndoorImageContent = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   venuesReducer,
   {
+    resetToDefault,
     clearVenues,
     loadVenues,
     startRefreshingClosestVenues,
@@ -292,10 +307,5 @@ export const { Provider, Context } = createDataContext(
     loadOutdoorImageContent,
     loadIndoorImageContent,
   },
-  {
-    bundledClosestVenues: [],
-    unbundledClosestVenues: [],
-    isRefreshingClosestVenues: false,
-    hasMoreClosestVenueResults: true,
-  },
+  defaultContextState,
 );

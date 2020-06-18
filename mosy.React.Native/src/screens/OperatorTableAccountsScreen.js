@@ -27,16 +27,10 @@ const OperatorTableAccountsScreen = ({ navigation }) => {
     setTableAccountsLoading(false);
   };
 
-  const handleTableAccountApproval = (tableAccountId) => {
+  const handleSetAccountIdle = (tableAccountId) => {
     setItemsUnderApprovalIds([...itemsUnderApprovalIds, tableAccountId]);
     const username = userContext.state.user.username;
     venueHostService.invokeUpdateTableAccountStatus({ tableAccountId, newStatus: 3, updaterUsername: username });
-  };
-
-  const handleNeedsAttention = (tableAccountId) => {
-    setItemsUnderApprovalIds([...itemsUnderApprovalIds, tableAccountId]);
-    const username = userContext.state.user.username;
-    // venueHostService.invokeUpdateTableAccountStatus({ tableAccountId, newStatus: 3, updaterUsername: username });
   };
 
   // ACCOUNTS HUB
@@ -122,53 +116,17 @@ const OperatorTableAccountsScreen = ({ navigation }) => {
                             }
                           </View>
                           {
-                            item.status == 2
+                            item.status == 2 || item.status == 5 || item.status == 6
                               ? (
                                 <View style={{ marginHorizontal: 6, flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
                                   <TouchableOpacity
-                                    style={{ width: 90, borderRadius: 20, backgroundColor: `#${item.id.substring(0, 6)}88`, padding: 10 }}
-                                    onPress={() => handleTableAccountApproval(item.id)}
+                                    style={{ width: 90, borderRadius: 20, backgroundColor: `#FFFFFF88`, padding: 10 }}
+                                    onPress={() => handleSetAccountIdle(item.id)}
                                     disabled={itemsUnderApprovalIds.filter(x => x == item.id).length > 0}>
                                     {
                                       itemsUnderApprovalIds.filter(x => x == item.id).length
-                                        ? <ActivityIndicator size="small" color="white" animating={true} />
-                                        : <Text style={{ color: 'white', fontSize: 18 }}>Approve</Text>
-                                    }
-                                  </TouchableOpacity>
-                                </View>
-                              )
-                              : null
-                          }
-                          {
-                            item.status == 5
-                              ? (
-                                <View style={{ marginHorizontal: 6, flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                  <TouchableOpacity
-                                    style={{ width: 90, borderRadius: 20, backgroundColor: `#${item.id.substring(0, 6)}88`, padding: 10 }}
-                                    onPress={() => handleNeedsAttention(item.id)}
-                                    disabled={itemsUnderApprovalIds.filter(x => x == item.id).length > 0}>
-                                    {
-                                      itemsUnderApprovalIds.filter(x => x == item.id).length
-                                        ? <ActivityIndicator size="small" color="white" animating={true} />
-                                        : <Text style={{ color: 'white', fontSize: 18, textAlign: 'center' }}>OK</Text>
-                                    }
-                                  </TouchableOpacity>
-                                </View>
-                              )
-                              : null
-                          }
-                          {
-                            item.status == 6
-                              ? (
-                                <View style={{ marginHorizontal: 6, flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                                  <TouchableOpacity
-                                    style={{ width: 90, borderRadius: 20, backgroundColor: `#${item.id.substring(0, 6)}88`, padding: 10 }}
-                                    onPress={() => handleNeedsAttention(item.id)}
-                                    disabled={itemsUnderApprovalIds.filter(x => x == item.id).length > 0}>
-                                    {
-                                      itemsUnderApprovalIds.filter(x => x == item.id).length
-                                        ? <ActivityIndicator size="small" color="white" animating={true} />
-                                        : <Text style={{ color: 'white', fontSize: 18, textAlign: 'center' }}>OK</Text>
+                                        ? <ActivityIndicator size="small" color={"white"} animating={true} />
+                                        : <Text style={{ color: 'white', fontSize: 18, textAlign: 'center' }}>{item.status == 2 ? "Approve" : "OK"}</Text>
                                     }
                                   </TouchableOpacity>
                                 </View>

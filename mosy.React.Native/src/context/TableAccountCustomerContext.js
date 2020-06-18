@@ -6,10 +6,19 @@ import createDataContext from './createDataContext';
 import { tableAccountsService } from '../services/tableAccountsService';
 import { venueTablesService } from '../services/venueTablesService';
 
+const defaultContextState = {
+  newlySelectedTable: null,
+  newlySelectedItems: [],
+  tableAccount: null,
+};
+
 const tableAccountCustomerReducer = (state, action) => {
   let result = state;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'setSelectedTable':
       result = { ...state, newlySelectedTable: action.payload, };
       break;
@@ -89,6 +98,12 @@ const tableAccountCustomerReducer = (state, action) => {
   return result;
 };
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
+
 const setSelectedTable = (dispatch) => {
   return async (selectedTable) => {
     dispatch({ type: 'setSelectedTable', payload: selectedTable });
@@ -144,6 +159,7 @@ const loadAccount = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   tableAccountCustomerReducer,
   {
+    resetToDefault,
     setSelectedTable,
     setTableAccount,
     addNewOrderItem,
@@ -153,9 +169,5 @@ export const { Provider, Context } = createDataContext(
     loadOrders,
     loadAccount,
   },
-  {
-    newlySelectedTable: null,
-    newlySelectedItems: [],
-    tableAccount: null,
-  },
+  defaultContextState,
 );

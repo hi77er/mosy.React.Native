@@ -12,10 +12,12 @@ import Spacer from '../components/Spacer';
 
 
 const ClientTableOrdersScreen = ({ navigation }) => {
-  const tableAccount = navigation.state.params.tableAccount;
   const userContext = useContext(UserContext);
   const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
   const { loadOrders, setOrderItem } = tableAccountCustomerContext;
+
+  const tableAccount = tableAccountCustomerContext.state.tableAccount;
+
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [askingToPay, setAskingToPay] = useState(false);
   const [requiringAttention, setRequiringAttention] = useState(false);
@@ -26,16 +28,17 @@ const ClientTableOrdersScreen = ({ navigation }) => {
     setOrdersLoading(false);
   };
 
-  const handleAskToPay = async () => {
-    setAskingToPay(true);
-    // await loadOrders(tableAccount.id).catch(e => console.log(e.response));
-    setAskingToPay(false);
+  const handleRequireAttention = async () => {
+    // setRequiringAttention(true);
+    let updaterUsername = userContext && userContext.state && userContext.state.user && userContext.state.user ? userContext.state.user.username : null;
+    accountOpenerService
+      .invokeUpdateTableAccountStatus({ tableAccountId: tableAccount.id, newStatus: 5, updaterUsername });
   };
 
-  const handleRequireAttention = async () => {
-    setRequiringAttention(true);
-    // await loadOrders(tableAccount.id).catch(e => console.log(e.response));
-    setRequiringAttention(false);
+  const handleAskToPay = async () => {
+    // setAskingToPay(true);
+    let updaterUsername = userContext && userContext.state && userContext.state.user && userContext.state.user ? userContext.state.user.username : null;
+    accountOpenerService.invokeUpdateTableAccountStatus({ tableAccountId: tableAccount.id, newStatus: 6, updaterUsername });
   };
 
   // ORDERS HUB
@@ -47,7 +50,7 @@ const ClientTableOrdersScreen = ({ navigation }) => {
     const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
     ordersHubConnection.on('OrderItemStatusChanged', handleOrderItemStatusChanged);
 
-    accountOpenerService.invokeOrdersHubConnectedAsAccountOpener();
+    accountOpenerService.invokeOrdersHubConnectedAsAccountOpener(tableAccount.id);
   };
 
   useEffect(() => {
@@ -55,6 +58,7 @@ const ClientTableOrdersScreen = ({ navigation }) => {
       await handleLoadOrders();
 
       handleOrdersHubSubscriptions();
+      // handleAccountsHubSubscriptions();
     }
     init();
   }, []);

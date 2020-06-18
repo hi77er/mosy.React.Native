@@ -6,7 +6,7 @@ import { hubsConnectivityService } from '../websockets/hubsConnectivityService';
 const invokeAccountsHubConnectedAsAccountOpener = (accountId) => {
   const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
   try {
-    accountsHubConnection.invoke("ConnectAsAccountOpener", accountId);
+    accountsHubConnection.invoke("ConnectAsAccountOpener", accountId || null);
   } catch (err) {
     console.log("Errors invoking SignalR method.");
   }
@@ -15,7 +15,7 @@ const invokeAccountsHubConnectedAsAccountOpener = (accountId) => {
 const invokeOrdersHubConnectedAsAccountOpener = (accountId) => {
   const ordersHubConnection = hubsConnectivityService.getOrdersHubConnection();
   try {
-    ordersHubConnection.invoke("ConnectAsAccountOpener", accountId);
+    ordersHubConnection.invoke("ConnectAsAccountOpener", accountId || null);
   } catch (err) {
     console.log("Errors invoking SignalR method.");
   }
@@ -59,6 +59,19 @@ const invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged = (tableAccou
   }
 }
 
+const invokeUpdateTableAccountStatus = (bindingModel) => {
+  // bindingModel: {tableAccountId: "", newStatus: 0, updaterUsername: "" }
+  // console.log("invokeUpdateTableAccountStatus");
+  const accountsHubConnection = hubsConnectivityService.getAccountsHubConnection();
+  try {
+    accountsHubConnection
+      .invoke("UpdateTableAccountStatus", bindingModel)
+      .catch((err) => { console.log(err); console.log(err.message); });
+  } catch (err) {
+    console.log("Errors invoking SignalR method.");
+  }
+}
+
 
 export const accountOpenerService = {
   invokeAccountsHubConnectedAsAccountOpener,
@@ -66,4 +79,5 @@ export const accountOpenerService = {
   invokeCreateTableAccountRequest,
   invokeCreateOrderRequest,
   invokeUpdateOrderRequestablesStatusAfterAccountStatusChanged,
+  invokeUpdateTableAccountStatus,
 };

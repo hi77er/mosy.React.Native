@@ -6,10 +6,19 @@ import createDataContext from './createDataContext';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 
+const defaultContextState = {
+  user: null,
+  selectedOperationalVenue: null,
+  tableAccountsOperatorVenuesCount: 0,
+};
+
 const userReducer = (state, action) => {
   let result = state;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'clearUser':
       result = { ...state, user: null, };
       break;
@@ -60,6 +69,12 @@ const userReducer = (state, action) => {
   return result;
 };
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
+
 const clearUser = (dispatch) => {
   return async () => {
     dispatch({ type: 'clearUser' });
@@ -92,14 +107,11 @@ const setOperationalVenue = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   userReducer,
   {
+    resetToDefault,
     clearUser,
     loadUser,
     loadUserImageContent,
     setOperationalVenue,
   },
-  {
-    user: null,
-    selectedOperationalVenue: null,
-    tableAccountsOperatorVenuesCount: 0,
-  },
+  defaultContextState,
 );

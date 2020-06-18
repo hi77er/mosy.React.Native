@@ -5,7 +5,12 @@ import { Button } from 'react-native-elements';
 import RNPickerSelect from 'react-native-picker-select';
 
 import { Context as AuthContext } from '../context/AuthContext';
+import { Context as DishesContext } from '../context/DishesContext';
+import { Context as FiltersContext } from '../context/FiltersContext';
+import { Context as TableAccountCustomerContext } from '../context/TableAccountCustomerContext';
+import { Context as TableAccountOperatorContext } from '../context/TableAccountOperatorContext';
 import { Context as UserContext } from '../context/UserContext';
+import { Context as VenuesContext } from '../context/VenuesContext';
 import { authService } from '../services/authService';
 import { hubsConnectivityService } from '../services/websockets/hubsConnectivityService';
 import backgroundImage from '../../assets/img/login/login_background.jpg';
@@ -15,8 +20,13 @@ import logo from '../../assets/img/logo_no_background.png';
 const ProfileScreen = ({ navigation }) => {
   const authContext = useContext(AuthContext);
   const { signoutUser } = authContext;
+  const dishesContext = useContext(DishesContext);
+  const filtersContext = useContext(FiltersContext);
+  const tableAccountCustomerContext = useContext(TableAccountCustomerContext);
+  const tableAccountOperatorContext = useContext(TableAccountOperatorContext);
   const userContext = useContext(UserContext);
   const { clearUser, loadUserImageContent, setOperationalVenue } = userContext;
+  const venuesContext = useContext(VenuesContext);
 
   const [isSignOutLoading, setIsSignOutLoading] = useState("");
 
@@ -43,6 +53,13 @@ const ProfileScreen = ({ navigation }) => {
     setIsSignOutLoading(true);
     hubsConnectivityService.stopAllConnections();
     await signoutUser();
+    authContext.resetToDefault();
+    dishesContext.resetToDefault();
+    filtersContext.resetToDefault();
+    tableAccountCustomerContext.resetToDefault();
+    tableAccountOperatorContext.resetToDefault();
+    userContext.resetToDefault();
+    venuesContext.resetToDefault();
   };
 
   const getVenuesToSelect = () => {

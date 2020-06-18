@@ -2,10 +2,27 @@ import createDataContext from './createDataContext';
 import { filterService } from '../services/filterService';
 import { filtersHelper } from '../helpers/filtersHelper';
 
+const defaultContextState = {
+  filters: [],
+  selectedFilters: [],
+  showClosedVenues: false,
+  showClosedDishes: false,
+  showNotRecommendedDishes: false,
+  venuesSearchQuery: "",
+  dishesSearchQuery: "",
+
+  areDefaultDishFilters: true,
+  areDefaultVenueFilters: true,
+  filtersChanged: false,
+};
+
 const filtersReducer = (state, action) => {
   let newState = state;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'loadFilters':
       newState = {
         ...state,
@@ -128,6 +145,11 @@ const filtersReducer = (state, action) => {
 };
 
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
 
 const loadFilters = (dispatch) => {
   return async () => {
@@ -190,6 +212,7 @@ const setDishesSearchQuery = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   filtersReducer,
   {
+    resetToDefault,
     loadFilters,
     resetSelectedFilters,
     resetFiltersChanged,
@@ -200,17 +223,5 @@ export const { Provider, Context } = createDataContext(
     setVenuesSearchQuery,
     setDishesSearchQuery,
   },
-  {
-    filters: [],
-    selectedFilters: [],
-    showClosedVenues: false,
-    showClosedDishes: false,
-    showNotRecommendedDishes: false,
-    venuesSearchQuery: "",
-    dishesSearchQuery: "",
-
-    areDefaultDishFilters: true,
-    areDefaultVenueFilters: true,
-    filtersChanged: false,
-  },
+  defaultContextState,
 );

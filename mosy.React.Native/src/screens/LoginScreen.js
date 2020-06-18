@@ -124,7 +124,7 @@ const LoginScreen = ({ navigation }) => {
                 titleStyle={styles.loginButtonTitle}
                 buttonStyle={styles.loginButtonContainer} />
               : <Button
-                disabled={!(email && pass)}
+                // disabled={!(email && pass)}
                 title="Log in"
                 loadingProps={{ color: '#90002D' }}
                 onPress={handleSignIn}

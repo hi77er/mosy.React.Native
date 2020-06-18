@@ -1,7 +1,12 @@
 import createDataContext from './createDataContext';
 import { dishesService } from '../services/dishesService';
 
-
+const defaultContextState = {
+  bundledClosestDishes: [],
+  unbundledClosestDishes: [],
+  isRefreshingClosestDishes: false,
+  hasMoreClosestDishResults: true,
+};
 let currentState = null;
 
 const dishesReducer = (state, action) => {
@@ -9,6 +14,9 @@ const dishesReducer = (state, action) => {
   let unbundledClosestDishes = state.unbundledClosestDishes;
 
   switch (action.type) {
+    case 'resetToDefault':
+      result = defaultContextState;
+      break;
     case 'clearDishes':
       currentState = { ...state, unbundledClosestDishes: [], bundledClosestDishes: [] };
       break;
@@ -161,6 +169,12 @@ const dishesReducer = (state, action) => {
   return currentState;
 }
 
+const resetToDefault = (dispatch) => {
+  return async () => {
+    dispatch({ type: 'resetToDefault' });
+  };
+};
+
 const clearDishes = (dispatch) => {
   return async () => {
     dispatch({ type: 'clearDishes' });
@@ -206,15 +220,11 @@ const loadImageContent = (dispatch) => {
 export const { Provider, Context } = createDataContext(
   dishesReducer,
   {
+    resetToDefault,
     clearDishes,
     loadDishes,
     startRefreshingClosestDishes,
     loadImageContent,
   },
-  {
-    bundledClosestDishes: [],
-    unbundledClosestDishes: [],
-    isRefreshingClosestDishes: false,
-    hasMoreClosestDishResults: true,
-  },
+  defaultContextState,
 );
