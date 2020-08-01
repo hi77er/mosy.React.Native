@@ -12,8 +12,8 @@ const TabBarButton = ({ onPress, routeName, focused, accessibilityLabel }) => {
     venuesFlow: <EntypoIcon name="location" size={20} color="white" />, // <FontistoIcon name="shopping-store" size={20} color="white" />, 
     dishesFlow: <MaterialCommunityIcon name="food" size={26} color="white" />,
     operatorFlow: <FeatherIcon name="activity" size={20} color="white" />,
+    profileFlow: <MaterialIcon name="person" size={20} color="white" />,
     Login: <MaterialIcon name="lock-open" size={20} color="white" />,
-    Profile: <MaterialIcon name="person" size={20} color="white" />,
   };
 
 

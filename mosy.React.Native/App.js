@@ -25,6 +25,7 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import TabBarButton from './src/components/nav/bottom/TabBarButton';
 import VenueDetailsScreen from './src/screens/VenueDetailsScreen';
 import VenuesScreen from './src/screens/VenuesScreen';
+import FilterPreferencesScreen from './src/screens/FilterPreferencesScreen';
 
 
 
@@ -145,6 +146,28 @@ const operatorFlow = createStackNavigator(
   }
 );
 
+const profileFlow = createStackNavigator(
+  {
+    Profile: {
+      screen: ProfileScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    FilterPreferences: {
+      screen: FilterPreferencesScreen,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+  },
+  {
+    navigationOptions: {
+      tabBarLabel: "Profile",
+    },
+  }
+);
+
 const switchNavigator = createSwitchNavigator(
   {
     mainFlow: createBottomTabNavigator(
@@ -170,7 +193,7 @@ const switchNavigator = createSwitchNavigator(
       {
         dishesFlow,
         venuesFlow,
-        Profile: ProfileScreen,
+        profileFlow,
       },
       {
         initialRouteName: "dishesFlow",
@@ -190,7 +213,7 @@ const switchNavigator = createSwitchNavigator(
         dishesFlow,
         venuesFlow,
         operatorFlow,
-        Profile: ProfileScreen,
+        profileFlow,
       },
       {
         initialRouteName: "dishesFlow",

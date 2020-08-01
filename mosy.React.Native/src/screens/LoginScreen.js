@@ -15,6 +15,7 @@ import { hubsConnectivityService } from '../services/websockets/hubsConnectivity
 
 import backgroundImage from '../../assets/img/login/login_background.jpg';
 import logo from '../../assets/img/logo_no_background.png';
+import FilterPreferencesScreen from './FilterPreferencesScreen';
 
 const LoginScreen = ({ navigation }) => {
   const goBack = navigation.state.params ? navigation.state.params.goBack : undefined;
@@ -57,8 +58,20 @@ const LoginScreen = ({ navigation }) => {
 
       if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length && userContext.state.selectedOperationalVenue)
         navigation.navigate("mainOperatorFlow");
-      else
-        navigation.navigate("mainCustomerFlow");
+      else {
+        // get from user
+        let showFilterPreferenceScreen = true;
+        if (showFilterPreferenceScreen) {
+          navigation.navigate("mainCustomerFlow", {
+            screen: "profileFlow", params: {
+              screen: "FilterPreferences",
+            }
+          });
+        } else {
+          navigation.navigate("mainCustomerFlow");
+        }
+      }
+
 
       // if (goBack && (typeof goBack) == 'string') navigation.navigate(goBack);
       // else if (goBack && (typeof goBack) == 'boolean') navigation.goBack();
