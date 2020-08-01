@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { MOSY_WEBAPI_USER, MOSY_WEBAPI_PASS } from 'react-native-dotenv';
+import * as Splash from 'expo-splash-screen';
 
 import { Context as AuthContext } from '../context/AuthContext';
 import { Context as FiltersContext } from '../context/FiltersContext';
 import { Context as UserContext } from '../context/UserContext';
 
+import splashImage from '../../assets/splash.png';
 
 const SplashScreen = ({ onInitializationFinished }) => {
   const authContext = useContext(AuthContext);
@@ -17,11 +19,17 @@ const SplashScreen = ({ onInitializationFinished }) => {
   const { loadUser } = userContext;
 
   useEffect(() => {
+    // prevents the out-of-the-box expo splash screen from hiding while work is done.
+    Splash.preventAutoHideAsync();
+
     async function init() {
       await signin({ email: MOSY_WEBAPI_USER, password: MOSY_WEBAPI_PASS });
       await loadFilters();
 
+      // hides the SplashScreen screen component
       if (onInitializationFinished) onInitializationFinished();
+      // hides the out-of-the-box expo splash screen (image)
+      Splash.hideAsync();
     }
     init();
   }, []);
@@ -35,7 +43,7 @@ const SplashScreen = ({ onInitializationFinished }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>TreatSpark</Text>
+      <Image source={splashImage} />
     </View>
   );
 };
@@ -43,8 +51,8 @@ const SplashScreen = ({ onInitializationFinished }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    // alignItems: 'center',
+    // justifyContent: 'center',
     backgroundColor: '#90002D',
   },
   title: {

@@ -99,7 +99,6 @@ const loadUserImageContent = (dispatch) => {
 
 const setOperationalVenue = (dispatch) => {
   return async (venue) => {
-
     dispatch({ type: 'setOperationalVenue', payload: venue });
   };
 };
