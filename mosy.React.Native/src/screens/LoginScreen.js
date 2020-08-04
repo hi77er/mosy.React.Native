@@ -56,20 +56,17 @@ const LoginScreen = ({ navigation }) => {
       hubsConnectivityService.connectToOrdersHub();
 
 
-      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length && userContext.state.selectedOperationalVenue)
+      if (userContext.state.user.roles.filter(role => role.name == "TableAccountOperator").length && userContext.state.selectedOperationalVenue) {
+        let showFilterPreferenceScreen = true; // get from user settings
+
         navigation.navigate("mainOperatorFlow");
+        if (showFilterPreferenceScreen) navigation.navigate("FilterPreferences");
+      }
       else {
-        // get from user
-        let showFilterPreferenceScreen = true;
-        if (showFilterPreferenceScreen) {
-          navigation.navigate("mainCustomerFlow", {
-            screen: "profileFlow", params: {
-              screen: "FilterPreferences",
-            }
-          });
-        } else {
-          navigation.navigate("mainCustomerFlow");
-        }
+        let showFilterPreferenceScreen = true; // get from user settings
+
+        navigation.navigate("mainCustomerFlow");
+        if (showFilterPreferenceScreen) navigation.navigate("FilterPreferences");
       }
 
 

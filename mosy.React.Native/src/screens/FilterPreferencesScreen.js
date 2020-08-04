@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-navigation';
 import { StyleSheet, TouchableOpacity, Image, ImageBackground, View, Keyboard } from 'react-native';
 import { Button, Input, Text, withTheme } from 'react-native-elements';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MultiSelect from 'react-native-multiple-select';
 
 
 import { Context as AuthContext } from '../context/AuthContext';
@@ -15,23 +15,63 @@ import logo from '../../assets/img/logo_no_background.png';
 
 const FilterPreferencesScreen = ({ navigation }) => {
   const goBack = navigation.state.params ? navigation.state.params.goBack : undefined;
+  const [selectedItems, setSelectedItems] = useState([]);
 
- 
-  const [isLoading, setIsLoading] = useState("");
+  const onSelectedItemsChange = (selItems) => {
+    setSelectedItems(selItems);
+  };
+
+  const items = [{
+    id: '92iijs7yta',
+    name: 'Ondo'
+  }, {
+    id: 'a0s0a8ssbsd',
+    name: 'Ogun'
+  },
+  ]
+
 
 
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-        <View style={styles.loginForm}>
-          <Image width={100} height={100} source={logo} style={styles.logo} />
+        <View style={{ flex: 6, justifyContent: "center" }}>
+          <Text style={styles.headerText}>Tell us what you are into</Text>
+        </View>
+        <View style={{ flex: 8, paddingHorizontal: 40 }}>
+          <MultiSelect
+            select
+            items={items}
+            uniqueKey="id"
+            onSelectedItemsChange={onSelectedItemsChange}
+            selectedItems={selectedItems}
+            selectText="Pick preference"
+            searchInputPlaceholderText="Search perferences..."
+            onChangeInput={(text) => console.log(text)}
+            tagRemoveIconColor="#CCC"
+            tagBorderColor="#CCC"
+            tagTextColor="#CCC"
+            selectedItemTextColor="#CCC"
+            selectedItemIconColor="#CCC"
+            itemTextColor="#000"
+            displayKey="name"
+            searchInputStyle={{ color: '#CCC' }}
+            submitButtonColor="#CCC"
+            submitButtonText="Ok"
+          />
+        </View>
 
-         
-    
-         
-          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-            <Text style={styles.link}>Skip</Text>
-          </TouchableOpacity>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 45 }}>
+          <View style={{ flex: 1, alignItems: 'flex-start' }}>
+            <TouchableOpacity onPress={() => { navigation.goBack(); navigation.navigate("dishesFlow") }}>
+              <Text style={styles.link}>Skip</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <TouchableOpacity onPress={() => { }}>
+              <Text style={styles.linkBold}>Save</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ImageBackground>
     </SafeAreaView>
@@ -50,18 +90,20 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingBottom: 40
   },
-  logo: {
-    alignSelf: 'center',
-    marginBottom: 55,
-    width: 200,
-    height: 200,
+  headerText: {
+    alignSelf: "center",
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "white",
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  linkBold: {
+    color: "white",
+    fontWeight: 'bold',
   },
   link: {
     color: "white",
-    marginLeft: 15,
-    marginRight: 15,
-    marginTop: 15,
-    fontWeight: 'bold',
   },
   errorMessage: {
     fontSize: 13,
@@ -69,10 +111,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginLeft: 15,
     marginBottom: 30,
-  },
-  loginForm: {
-    marginLeft: 10,
-    marginRight: 10,
   },
   loginButtonContainer: {
     marginTop: 10,
